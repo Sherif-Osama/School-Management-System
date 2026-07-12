@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="../School.BLL/School.BLL.csproj" Id="d716efb9-c0fb-4c36-813a-650c6b1c576d" />
+  <Project Path="../School.DAL/School.DAL.csproj" Id="2d58204a-0126-407f-b2cf-5c76b3c2c56a" />
+  <Project Path="../School.DTO/School.DTO.csproj" Id="0ce55ba0-bfd6-4622-bb20-8ac3e2987c11" />
+  <Project Path="School.API.csproj" />
+</Solution>
