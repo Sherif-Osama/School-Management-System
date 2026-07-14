@@ -7,11 +7,13 @@ namespace School.BLL
     {
         private readonly StudentData _studentData;
         private readonly PersonData _personData;
+        private readonly ClassData _classData;
         //Add ClassData if needed for additional validation or operations
-        public StudentService(StudentData studentData, PersonData personData)
+        public StudentService(StudentData studentData, PersonData personData, ClassData classData)
         {
             _studentData = studentData;
             _personData = personData;
+            _classData = classData;
         }
 
         #region Helpers Methods
@@ -44,6 +46,13 @@ namespace School.BLL
             if (!await _personData.IsPersonExistAsync(personId))
                 throw new InvalidOperationException(
                     $"Person with ID {personId} does not exist.");
+        }
+
+        private async Task EnsureClassExistsAsync(int classId)
+        {
+            if (!await _classData.IsClassExistAsync(classId))
+                throw new InvalidOperationException(
+                    $"Class with ID {classId} does not exist.");
         }
 
         private async Task EnsurePersonIsNotStudentAsync(int personId, int? currentStudentId = null)
@@ -93,6 +102,8 @@ namespace School.BLL
 
             await EnsurePersonExistsAsync(student.PersonID);
 
+            await EnsureClassExistsAsync(student.ClassID);
+
             await EnsurePersonIsNotStudentAsync(student.PersonID);
 
             return await _studentData.AddStudentAsync(student);
@@ -108,7 +119,11 @@ namespace School.BLL
 
             await EnsurePersonExistsAsync(student.PersonID);
 
-            await EnsurePersonIsNotStudentAsync(student.PersonID, student.StudentID);
+            await EnsureClassExistsAsync(student.ClassID);
+
+            await EnsurePersonIsNotStudentAsync(
+                student.PersonID,
+                student.StudentID);
 
             return await _studentData.UpdateStudentAsync(student);
         }

@@ -20,6 +20,10 @@ namespace School.DAL
 
             services.AddScoped<GradeData>(_ => new GradeData(connectionString));
 
+            services.AddScoped<ClassData>(_ => new ClassData(connectionString));
+
+            services.AddScoped<TeacherSubjectData>(_ => new TeacherSubjectData(connectionString));
+
             return services;
         }
     }
