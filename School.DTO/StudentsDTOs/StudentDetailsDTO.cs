@@ -8,7 +8,13 @@
 
         public int ClassID { get; set; }
 
+        public byte GradeID { get; set; }
+
+        public required string GradeName { get; set; }
+
         public required string ClassName { get; set; }
+
+        public required string AcademicYear { get; set; }
 
         public DateTime EnrollmentDate { get; set; }
 
@@ -39,6 +45,8 @@
         public string? ImagePath { get; set; }
 
         public int CityID { get; set; }
+
+        public string ClassFullName => $"{GradeName} {ClassName}".Trim();
 
         public string FullName => $"{FirstName} {SecondName} {ThirdName} {LastName}".Trim();
 

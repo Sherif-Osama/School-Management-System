@@ -31,7 +31,13 @@ namespace School.DAL
 
                 ClassID = reader.GetInt32(reader.GetOrdinal("ClassID")),
 
+                GradeID = reader.GetByte(reader.GetOrdinal("GradeID")),
+
+                GradeName = reader.GetString(reader.GetOrdinal("GradeName")),
+
                 ClassName = reader.GetString(reader.GetOrdinal("ClassName")),
+
+                AcademicYear = reader.GetString(reader.GetOrdinal("AcademicYear")),
 
                 EnrollmentDate = reader.GetDateTime(reader.GetOrdinal("EnrollmentDate")),
 

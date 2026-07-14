@@ -14,6 +14,8 @@ namespace School.BLL
             services.AddScoped<TeacherService>();
             services.AddScoped<ParentService>();
             services.AddScoped<StudentParentService>();
+            services.AddScoped<SubjectService>();
+            services.AddScoped<GradeService>();
 
             return services;
         }

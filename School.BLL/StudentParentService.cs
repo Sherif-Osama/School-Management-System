@@ -76,7 +76,6 @@ namespace School.BLL
                 throw new ArgumentOutOfRangeException(nameof(studentId));
 
             await EnsureStudentExistsAsync(studentId);
-
             return await _studentParentData.GetParentsByStudentIdAsync(studentId);
         }
 
