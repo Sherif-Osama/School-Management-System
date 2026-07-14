@@ -1,4 +1,4 @@
-﻿namespace School.DTO.StudentParentDTOs
+﻿namespace School.DTO.AssociationsDTOs.StudentParentDTOs
 {
     public class StudentParentDetailsDTO
     {

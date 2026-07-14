@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using School.BLL;
-using School.DTO.TeacherSubjectDTOs;
+using School.DTO.AssociationsDTOs.TeacherSubjectDTOs;
 
 namespace School.API.Controllers
 {

@@ -1,5 +1,5 @@
 ﻿using School.DAL;
-using School.DTO.StudentParentDTOs;
+using School.DTO.AssociationsDTOs.StudentParentDTOs;
 
 namespace School.BLL
 {

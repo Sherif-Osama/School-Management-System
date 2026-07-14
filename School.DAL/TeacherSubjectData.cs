@@ -1,5 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
-using School.DTO.TeacherSubjectDTOs;
+using School.DTO.AssociationsDTOs.TeacherSubjectDTOs;
 using System.Data;
 
 namespace School.DAL
