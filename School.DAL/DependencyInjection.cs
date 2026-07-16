@@ -24,6 +24,12 @@ namespace School.DAL
 
             services.AddScoped<TeacherSubjectData>(_ => new TeacherSubjectData(connectionString));
 
+            services.AddScoped<ClassSubjectData>(_ => new ClassSubjectData(connectionString));
+
+            services.AddScoped<UserData>(_ => new UserData(connectionString));
+
+            services.AddScoped<ClassroomData>(_ => new ClassroomData(connectionString));
+
             return services;
         }
     }

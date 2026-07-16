@@ -36,6 +36,13 @@ namespace School.API.Middlewares
                     HttpStatusCode.Conflict,
                     ex.Message);
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                await HandleExceptionAsync(
+                    context,
+                    HttpStatusCode.Unauthorized,
+                    ex.Message);
+            }
             catch (Exception)
             {
                 await HandleExceptionAsync(

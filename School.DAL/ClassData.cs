@@ -172,6 +172,20 @@ namespace School.DAL
             return Convert.ToBoolean(await command.ExecuteScalarAsync());
         }
 
+        public async Task<bool> HasClassAvailableCapacityAsync(int classID)
+        {
+            using SqlConnection connection = await GetOpenConnectionAsync();
+
+            using SqlCommand command = new("SP_HasClassAvailableCapacity", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            command.Parameters.Add("@ClassID", SqlDbType.Int).Value = classID;
+
+            return Convert.ToBoolean(await command.ExecuteScalarAsync());
+        }
+
         #endregion
     }
 }

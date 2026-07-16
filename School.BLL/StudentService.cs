@@ -74,6 +74,12 @@ namespace School.BLL
                 throw new InvalidOperationException($"Student with ID {studentId} does not exist.");
         }
 
+        private async Task EnsureClassHasAvailableCapacityAsync(int classID)
+        {
+            if (!await _classData.HasClassAvailableCapacityAsync(classID))
+                throw new InvalidOperationException("The class has reached its maximum capacity.");
+        }
+
         #endregion
 
         #region Public Methods
@@ -105,6 +111,8 @@ namespace School.BLL
             await EnsureClassExistsAsync(student.ClassID);
 
             await EnsurePersonIsNotStudentAsync(student.PersonID);
+
+            await EnsureClassHasAvailableCapacityAsync(student.ClassID);
 
             return await _studentData.AddStudentAsync(student);
         }
