@@ -1,4 +1,4 @@
-﻿using School.DAL;
+﻿using School.DAL.Interfaces;
 using School.DTO.AssociationsDTOs.ClassSubjectDTOs;
 using School.DTO.AssociationsDTOs.TeacherSubjectDTOs;
 
@@ -6,13 +6,13 @@ namespace School.BLL
 {
     public class ClassSubjectService
     {
-        private readonly ClassSubjectData _classSubjectData;
-        private readonly ClassData _classData;
-        private readonly TeacherData _teacherData;
-        private readonly SubjectData _subjectData;
-        private readonly TeacherSubjectData _teacherSubjectData;
+        private readonly IClassSubjectData _classSubjectData;
+        private readonly IClassData _classData;
+        private readonly ITeacherData _teacherData;
+        private readonly ISubjectData _subjectData;
+        private readonly ITeacherSubjectData _teacherSubjectData;
 
-        public ClassSubjectService(ClassSubjectData classSubjectData, ClassData classData, TeacherData teacherData, SubjectData subjectData, TeacherSubjectData teacherSubjectData)
+        public ClassSubjectService(IClassSubjectData classSubjectData, IClassData classData, ITeacherData teacherData, ISubjectData subjectData, ITeacherSubjectData teacherSubjectData)
         {
             _classSubjectData = classSubjectData;
             _classData = classData;

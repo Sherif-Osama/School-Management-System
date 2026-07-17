@@ -1,21 +1,17 @@
-﻿using School.DAL;
+﻿using School.DAL.Interfaces;
 using School.DTO.AssociationsDTOs.ClassSubjectDTOs;
-using School.DTO.ScheduleDTOs.School.DTO.ScheduleDTOs;
+using School.DTO.ScheduleDTOs;
 
 namespace School.BLL
 {
     public class ScheduleService
     {
-        private readonly ScheduleData _scheduleData;
-        private readonly ClassSubjectData _classSubjectData;
-        private readonly ClassroomData _classroomData;
-        private readonly TeacherData _teacherData;
+        private readonly IScheduleData _scheduleData;
+        private readonly IClassSubjectData _classSubjectData;
+        private readonly IClassroomData _classroomData;
+        private readonly ITeacherData _teacherData;
 
-        public ScheduleService(
-            ScheduleData scheduleData,
-            ClassSubjectData classSubjectData,
-            ClassroomData classroomData,
-            TeacherData teacherData)
+        public ScheduleService(IScheduleData scheduleData, IClassSubjectData classSubjectData, IClassroomData classroomData, ITeacherData teacherData)
         {
             _scheduleData = scheduleData;
             _classSubjectData = classSubjectData;

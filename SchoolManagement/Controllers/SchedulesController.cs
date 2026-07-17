@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using School.BLL;
-using School.DTO.ScheduleDTOs.School.DTO.ScheduleDTOs;
+using School.DTO.ScheduleDTOs;
 
 namespace School.API.Controllers
 {

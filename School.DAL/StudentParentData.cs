@@ -1,11 +1,12 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
+using School.DAL.Interfaces;
 using School.DTO.AssociationsDTOs.StudentParentDTOs;
 using System.Data;
 namespace School.DAL
 {
-    public class StudentParentData : BaseData
+    public class StudentParentData : BaseData, IStudentParentData
     {
 
         public StudentParentData(IConfiguration configuration) : base(configuration) { }

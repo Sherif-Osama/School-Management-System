@@ -1,13 +1,13 @@
-﻿using School.DAL;
+﻿using School.DAL.Interfaces;
 using School.DTO.GradesDTOs;
 
 namespace School.BLL
 {
     public class GradeService
     {
-        private readonly GradeData _gradeData;
+        private readonly IGradeData _gradeData;
 
-        public GradeService(GradeData gradeData)
+        public GradeService(IGradeData gradeData)
         {
             _gradeData = gradeData;
         }

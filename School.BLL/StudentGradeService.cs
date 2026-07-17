@@ -1,4 +1,4 @@
-﻿using School.DAL;
+﻿using School.DAL.Interfaces;
 using School.DTO.ExamDTOs;
 using School.DTO.StudentGradeDetailsDTOs;
 using School.DTO.StudentGradeDTOs;
@@ -8,14 +8,11 @@ namespace School.BLL
 {
     public class StudentGradeService
     {
-        private readonly StudentGradeData _studentGradeData;
-        private readonly StudentData _studentData;
-        private readonly ExamData _examData;
+        private readonly IStudentGradeData _studentGradeData;
+        private readonly IStudentData _studentData;
+        private readonly IExamData _examData;
 
-        public StudentGradeService(
-            StudentGradeData studentGradeData,
-            StudentData studentData,
-            ExamData examData)
+        public StudentGradeService(IStudentGradeData studentGradeData, IStudentData studentData, IExamData examData)
         {
             _studentGradeData = studentGradeData;
             _studentData = studentData;

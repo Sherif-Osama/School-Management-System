@@ -1,13 +1,13 @@
-﻿using School.DAL;
+﻿using School.DAL.Interfaces;
 using School.DTO.AttendanceStatusDTOs;
 
 namespace School.BLL
 {
     public class AttendanceStatusService
     {
-        private readonly AttendanceStatusData _attendanceStatusData;
+        private readonly IAttendanceStatusData _attendanceStatusData;
 
-        public AttendanceStatusService(AttendanceStatusData attendanceStatusData)
+        public AttendanceStatusService(IAttendanceStatusData attendanceStatusData)
         {
             _attendanceStatusData = attendanceStatusData;
         }

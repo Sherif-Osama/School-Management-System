@@ -1,11 +1,12 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
+using School.DAL.Interfaces;
 using School.DTO.StudentStatusDTOs;
 using System.Data;
 namespace School.DAL
 {
-    public class StudentStatusData : BaseData
+    public class StudentStatusData : BaseData, IStudentStatusData
     {
         public StudentStatusData(IConfiguration connectionString) : base(connectionString) { }
         #region Helper Methods

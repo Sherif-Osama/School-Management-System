@@ -1,4 +1,4 @@
-﻿using School.DAL;
+﻿using School.DAL.Interfaces;
 using School.DTO.AssociationsDTOs.ClassSubjectDTOs;
 using School.DTO.ExamDTOs;
 
@@ -6,17 +6,17 @@ namespace School.BLL
 {
     public class ExamService
     {
-        private readonly ExamData _examData;
-        private readonly ClassSubjectData _classSubjectData;
-        private readonly ExamTypeData _examTypeData;
-        private readonly ClassData _classData;
+        private readonly IExamData _examData;
+        private readonly IClassSubjectData _classSubjectData;
+        private readonly IExamTypeData _examTypeData;
+        private readonly IClassData _classData;
 
         private const decimal MinTotalMarks = 1;
         private const decimal MaxTotalMarks = 1000;
 
         private static readonly DateOnly MinExamDate = new(2000, 1, 1);
 
-        public ExamService(ExamData examData, ClassSubjectData classSubjectData, ExamTypeData examTypeData, ClassData classData)
+        public ExamService(IExamData examData, IClassSubjectData classSubjectData, IExamTypeData examTypeData, IClassData classData)
         {
             _examData = examData;
             _classSubjectData = classSubjectData;

@@ -1,12 +1,13 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
+using School.DAL.Interfaces;
 using School.DTO.PersonDTOs;
 using System.Data;
 namespace School.DAL
 {
 
-    public class PersonData : BaseData
+    public class PersonData : BaseData, IPersonData
     {
         public PersonData(IConfiguration configuration) : base(configuration) { }
 

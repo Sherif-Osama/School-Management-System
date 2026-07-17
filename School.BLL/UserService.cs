@@ -1,15 +1,14 @@
-﻿using School.DAL;
+﻿using School.DAL.Interfaces;
 using School.DTO.UserDTOs;
-using School.DTO.UserDTOs.School.DTO.UserDTOs;
 
 namespace School.BLL
 {
     public class UserService
     {
-        private readonly UserData _userData;
-        private readonly PersonData _personData;
+        private readonly IUserData _userData;
+        private readonly IPersonData _personData;
 
-        public UserService(UserData userData, PersonData personData)
+        public UserService(IUserData userData, IPersonData personData)
         {
             _userData = userData;
             _personData = personData;

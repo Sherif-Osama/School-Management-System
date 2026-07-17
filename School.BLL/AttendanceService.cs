@@ -1,4 +1,4 @@
-﻿using School.DAL;
+﻿using School.DAL.Interfaces;
 using School.DTO.AttendanceDTOs;
 using School.DTO.StudentsDTOs;
 
@@ -6,14 +6,17 @@ namespace School.BLL
 {
     public class AttendanceService
     {
-        private readonly AttendanceData _attendanceData;
-        private readonly StudentData _studentData;
-        private readonly ClassData _classData;
-        private readonly AttendanceStatusData _attendanceStatusData;
+        private readonly IAttendanceData _attendanceData;
+        private readonly IStudentData _studentData;
+        private readonly IClassData _classData;
+        private readonly IAttendanceStatusData _attendanceStatusData;
 
-        public AttendanceService(AttendanceData attendanceData, StudentData studentData, ClassData classData, AttendanceStatusData attendanceStatusData)
+        public AttendanceService(IAttendanceData attendanceData, IStudentData studentData, IClassData classData, IAttendanceStatusData attendanceStatusData)
         {
-            _attendanceData = attendanceData; _studentData = studentData; _classData = classData; _attendanceStatusData = attendanceStatusData;
+            _attendanceData = attendanceData;
+            _studentData = studentData;
+            _classData = classData;
+            _attendanceStatusData = attendanceStatusData;
         }
 
         #region Validation

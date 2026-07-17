@@ -1,4 +1,4 @@
-﻿using School.DAL;
+﻿using School.DAL.Interfaces;
 using School.DTO.ClassesDTOs;
 using System.Text.RegularExpressions;
 
@@ -6,10 +6,10 @@ namespace School.BLL
 {
     public class ClassService
     {
-        private readonly ClassData _classData;
-        private readonly GradeData _gradeData;
+        private readonly IClassData _classData;
+        private readonly IGradeData _gradeData;
 
-        public ClassService(ClassData classData, GradeData gradeData)
+        public ClassService(IClassData classData, IGradeData gradeData)
         {
             _classData = classData;
             _gradeData = gradeData;

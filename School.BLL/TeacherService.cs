@@ -1,14 +1,14 @@
-﻿using School.DAL;
+﻿using School.DAL.Interfaces;
 using School.DTO.TeachersDTOs;
 
 namespace School.BLL
 {
     public class TeacherService
     {
-        private readonly TeacherData _teacherData;
-        private readonly PersonData _personData;
-        private readonly StudentData _studentData;
-        public TeacherService(TeacherData teacherData, PersonData personData, StudentData studentData)
+        private readonly ITeacherData _teacherData;
+        private readonly IPersonData _personData;
+        private readonly IStudentData _studentData;
+        public TeacherService(ITeacherData teacherData, IPersonData personData, IStudentData studentData)
         {
             _studentData = studentData;
             _teacherData = teacherData;

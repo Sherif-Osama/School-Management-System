@@ -2,11 +2,12 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
+using School.DAL.Interfaces;
 using School.DTO.UserDTOs;
 using System.Data;
 namespace School.DAL
 {
-    public class UserData : BaseData
+    public class UserData : BaseData, IUserData
     {
         public UserData(IConfiguration configuration) : base(configuration) { }
 

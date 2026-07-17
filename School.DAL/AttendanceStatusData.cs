@@ -1,11 +1,12 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
+using School.DAL.Interfaces;
 using School.DTO.AttendanceStatusDTOs;
 using System.Data;
 namespace School.DAL
 {
-    public class AttendanceStatusData : BaseData
+    public class AttendanceStatusData : BaseData, IAttendanceStatusData
     {
         public AttendanceStatusData(IConfiguration configuration) : base(configuration) { }
         #region Helper Methods

@@ -1,15 +1,15 @@
-﻿using School.DAL;
+﻿using School.DAL.Interfaces;
 using School.DTO.StudentsDTOs;
 
 namespace School.BLL
 {
     public class StudentService
     {
-        private readonly StudentData _studentData;
-        private readonly PersonData _personData;
-        private readonly ClassData _classData;
+        private readonly IStudentData _studentData;
+        private readonly IPersonData _personData;
+        private readonly IClassData _classData;
         //Add ClassData if needed for additional validation or operations
-        public StudentService(StudentData studentData, PersonData personData, ClassData classData)
+        public StudentService(IStudentData studentData, IPersonData personData, IClassData classData)
         {
             _studentData = studentData;
             _personData = personData;

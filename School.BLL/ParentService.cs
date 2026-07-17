@@ -1,15 +1,15 @@
-﻿using School.DAL;
+﻿using School.DAL.Interfaces;
 using School.DTO.ParentsDTOs;
 
 namespace School.BLL
 {
     public class ParentService
     {
-        private readonly ParentData _parentData;
-        private readonly PersonData _personData;
-        private readonly StudentData _studentData;
+        private readonly IParentData _parentData;
+        private readonly IPersonData _personData;
+        private readonly IStudentData _studentData;
 
-        public ParentService(ParentData parentData, PersonData personData, StudentData studentData)
+        public ParentService(IParentData parentData, IPersonData personData, IStudentData studentData)
         {
             _parentData = parentData;
             _personData = personData;

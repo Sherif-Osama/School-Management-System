@@ -1,13 +1,13 @@
-﻿using School.DAL;
+﻿using School.DAL.Interfaces;
 using School.DTO.ExamTypeDTOs;
 
 namespace School.BLL
 {
     public class ExamTypeService
     {
-        private readonly ExamTypeData _examTypeData;
+        private readonly IExamTypeData _examTypeData;
 
-        public ExamTypeService(ExamTypeData examTypeData)
+        public ExamTypeService(IExamTypeData examTypeData)
         {
             _examTypeData = examTypeData;
         }

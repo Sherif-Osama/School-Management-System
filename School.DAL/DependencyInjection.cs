@@ -1,48 +1,48 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-
+using School.DAL.Interfaces;
 namespace School.DAL
 {
     public static class DependencyInjection
     {
         public static IServiceCollection AddDAL(this IServiceCollection services)
         {
-            services.AddScoped<PersonData>();
+            services.AddScoped<IPersonData, PersonData>();
 
-            services.AddScoped<StudentData>();
+            services.AddScoped<IStudentData, StudentData>();
             ;
-            services.AddScoped<TeacherData>();
+            services.AddScoped<ITeacherData, TeacherData>();
 
-            services.AddScoped<ParentData>();
+            services.AddScoped<IParentData, ParentData>();
 
-            services.AddScoped<StudentParentData>();
+            services.AddScoped<IStudentParentData, StudentParentData>();
 
-            services.AddScoped<SubjectData>();
+            services.AddScoped<ISubjectData, SubjectData>();
 
-            services.AddScoped<GradeData>();
+            services.AddScoped<IGradeData, GradeData>();
 
-            services.AddScoped<ClassData>();
+            services.AddScoped<IClassData, ClassData>();
 
-            services.AddScoped<TeacherSubjectData>();
+            services.AddScoped<ITeacherSubjectData, TeacherSubjectData>();
 
-            services.AddScoped<ClassSubjectData>();
+            services.AddScoped<IClassSubjectData, ClassSubjectData>();
 
-            services.AddScoped<UserData>();
+            services.AddScoped<IUserData, UserData>();
 
-            services.AddScoped<ClassroomData>();
+            services.AddScoped<IClassroomData, ClassroomData>();
 
-            services.AddScoped<ScheduleData>();
+            services.AddScoped<IScheduleData, ScheduleData>();
 
-            services.AddScoped<ExamData>();
+            services.AddScoped<IExamData, ExamData>();
 
-            services.AddScoped<ExamTypeData>();
+            services.AddScoped<IExamTypeData, ExamTypeData>();
 
-            services.AddScoped<StudentStatusData>();
+            services.AddScoped<IStudentStatusData, StudentStatusData>();
 
-            services.AddScoped<AttendanceStatusData>();
+            services.AddScoped<IAttendanceStatusData, AttendanceStatusData>();
 
-            services.AddScoped<AttendanceData>();
+            services.AddScoped<IAttendanceData, AttendanceData>();
 
-            services.AddScoped<StudentGradeData>();
+            services.AddScoped<IStudentGradeData, StudentGradeData>();
 
             return services;
         }

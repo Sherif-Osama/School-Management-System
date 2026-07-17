@@ -1,13 +1,13 @@
-﻿using School.DAL;
+﻿using School.DAL.Interfaces;
 using School.DTO.SubjectDTO;
 
 namespace School.BLL
 {
     public class SubjectService
     {
-        private readonly SubjectData _subjectData;
+        private readonly ISubjectData _subjectData;
 
-        public SubjectService(SubjectData subjectData)
+        public SubjectService(ISubjectData subjectData)
         {
             _subjectData = subjectData;
         }

@@ -1,12 +1,13 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
+using School.DAL.Interfaces;
 using School.DTO.ExamTypeDTOs;
 using System.Data;
 
 namespace School.DAL
 {
-    public class ExamTypeData : BaseData
+    public class ExamTypeData : BaseData, IExamTypeData
     {
         public ExamTypeData(IConfiguration configuration) : base(configuration) { }
 

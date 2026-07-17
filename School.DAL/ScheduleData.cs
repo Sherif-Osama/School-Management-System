@@ -1,11 +1,12 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
-using School.DTO.ScheduleDTOs.School.DTO.ScheduleDTOs;
+using School.DAL.Interfaces;
+using School.DTO.ScheduleDTOs;
 using System.Data;
 namespace School.DAL
 {
-    public class ScheduleData : BaseData
+    public class ScheduleData : BaseData, IScheduleData
     {
 
         public ScheduleData(IConfiguration configuration) : base(configuration) { }
