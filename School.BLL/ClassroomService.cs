@@ -75,7 +75,7 @@ namespace School.BLL
             if (currentClassroomId.HasValue && classroom.ClassroomID == currentClassroomId.Value)
                 return;
 
-            throw new InvalidOperationException("Room name already exists.", );
+            throw new InvalidOperationException($"Room with name {roomName} already exists.");
         }
 
         #endregion

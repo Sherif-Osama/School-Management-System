@@ -30,6 +30,20 @@ namespace School.DAL
 
             services.AddScoped<ClassroomData>(_ => new ClassroomData(connectionString));
 
+            services.AddScoped<ScheduleData>(_ => new ScheduleData(connectionString));
+
+            services.AddScoped<ExamData>(_ => new ExamData(connectionString));
+
+            services.AddScoped<ExamTypeData>(_ => new ExamTypeData(connectionString));
+
+            services.AddScoped<StudentStatusData>(_ => new StudentStatusData(connectionString));
+
+            services.AddScoped<AttendanceStatusData>(_ => new AttendanceStatusData(connectionString));
+
+            services.AddScoped<AttendanceData>(_ => new AttendanceData(connectionString));
+
+            services.AddScoped<StudentGradeData>(_ => new StudentGradeData(connectionString));
+
             return services;
         }
     }

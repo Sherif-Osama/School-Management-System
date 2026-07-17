@@ -16,7 +16,7 @@
 
             public required string AcademicYear { get; set; }
 
-            public byte SubjectID { get; set; }
+            public int SubjectID { get; set; }
 
             public required string SubjectName { get; set; }
 

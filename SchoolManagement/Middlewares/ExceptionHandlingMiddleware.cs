@@ -45,6 +45,7 @@ namespace School.API.Middlewares
             }
             catch (Exception)
             {
+                throw;
                 await HandleExceptionAsync(
                     context,
                     HttpStatusCode.InternalServerError,

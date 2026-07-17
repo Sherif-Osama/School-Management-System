@@ -21,6 +21,13 @@ namespace School.BLL
             services.AddScoped<ClassSubjectService>();
             services.AddScoped<UserService>();
             services.AddScoped<ClassroomService>();
+            services.AddScoped<ScheduleService>();
+            services.AddScoped<ExamService>();
+            services.AddScoped<ExamTypeService>();
+            services.AddScoped<StudentStatusService>();
+            services.AddScoped<AttendanceStatusService>();
+            services.AddScoped<AttendanceService>();
+            services.AddScoped<StudentGradeService>();
 
             return services;
         }
