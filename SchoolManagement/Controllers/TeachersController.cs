@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using School.BLL;
+using School.BLL.Interfaces;
 using School.DTO.TeachersDTOs;
 
 namespace School.API.Controllers
@@ -8,9 +8,9 @@ namespace School.API.Controllers
     [ApiController]
     public class TeachersController : ControllerBase
     {
-        private readonly TeacherService _teacherService;
+        private readonly ITeacherService _teacherService;
 
-        public TeachersController(TeacherService teacherService)
+        public TeachersController(ITeacherService teacherService)
         {
             _teacherService = teacherService;
         }

@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using School.BLL;
+using School.BLL.Interfaces;
 using School.DTO.AssociationsDTOs.TeacherSubjectDTOs;
 
 namespace School.API.Controllers
@@ -8,10 +8,9 @@ namespace School.API.Controllers
     [ApiController]
     public class TeacherSubjectsController : ControllerBase
     {
-        private readonly TeacherSubjectService _teacherSubjectService;
+        private readonly ITeacherSubjectService _teacherSubjectService;
 
-        public TeacherSubjectsController(
-            TeacherSubjectService teacherSubjectService)
+        public TeacherSubjectsController(ITeacherSubjectService teacherSubjectService)
         {
             _teacherSubjectService = teacherSubjectService;
         }

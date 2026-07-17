@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using School.BLL;
+using School.BLL.Interfaces;
 using School.DTO.ExamDTOs;
 
 namespace School.API.Controllers
@@ -8,9 +8,9 @@ namespace School.API.Controllers
     [ApiController]
     public class ExamsController : ControllerBase
     {
-        private readonly ExamService _examService;
+        private readonly IExamService _examService;
 
-        public ExamsController(ExamService examService)
+        public ExamsController(IExamService examService)
         {
             _examService = examService;
         }

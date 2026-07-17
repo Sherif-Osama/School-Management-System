@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using School.BLL;
+using School.BLL.Interfaces;
 using School.DTO.ParentsDTOs;
 
 namespace School.API.Controllers
@@ -8,9 +8,9 @@ namespace School.API.Controllers
     [ApiController]
     public class ParentsController : ControllerBase
     {
-        private readonly ParentService _parentService;
+        private readonly IParentService _parentService;
 
-        public ParentsController(ParentService parentService)
+        public ParentsController(IParentService parentService)
         {
             _parentService = parentService;
         }

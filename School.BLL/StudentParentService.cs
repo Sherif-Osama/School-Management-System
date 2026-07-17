@@ -1,9 +1,10 @@
-﻿using School.DAL.Interfaces;
+﻿using School.BLL.Interfaces;
+using School.DAL.Interfaces;
 using School.DTO.AssociationsDTOs.StudentParentDTOs;
 
 namespace School.BLL
 {
-    public class StudentParentService
+    public class StudentParentService : IStudentParentService
     {
         private readonly IStudentParentData _studentParentData;
         private readonly IStudentData _studentData;

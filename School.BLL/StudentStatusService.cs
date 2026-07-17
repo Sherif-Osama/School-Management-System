@@ -1,9 +1,10 @@
-﻿using School.DAL.Interfaces;
+﻿using School.BLL.Interfaces;
+using School.DAL.Interfaces;
 using School.DTO.StudentStatusDTOs;
 
 namespace School.BLL
 {
-    public class StudentStatusService
+    public class StudentStatusService : IStudentStatusService
     {
         private readonly IStudentStatusData _studentStatusData;
 

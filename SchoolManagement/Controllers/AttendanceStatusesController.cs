@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using School.BLL;
+using School.BLL.Interfaces;
 using School.DTO.AttendanceStatusDTOs;
 
 namespace School.API.Controllers
@@ -8,9 +8,9 @@ namespace School.API.Controllers
     [ApiController]
     public class AttendanceStatusesController : ControllerBase
     {
-        private readonly AttendanceStatusService _attendanceStatusService;
+        private readonly IAttendanceStatusService _attendanceStatusService;
 
-        public AttendanceStatusesController(AttendanceStatusService attendanceStatusService)
+        public AttendanceStatusesController(IAttendanceStatusService attendanceStatusService)
         {
             _attendanceStatusService = attendanceStatusService;
         }

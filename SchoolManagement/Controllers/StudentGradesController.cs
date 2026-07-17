@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using School.BLL;
+using School.BLL.Interfaces;
 using School.DTO.StudentGradeDetailsDTOs;
 using School.DTO.StudentGradeDTOs;
 
@@ -9,9 +9,9 @@ namespace School.API.Controllers
     [ApiController]
     public class StudentGradesController : ControllerBase
     {
-        private readonly StudentGradeService _studentGradeService;
+        private readonly IStudentGradeService _studentGradeService;
 
-        public StudentGradesController(StudentGradeService studentGradeService)
+        public StudentGradesController(IStudentGradeService studentGradeService)
         {
             _studentGradeService = studentGradeService;
         }

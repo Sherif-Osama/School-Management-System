@@ -1,10 +1,11 @@
-﻿using School.DAL.Interfaces;
+﻿using School.BLL.Interfaces;
+using School.DAL.Interfaces;
 using School.DTO.AssociationsDTOs.ClassSubjectDTOs;
 using School.DTO.AssociationsDTOs.TeacherSubjectDTOs;
 
 namespace School.BLL
 {
-    public class ClassSubjectService
+    public class ClassSubjectService : IClassSubjectService
     {
         private readonly IClassSubjectData _classSubjectData;
         private readonly IClassData _classData;

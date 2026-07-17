@@ -1,9 +1,11 @@
-﻿using School.DAL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
+using School.DAL.Interfaces;
 using School.DTO.UserDTOs;
 
 namespace School.BLL
 {
-    public class UserService
+    public class UserService : IUserService
     {
         private readonly IUserData _userData;
         private readonly IPersonData _personData;
@@ -27,12 +29,10 @@ namespace School.BLL
             user.Password = ValidatePassword(user.Password);
         }
 
-        private static int ValidateUserId(int userId)
+        private static void ValidateUserId(int userId)
         {
             if (userId <= 0)
                 throw new ArgumentOutOfRangeException(nameof(userId), "User ID must be greater than zero.");
-
-            return userId;
         }
 
         private static string ValidateUsername(string username)
@@ -158,9 +158,7 @@ namespace School.BLL
             await EnsurePersonExistsAsync(user.PersonID);
             await EnsurePersonHasNoUserAsync(user.PersonID);
             await EnsureUsernameUniqueAsync(user.Username);
-
-            user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
-
+            user.Password = PasswordHasher.Hash(user.Password);
             return await _userData.AddUserAsync(user);
         }
 
@@ -191,10 +189,11 @@ namespace School.BLL
             if (hash is null)
                 throw new InvalidOperationException("Password hash was not found.");
 
-            if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, hash))
+
+            if (!PasswordHasher.Verify(dto.CurrentPassword, hash))
                 throw new UnauthorizedAccessException("Current password is incorrect.");
 
-            string newHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            string newHash = PasswordHasher.Hash(dto.NewPassword);
 
             return await _userData.UpdatePasswordAsync(dto.UserID, newHash);
         }

@@ -1,10 +1,11 @@
-﻿using School.DAL.Interfaces;
+﻿using School.BLL.Interfaces;
+using School.DAL.Interfaces;
 using School.DTO.AssociationsDTOs.ClassSubjectDTOs;
 using School.DTO.ExamDTOs;
 
 namespace School.BLL
 {
-    public class ExamService
+    public class ExamService : IExamService
     {
         private readonly IExamData _examData;
         private readonly IClassSubjectData _classSubjectData;

@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using School.BLL;
+using School.BLL.Interfaces;
 using School.DTO.ScheduleDTOs;
 
 namespace School.API.Controllers
@@ -8,9 +8,9 @@ namespace School.API.Controllers
     [ApiController]
     public class SchedulesController : ControllerBase
     {
-        private readonly ScheduleService _scheduleService;
+        private readonly IScheduleService _scheduleService;
 
-        public SchedulesController(ScheduleService scheduleService)
+        public SchedulesController(IScheduleService scheduleService)
         {
             _scheduleService = scheduleService;
         }

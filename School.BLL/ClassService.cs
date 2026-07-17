@@ -1,10 +1,11 @@
-﻿using School.DAL.Interfaces;
+﻿using School.BLL.Interfaces;
+using School.DAL.Interfaces;
 using School.DTO.ClassesDTOs;
 using System.Text.RegularExpressions;
 
 namespace School.BLL
 {
-    public class ClassService
+    public class ClassService : IClassService
     {
         private readonly IClassData _classData;
         private readonly IGradeData _gradeData;

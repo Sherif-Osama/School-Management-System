@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using School.BLL.Interfaces;
 using School.DAL;
-
 namespace School.BLL
 {
     public static class DependencyInjection
@@ -9,25 +9,25 @@ namespace School.BLL
         {
             services.AddDAL();
 
-            services.AddScoped<PersonService>();
-            services.AddScoped<StudentService>();
-            services.AddScoped<TeacherService>();
-            services.AddScoped<ParentService>();
-            services.AddScoped<StudentParentService>();
-            services.AddScoped<SubjectService>();
-            services.AddScoped<GradeService>();
-            services.AddScoped<ClassService>();
-            services.AddScoped<TeacherSubjectService>();
-            services.AddScoped<ClassSubjectService>();
-            services.AddScoped<UserService>();
-            services.AddScoped<ClassroomService>();
-            services.AddScoped<ScheduleService>();
-            services.AddScoped<ExamService>();
-            services.AddScoped<ExamTypeService>();
-            services.AddScoped<StudentStatusService>();
-            services.AddScoped<AttendanceStatusService>();
-            services.AddScoped<AttendanceService>();
-            services.AddScoped<StudentGradeService>();
+            services.AddScoped<IPersonService, PersonService>();
+            services.AddScoped<IStudentService, StudentService>();
+            services.AddScoped<ITeacherService, TeacherService>();
+            services.AddScoped<IParentService, ParentService>();
+            services.AddScoped<IStudentParentService, StudentParentService>();
+            services.AddScoped<ISubjectService, SubjectService>();
+            services.AddScoped<IGradeService, GradeService>();
+            services.AddScoped<IClassService, ClassService>();
+            services.AddScoped<ITeacherSubjectService, TeacherSubjectService>();
+            services.AddScoped<IClassSubjectService, ClassSubjectService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IClassroomService, ClassroomService>();
+            services.AddScoped<IScheduleService, ScheduleService>();
+            services.AddScoped<IExamService, ExamService>();
+            services.AddScoped<IExamTypeService, ExamTypeService>();
+            services.AddScoped<IStudentStatusService, StudentStatusService>();
+            services.AddScoped<IAttendanceStatusService, AttendanceStatusService>();
+            services.AddScoped<IAttendanceService, AttendanceService>();
+            services.AddScoped<IStudentGradeService, StudentGradeService>();
 
             return services;
         }

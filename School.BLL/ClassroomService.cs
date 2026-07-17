@@ -1,9 +1,10 @@
-﻿using School.DAL.Interfaces;
+﻿using School.BLL.Interfaces;
+using School.DAL.Interfaces;
 using School.DTO.ClassroomDTOs;
 
 namespace School.BLL
 {
-    public class ClassroomService
+    public class ClassroomService : IClassroomService
     {
         private readonly IClassroomData _classroomData;
 

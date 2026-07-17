@@ -1,9 +1,10 @@
-﻿using School.DAL.Interfaces;
+﻿using School.BLL.Interfaces;
+using School.DAL.Interfaces;
 using School.DTO.AttendanceStatusDTOs;
 
 namespace School.BLL
 {
-    public class AttendanceStatusService
+    public class AttendanceStatusService : IAttendanceStatusService
     {
         private readonly IAttendanceStatusData _attendanceStatusData;
 
