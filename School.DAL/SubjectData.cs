@@ -1,26 +1,16 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using School.DAL.Common;
 using School.DTO.SubjectDTO;
 using System.Data;
 
 namespace School.DAL
 {
-    public class SubjectData
+    public class SubjectData : BaseData
     {
-        private readonly string _connectionString;
-
-        public SubjectData(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
+        public SubjectData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
-        private async Task<SqlConnection> GetOpenConnectionAsync()
-        {
-            SqlConnection connection = new(_connectionString);
-            await connection.OpenAsync();
-            return connection;
-        }
-
         private static SubjectDTO MapSubject(SqlDataReader reader)
         {
             return new SubjectDTO
@@ -57,10 +47,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetAllSubjects", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllSubjects");
 
             return await ReadSubjectsAsync(command);
         }
@@ -69,10 +56,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetSubjectByID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetSubjectByID");
 
             command.Parameters.Add("@SubjectID", SqlDbType.Int).Value = subjectId;
 
@@ -82,14 +66,8 @@ namespace School.DAL
         public async Task<SubjectDTO?> GetSubjectByNameAsync(string subjectName)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = new("SP_GetSubjectByName", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetSubjectByName");
             command.Parameters.Add("@SubjectName", SqlDbType.NVarChar).Value = subjectName;
-
             return (await ReadSubjectsAsync(command)).FirstOrDefault();
         }
 
@@ -97,10 +75,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_AddSubject", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddSubject");
 
             AddParameters(command, subject);
 
@@ -120,10 +95,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_UpdateSubject", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateSubject");
 
             command.Parameters.Add("@SubjectID", SqlDbType.Int).Value = subject.SubjectID;
 
@@ -136,10 +108,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_DeleteSubject", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteSubject");
 
             command.Parameters.Add("@SubjectID", SqlDbType.Int).Value = subjectId;
 
@@ -150,10 +119,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_IsSubjectExists", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsSubjectExists");
 
             command.Parameters.Add("@SubjectID", SqlDbType.Int).Value = subjectId;
 

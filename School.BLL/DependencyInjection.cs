@@ -5,9 +5,9 @@ namespace School.BLL
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddBLL(this IServiceCollection services, string connectionString)
+        public static IServiceCollection AddBLL(this IServiceCollection services)
         {
-            services.AddDAL(connectionString);
+            services.AddDAL();
 
             services.AddScoped<PersonService>();
             services.AddScoped<StudentService>();

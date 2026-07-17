@@ -1,26 +1,14 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using School.DAL.Common;
 using School.DTO.ParentsDTOs;
 using System.Data;
-
 namespace School.DAL
 {
-    public class ParentData
+    public class ParentData : BaseData
     {
-        private readonly string _connectionString;
-
-        public ParentData(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
-
+        public ParentData(IConfiguration configuration) : base(configuration) { }
         #region Helper Methods
-        private async Task<SqlConnection> GetOpenConnectionAsync()
-        {
-            SqlConnection connection = new(_connectionString);
-            await connection.OpenAsync();
-            return connection;
-        }
-
         private static ParentDetailsDTO MapParentDetails(SqlDataReader reader)
         {
             return new ParentDetailsDTO
@@ -54,9 +42,7 @@ namespace School.DAL
             using SqlDataReader reader = await command.ExecuteReaderAsync();
 
             while (await reader.ReadAsync())
-            {
                 parents.Add(MapParentDetails(reader));
-            }
 
             return parents;
         }
@@ -68,12 +54,7 @@ namespace School.DAL
         public async Task<List<ParentDetailsDTO>> GetAllParentsAsync()
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = new("SP_GetAllParents", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllParents");
             return await ReadParentDetailsAsync(command);
         }
 
@@ -81,11 +62,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetParentByID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetParentByID");
             command.Parameters.Add("@ParentID", SqlDbType.Int).Value = parentId;
 
             return (await ReadParentDetailsAsync(command)).FirstOrDefault();
@@ -94,14 +71,8 @@ namespace School.DAL
         public async Task<ParentDetailsDTO?> GetParentByPersonIdAsync(int personId)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = new("SP_GetParentByPersonID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetParentByPersonID");
             command.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId;
-
             return (await ReadParentDetailsAsync(command)).FirstOrDefault();
         }
 
@@ -109,11 +80,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetParentByNationalID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetParentByNationalID");
             command.Parameters.Add("@NationalID", SqlDbType.NVarChar, 14).Value = nationalId;
 
             return (await ReadParentDetailsAsync(command)).FirstOrDefault();
@@ -123,11 +90,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_AddParent", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddParent");
             AddParameters(command, parent);
 
             SqlParameter outputParentId = new("@ParentID", SqlDbType.Int)
@@ -145,16 +108,9 @@ namespace School.DAL
         public async Task<bool> UpdateParentAsync(ParentDTO parent)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = new("SP_UpdateParent", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateParent");
             command.Parameters.Add("@ParentID", SqlDbType.Int).Value = parent.ParentID;
-
             AddParameters(command, parent);
-
             return await command.ExecuteNonQueryAsync() > 0;
         }
 
@@ -162,11 +118,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_DeleteParent", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteParent");
             command.Parameters.Add("@ParentID", SqlDbType.Int).Value = parentId;
 
             return await command.ExecuteNonQueryAsync() > 0;
@@ -176,10 +128,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_IsParentExists", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsParentExists");
 
             command.Parameters.Add("@ParentID", SqlDbType.Int).Value = parentId;
 

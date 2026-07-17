@@ -1,26 +1,16 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using School.DAL.Common;
 using School.DTO.ScheduleDTOs.School.DTO.ScheduleDTOs;
 using System.Data;
-
 namespace School.DAL
 {
-    public class ScheduleData
+    public class ScheduleData : BaseData
     {
-        private readonly string _connectionString;
 
-        public ScheduleData(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
+        public ScheduleData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
-        private async Task<SqlConnection> GetOpenConnectionAsync()
-        {
-            SqlConnection connection = new(_connectionString);
-            await connection.OpenAsync();
-            return connection;
-        }
-
         private static ScheduleDetailsDTO MapScheduleDetails(SqlDataReader reader)
         {
             return new ScheduleDetailsDTO
@@ -90,10 +80,7 @@ namespace School.DAL
         private async Task<bool> CheckAvailabilityAsync(string procedureName, string idParameterName, int id, byte dayOfWeek, TimeOnly startTime, TimeOnly endTime, int? scheduleId)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new(procedureName, connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, procedureName);
 
             command.Parameters.Add(idParameterName, SqlDbType.Int).Value = id;
             command.Parameters.Add("@DayOfWeek", SqlDbType.TinyInt).Value = dayOfWeek;
@@ -109,10 +96,7 @@ namespace School.DAL
         public async Task<List<ScheduleDetailsDTO>> GetAllSchedulesAsync()
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new("SP_GetAllSchedules", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllSchedules");
 
             return await ReadScheduleDetailsAsync(command);
         }
@@ -120,10 +104,7 @@ namespace School.DAL
         public async Task<ScheduleDetailsDTO?> GetScheduleByIdAsync(int scheduleId)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new("SP_GetScheduleByID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetScheduleByID");
 
             command.Parameters.Add("@ScheduleID", SqlDbType.Int).Value = scheduleId;
 
@@ -133,24 +114,15 @@ namespace School.DAL
         public async Task<List<ScheduleDetailsDTO>> GetSchedulesByClassIdAsync(int classId)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new("SP_GetSchedulesByClassID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetSchedulesByClassID");
             command.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId;
-
             return await ReadScheduleDetailsAsync(command);
         }
 
         public async Task<List<ScheduleDetailsDTO>> GetSchedulesByClassroomIdAsync(int classroomId)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new("SP_GetSchedulesByClassroomID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetSchedulesByClassroomID");
             command.Parameters.Add("@ClassroomID", SqlDbType.Int).Value = classroomId;
 
             return await ReadScheduleDetailsAsync(command);
@@ -159,10 +131,7 @@ namespace School.DAL
         public async Task<List<ScheduleDetailsDTO>> GetSchedulesByClassSubjectIdAsync(int classSubjectId)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new("SP_GetSchedulesByClassSubjectID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetSchedulesByClassSubjectID");
 
             command.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = classSubjectId;
 
@@ -172,13 +141,8 @@ namespace School.DAL
         public async Task<List<ScheduleDetailsDTO>> GetSchedulesByTeacherIdAsync(int teacherId)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new("SP_GetSchedulesByTeacherID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetSchedulesByTeacherID");
             command.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId;
-
             return await ReadScheduleDetailsAsync(command);
         }
 
@@ -186,10 +150,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_AddSchedule", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddSchedule");
 
             AddParameters(command, schedule);
 
@@ -205,10 +166,7 @@ namespace School.DAL
         public async Task<bool> UpdateScheduleAsync(ScheduleDTO schedule)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new("SP_UpdateSchedule", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateSchedule");
             command.Parameters.Add("@ScheduleID", SqlDbType.Int).Value = schedule.ScheduleID;
             AddParameters(command, schedule);
 
@@ -218,23 +176,15 @@ namespace School.DAL
         public async Task<bool> DeleteScheduleAsync(int scheduleId)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new("SP_DeleteSchedule", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteSchedule");
             command.Parameters.Add("@ScheduleID", SqlDbType.Int).Value = scheduleId;
-
             return await command.ExecuteNonQueryAsync() > 0;
         }
 
         public async Task<bool> IsScheduleExistAsync(int scheduleId)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new("SP_IsScheduleExists", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsScheduleExists");
 
             command.Parameters.Add("@ScheduleID", SqlDbType.Int).Value = scheduleId;
 

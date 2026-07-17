@@ -4,45 +4,45 @@ namespace School.DAL
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddDAL(this IServiceCollection services, string connectionString)
+        public static IServiceCollection AddDAL(this IServiceCollection services)
         {
-            services.AddScoped<PersonData>(_ => new PersonData(connectionString));
+            services.AddScoped<PersonData>();
 
-            services.AddScoped<StudentData>(_ => new StudentData(connectionString))
-                ;
-            services.AddScoped<TeacherData>(_ => new TeacherData(connectionString));
+            services.AddScoped<StudentData>();
+            ;
+            services.AddScoped<TeacherData>();
 
-            services.AddScoped<ParentData>(_ => new ParentData(connectionString));
+            services.AddScoped<ParentData>();
 
-            services.AddScoped<StudentParentData>(_ => new StudentParentData(connectionString));
+            services.AddScoped<StudentParentData>();
 
-            services.AddScoped<SubjectData>(_ => new SubjectData(connectionString));
+            services.AddScoped<SubjectData>();
 
-            services.AddScoped<GradeData>(_ => new GradeData(connectionString));
+            services.AddScoped<GradeData>();
 
-            services.AddScoped<ClassData>(_ => new ClassData(connectionString));
+            services.AddScoped<ClassData>();
 
-            services.AddScoped<TeacherSubjectData>(_ => new TeacherSubjectData(connectionString));
+            services.AddScoped<TeacherSubjectData>();
 
-            services.AddScoped<ClassSubjectData>(_ => new ClassSubjectData(connectionString));
+            services.AddScoped<ClassSubjectData>();
 
-            services.AddScoped<UserData>(_ => new UserData(connectionString));
+            services.AddScoped<UserData>();
 
-            services.AddScoped<ClassroomData>(_ => new ClassroomData(connectionString));
+            services.AddScoped<ClassroomData>();
 
-            services.AddScoped<ScheduleData>(_ => new ScheduleData(connectionString));
+            services.AddScoped<ScheduleData>();
 
-            services.AddScoped<ExamData>(_ => new ExamData(connectionString));
+            services.AddScoped<ExamData>();
 
-            services.AddScoped<ExamTypeData>(_ => new ExamTypeData(connectionString));
+            services.AddScoped<ExamTypeData>();
 
-            services.AddScoped<StudentStatusData>(_ => new StudentStatusData(connectionString));
+            services.AddScoped<StudentStatusData>();
 
-            services.AddScoped<AttendanceStatusData>(_ => new AttendanceStatusData(connectionString));
+            services.AddScoped<AttendanceStatusData>();
 
-            services.AddScoped<AttendanceData>(_ => new AttendanceData(connectionString));
+            services.AddScoped<AttendanceData>();
 
-            services.AddScoped<StudentGradeData>(_ => new StudentGradeData(connectionString));
+            services.AddScoped<StudentGradeData>();
 
             return services;
         }

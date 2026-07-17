@@ -1,27 +1,16 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using School.DAL.Common;
 using School.DTO.ClassesDTOs;
 using System.Data;
 
 namespace School.DAL
 {
-    public class ClassData
+    public class ClassData : BaseData
     {
-        private readonly string _connectionString;
-
-        public ClassData(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
+        public ClassData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
-
-        private async Task<SqlConnection> GetOpenConnectionAsync()
-        {
-            SqlConnection connection = new(_connectionString);
-            await connection.OpenAsync();
-            return connection;
-        }
-
         private static ClassDetailsDTO MapClassDetails(SqlDataReader reader)
         {
             return new ClassDetailsDTO
@@ -67,10 +56,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetAllClasses", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllClasses");
 
             return await ReadClassDetailsAsync(command);
         }
@@ -79,10 +65,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetClassByID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetClassByID");
 
             command.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId;
 
@@ -93,10 +76,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetClassByName", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetClassByName");
 
             command.Parameters.Add("@GradeID", SqlDbType.TinyInt).Value = gradeId;
             command.Parameters.Add("@ClassName", SqlDbType.NVarChar).Value = className;
@@ -109,10 +89,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_AddClass", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddClass");
 
             AddParameters(command, schoolClass);
 
@@ -132,10 +109,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_UpdateClass", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateClass");
 
             command.Parameters.Add("@ClassID", SqlDbType.Int).Value = schoolClass.ClassID;
 
@@ -148,10 +122,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_DeleteClass", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteClass");
 
             command.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId;
 
@@ -162,10 +133,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_IsClassExists", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsClassExists");
 
             command.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId;
 
@@ -176,16 +144,12 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_HasClassAvailableCapacity", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_HasClassAvailableCapacity");
 
             command.Parameters.Add("@ClassID", SqlDbType.Int).Value = classID;
 
             return Convert.ToBoolean(await command.ExecuteScalarAsync());
         }
-
         #endregion
     }
 }

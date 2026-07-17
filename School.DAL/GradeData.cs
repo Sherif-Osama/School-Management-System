@@ -1,27 +1,15 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using School.DAL.Common;
 using School.DTO.GradesDTOs;
 using System.Data;
-
 namespace School.DAL
 {
-    public class GradeData
+    public class GradeData : BaseData
     {
-        private readonly string _connectionString;
-
-        public GradeData(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
+        public GradeData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
-
-        private async Task<SqlConnection> GetOpenConnectionAsync()
-        {
-            SqlConnection connection = new(_connectionString);
-            await connection.OpenAsync();
-            return connection;
-        }
-
         private static GradeDTO MapGrade(SqlDataReader reader)
         {
             return new GradeDTO
@@ -43,13 +31,10 @@ namespace School.DAL
             using SqlDataReader reader = await command.ExecuteReaderAsync();
 
             while (await reader.ReadAsync())
-            {
                 grades.Add(MapGrade(reader));
-            }
 
             return grades;
         }
-
         #endregion
 
         #region Public Methods
@@ -57,12 +42,7 @@ namespace School.DAL
         public async Task<List<GradeDTO>> GetAllGradesAsync()
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = new("SP_GetAllGrades", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllGrades");
             return await ReadGradesAsync(command);
         }
 
@@ -70,10 +50,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetGradeByID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetGradeByID");
 
             command.Parameters.Add("@GradeID", SqlDbType.TinyInt).Value = gradeId;
 
@@ -84,10 +61,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetGradeByName", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetGradeByName");
 
             command.Parameters.Add("@GradeName", SqlDbType.NVarChar).Value = gradeName;
 
@@ -98,10 +72,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_AddGrade", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddGrade");
 
             AddParameters(command, grade);
 
@@ -121,10 +92,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_UpdateGrade", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateGrade");
 
             command.Parameters.Add("@GradeID", SqlDbType.TinyInt).Value = grade.GradeID;
 
@@ -137,10 +105,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_DeleteGrade", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteGrade");
 
             command.Parameters.Add("@GradeID", SqlDbType.TinyInt).Value = gradeId;
 
@@ -151,10 +116,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_IsGradeExists", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsGradeExists");
 
             command.Parameters.Add("@GradeID", SqlDbType.TinyInt).Value = gradeId;
 

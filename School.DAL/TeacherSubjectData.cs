@@ -1,26 +1,15 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using School.DAL.Common;
 using School.DTO.AssociationsDTOs.TeacherSubjectDTOs;
 using System.Data;
-
 namespace School.DAL
 {
-    public class TeacherSubjectData
+    public class TeacherSubjectData : BaseData
     {
-        private readonly string _connectionString;
-
-        public TeacherSubjectData(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
+        public TeacherSubjectData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
-        private async Task<SqlConnection> GetOpenConnectionAsync()
-        {
-            SqlConnection connection = new(_connectionString);
-            await connection.OpenAsync();
-            return connection;
-        }
-
         private static TeacherSubjectDetailsDTO MapTeacherSubjectDetails(SqlDataReader reader)
         {
             return new TeacherSubjectDetailsDTO
@@ -35,19 +24,14 @@ namespace School.DAL
             };
         }
 
-        private static void AddParameters(
-            SqlCommand command,
-            TeacherSubjectDTO teacherSubject)
+        private static void AddParameters(SqlCommand command, TeacherSubjectDTO teacherSubject)
         {
-            command.Parameters.Add("@TeacherID", SqlDbType.Int)
-                .Value = teacherSubject.TeacherID;
+            command.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherSubject.TeacherID;
 
-            command.Parameters.Add("@SubjectID", SqlDbType.Int)
-                .Value = teacherSubject.SubjectID;
+            command.Parameters.Add("@SubjectID", SqlDbType.Int).Value = teacherSubject.SubjectID;
         }
 
-        private static async Task<List<TeacherSubjectDetailsDTO>>
-            ReadTeacherSubjectsAsync(SqlCommand command)
+        private static async Task<List<TeacherSubjectDetailsDTO>> ReadTeacherSubjectsAsync(SqlCommand command)
         {
             List<TeacherSubjectDetailsDTO> teacherSubjects = [];
 
@@ -69,10 +53,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetAllTeacherSubjects", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllTeacherSubjects");
 
             return await ReadTeacherSubjectsAsync(command);
         }
@@ -81,10 +62,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetSubjectsByTeacherID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetSubjectsByTeacherID");
 
             command.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId;
 
@@ -95,10 +73,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetTeachersBySubjectID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetTeachersBySubjectID");
 
             command.Parameters.Add("@SubjectID", SqlDbType.Int).Value = subjectId;
 
@@ -109,10 +84,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_AssignSubjectToTeacher", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_AssignSubjectToTeacher");
 
             AddParameters(command, relation);
 
@@ -123,10 +95,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_RemoveSubjectFromTeacher", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_RemoveSubjectFromTeacher");
 
             AddParameters(command, relation);
 
@@ -137,10 +106,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_IsTeacherSubjectExists", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsTeacherSubjectExists");
 
             AddParameters(command, relation);
 

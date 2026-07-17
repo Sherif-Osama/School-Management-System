@@ -1,27 +1,16 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using School.DAL.Common;
 using School.DTO.PersonDTOs;
 using System.Data;
-
 namespace School.DAL
 {
 
-    public class PersonData
+    public class PersonData : BaseData
     {
-        private readonly string _connectionString;
-
-        public PersonData(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
+        public PersonData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
-        private async Task<SqlConnection> GetOpenConnectionAsync()
-        {
-            SqlConnection connection = new(_connectionString);
-            await connection.OpenAsync();
-            return connection;
-        }
-
         private static async Task<List<PersonDTO>> ReadPeopleAsync(SqlCommand command)
         {
             List<PersonDTO> people = [];
@@ -77,8 +66,7 @@ namespace School.DAL
         public async Task<List<PersonDTO>> GetAllPeopleAsync()
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new("SP_GetAllPeople", connection);
-            command.CommandType = CommandType.StoredProcedure;
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllPeople");
 
             return await ReadPeopleAsync(command);
         }
@@ -86,13 +74,8 @@ namespace School.DAL
         public async Task<PersonDTO?> GetPersonByIdAsync(int personId)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = new("SP_GetPersonByID", connection);
-
-            command.CommandType = CommandType.StoredProcedure;
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetPersonByID");
             command.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId;
-
             return (await ReadPeopleAsync(command)).FirstOrDefault();
         }
 
@@ -100,9 +83,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetPersonByNationalID", connection);
-
-            command.CommandType = CommandType.StoredProcedure;
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetPersonByNationalID");
 
             command.Parameters.Add("@NationalID", SqlDbType.NVarChar, 50).Value = nationalId;
 
@@ -113,8 +94,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_AddPerson", connection);
-            command.CommandType = CommandType.StoredProcedure;
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddPerson");
 
             AddParameters(command, person);
 
@@ -133,8 +113,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_UpdatePerson", connection);
-            command.CommandType = CommandType.StoredProcedure;
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdatePerson");
             command.Parameters.Add("@PersonID", SqlDbType.Int).Value = person.PersonID;
             AddParameters(command, person);
             return await command.ExecuteNonQueryAsync() > 0;
@@ -143,8 +122,7 @@ namespace School.DAL
         public async Task<bool> DeletePersonAsync(int personId)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new("SP_DeletePerson", connection);
-            command.CommandType = CommandType.StoredProcedure;
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeletePerson");
             command.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId;
             return await command.ExecuteNonQueryAsync() > 0;
         }
@@ -152,8 +130,7 @@ namespace School.DAL
         public async Task<bool> IsPersonExistAsync(int personId)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new("SP_IsPersonExist", connection);
-            command.CommandType = CommandType.StoredProcedure;
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsPersonExist");
             command.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId;
             return Convert.ToBoolean(await command.ExecuteScalarAsync());
         }

@@ -1,26 +1,15 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using School.DAL.Common;
 using School.DTO.StudentsDTOs;
 using System.Data;
 
 namespace School.DAL
 {
-    public class StudentData
+    public class StudentData : BaseData
     {
-        private readonly string _connectionString;
-
-        public StudentData(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
-
+        public StudentData(IConfiguration configuration) : base(configuration) { }
         #region Helper Methods
-        private async Task<SqlConnection> GetOpenConnectionAsync()
-        {
-            SqlConnection connection = new(_connectionString);
-            await connection.OpenAsync();
-            return connection;
-        }
-
         private static StudentDetailsDTO MapStudentDetails(SqlDataReader reader)
         {
             return new StudentDetailsDTO
@@ -98,10 +87,7 @@ namespace School.DAL
         public async Task<List<StudentDetailsDTO>> GetAllStudentsAsync()
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new("SP_GetAllStudents", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllStudents");
 
             return await ReadStudentDetailsAsync(command);
         }
@@ -109,10 +95,7 @@ namespace School.DAL
         public async Task<StudentDetailsDTO?> GetStudentByIdAsync(int studentId)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new("SP_GetStudentByID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetStudentByID");
 
             command.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId;
 
@@ -122,10 +105,7 @@ namespace School.DAL
         public async Task<StudentDetailsDTO?> GetStudentByPersonIdAsync(int personId)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new("SP_GetStudentByPersonID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetStudentByPersonID");
 
             command.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId;
 
@@ -136,10 +116,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_AddStudent", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddStudent");
 
             AddParameters(command, student);
 
@@ -155,10 +132,7 @@ namespace School.DAL
         public async Task<bool> UpdateStudentAsync(StudentDTO student)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new("SP_UpdateStudent", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateStudent");
             command.Parameters.Add("@StudentID", SqlDbType.Int).Value = student.StudentID;
             AddParameters(command, student);
 
@@ -168,23 +142,15 @@ namespace School.DAL
         public async Task<bool> DeleteStudentAsync(int studentId)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new("SP_DeleteStudent", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteStudent");
             command.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId;
-
             return await command.ExecuteNonQueryAsync() > 0;
         }
 
         public async Task<bool> IsStudentExistAsync(int studentId)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = new("SP_IsStudentExist", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsStudentExist");
 
             command.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId;
 

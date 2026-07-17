@@ -1,27 +1,14 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using School.DAL.Common;
 using School.DTO.StudentStatusDTOs;
 using System.Data;
-
 namespace School.DAL
 {
-    public class StudentStatusData
+    public class StudentStatusData : BaseData
     {
-        private readonly string _connectionString;
-
-        public StudentStatusData(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
-
+        public StudentStatusData(IConfiguration connectionString) : base(connectionString) { }
         #region Helper Methods
-
-        private async Task<SqlConnection> GetOpenConnectionAsync()
-        {
-            SqlConnection connection = new(_connectionString);
-            await connection.OpenAsync();
-            return connection;
-        }
-
         private static StudentStatusDTO MapStudentStatus(SqlDataReader reader)
         {
             return new StudentStatusDTO
@@ -58,63 +45,37 @@ namespace School.DAL
         public async Task<List<StudentStatusDTO>> GetAllStudentStatusesAsync()
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = new("SP_GetAllStatuses", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllStatuses");
             return await ReadStudentStatusesAsync(command);
         }
 
         public async Task<StudentStatusDTO?> GetStudentStatusByIdAsync(int statusId)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = new("SP_GetStatusByID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetStatusByID");
             command.Parameters.Add("@StatusID", SqlDbType.Int).Value = statusId;
-
             return (await ReadStudentStatusesAsync(command)).FirstOrDefault();
         }
 
         public async Task<StudentStatusDTO?> GetStudentStatusByNameAsync(string statusName)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = new("SP_GetStatusByName", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetStatusByName");
             command.Parameters.Add("@StatusName", SqlDbType.NVarChar).Value = statusName.Trim();
-
             return (await ReadStudentStatusesAsync(command)).FirstOrDefault();
         }
 
         public async Task<int> AddStudentStatusAsync(StudentStatusDTO status)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = new("SP_AddStatus", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddStatus");
             AddParameters(command, status);
-
             SqlParameter outputStatusId = new("@StatusID", SqlDbType.Int)
             {
                 Direction = ParameterDirection.Output
             };
-
             command.Parameters.Add(outputStatusId);
-
             await command.ExecuteNonQueryAsync();
-
             return (int)outputStatusId.Value;
         }
 
@@ -122,10 +83,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_UpdateStatus", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateStatus");
 
             command.Parameters.Add("@StatusID", SqlDbType.Int).Value = status.StatusID;
 
@@ -138,10 +96,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_DeleteStatus", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteStatus");
 
             command.Parameters.Add("@StatusID", SqlDbType.Int).Value = statusId;
 
@@ -152,10 +107,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_IsStatusExists", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsStatusExists");
 
             command.Parameters.Add("@StatusID", SqlDbType.Int).Value = statusId;
 

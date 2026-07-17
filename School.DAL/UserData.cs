@@ -1,28 +1,16 @@
 ﻿
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using School.DAL.Common;
 using School.DTO.UserDTOs;
 using System.Data;
-
 namespace School.DAL
 {
-    public class UserData
+    public class UserData : BaseData
     {
-        private readonly string _connectionString;
-
-        public UserData(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
+        public UserData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
-
-        private async Task<SqlConnection> GetOpenConnectionAsync()
-        {
-            SqlConnection connection = new(_connectionString);
-            await connection.OpenAsync();
-            return connection;
-        }
-
         private static UserDetailsDTO MapUserDetails(SqlDataReader reader)
         {
             return new UserDetailsDTO
@@ -73,10 +61,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetAllUsers", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllUsers");
 
             return await ReadUsersAsync(command);
         }
@@ -85,10 +70,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetUserByID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetUserByID");
 
             command.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
 
@@ -99,10 +81,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetUserByPersonID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetUserByPersonID");
 
             command.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId;
 
@@ -113,10 +92,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetUserByUsername", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetUserByUsername");
 
             command.Parameters.Add("@Username", SqlDbType.NVarChar).Value = username.Trim();
 
@@ -127,10 +103,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_Add_User", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_Add_User");
 
             AddParameters(command, user);
 
@@ -142,15 +115,7 @@ namespace School.DAL
             };
 
             command.Parameters.Add(outputUserId);
-
             await command.ExecuteNonQueryAsync();
-
-            Console.WriteLine(command.Parameters.Count);
-
-            foreach (SqlParameter p in command.Parameters)
-            {
-                Console.WriteLine($"{p.ParameterName}");
-            }
             return (int)outputUserId.Value;
         }
 
@@ -158,10 +123,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_UpdateUser", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateUser");
             command.Parameters.Add("@UserID", SqlDbType.Int).Value = user.UserID;
             command.Parameters.Add("@Username", SqlDbType.NVarChar).Value = user.Username;
             command.Parameters.Add("@IsActive", SqlDbType.Bit).Value = user.IsActive;
@@ -173,10 +135,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetPasswordHashByUserID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetPasswordHashByUserID");
 
             command.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
 
@@ -191,10 +150,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_UpdatePassword", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdatePassword");
 
             command.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
             command.Parameters.Add("@PasswordHash", SqlDbType.NVarChar).Value = passwordHash;
@@ -206,10 +162,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_DeleteUser", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteUser");
 
             command.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
 
@@ -220,10 +173,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_IsUserExists", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsUserExists");
 
             command.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
 

@@ -1,27 +1,16 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using School.DAL.Common;
 using School.DTO.ExamTypeDTOs;
 using System.Data;
 
 namespace School.DAL
 {
-    public class ExamTypeData
+    public class ExamTypeData : BaseData
     {
-        private readonly string _connectionString;
-
-        public ExamTypeData(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
+        public ExamTypeData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
-
-        private async Task<SqlConnection> GetOpenConnectionAsync()
-        {
-            SqlConnection connection = new(_connectionString);
-            await connection.OpenAsync();
-            return connection;
-        }
-
         private static ExamTypeDTO MapExamType(SqlDataReader reader)
         {
             return new ExamTypeDTO
@@ -33,8 +22,7 @@ namespace School.DAL
 
         private static void AddParameters(SqlCommand command, ExamTypeDTO examType)
         {
-            command.Parameters.Add("@ExamName", SqlDbType.NVarChar).Value =
-                examType.ExamName.Trim();
+            command.Parameters.Add("@ExamName", SqlDbType.NVarChar).Value = examType.ExamName.Trim();
         }
 
         private static async Task<List<ExamTypeDTO>> ReadExamTypesAsync(SqlCommand command)
@@ -57,10 +45,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetAllExamTypes", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllExamTypes");
 
             return await ReadExamTypesAsync(command);
         }
@@ -69,10 +54,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetExamTypeByID", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetExamTypeByID");
 
             command.Parameters.Add("@ExamTypeID", SqlDbType.Int).Value = examTypeId;
 
@@ -83,10 +65,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_GetExamTypeByName", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetExamTypeByName");
 
             command.Parameters.Add("@ExamName", SqlDbType.NVarChar).Value = examName.Trim();
 
@@ -97,10 +76,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_AddExamType", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddExamType");
 
             AddParameters(command, examType);
 
@@ -120,10 +96,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_UpdateExamType", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateExamType");
 
             command.Parameters.Add("@ExamTypeID", SqlDbType.Int).Value = examType.ExamTypeID;
 
@@ -136,10 +109,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_DeleteExamType", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteExamType");
 
             command.Parameters.Add("@ExamTypeID", SqlDbType.Int).Value = examTypeId;
 
@@ -150,10 +120,7 @@ namespace School.DAL
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
-            using SqlCommand command = new("SP_IsExamTypeExists", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsExamTypeExists");
 
             command.Parameters.Add("@ExamTypeID", SqlDbType.Int).Value = examTypeId;
 
