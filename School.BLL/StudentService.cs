@@ -39,21 +39,19 @@ namespace School.BLL
         private static void ValidateStudentId(int studentId)
         {
             if (studentId <= 0)
-                throw new ArgumentOutOfRangeException(nameof(studentId), "Student ID must be greater than zero.");
+                throw new ArgumentException("Student ID must be greater than zero.", nameof(studentId));
         }
 
         private async Task EnsurePersonExistsAsync(int personId)
         {
             if (!await _personData.IsPersonExistAsync(personId))
-                throw new InvalidOperationException(
-                    $"Person with ID {personId} does not exist.");
+                throw new KeyNotFoundException($"Person with ID {personId} does not exist.");
         }
 
         private async Task EnsureClassExistsAsync(int classId)
         {
             if (!await _classData.IsClassExistAsync(classId))
-                throw new InvalidOperationException(
-                    $"Class with ID {classId} does not exist.");
+                throw new KeyNotFoundException($"Class with ID {classId} does not exist.");
         }
 
         private async Task EnsurePersonIsNotStudentAsync(int personId, int? currentStudentId = null)
@@ -72,7 +70,7 @@ namespace School.BLL
         private async Task EnsureStudentExistsAsync(int studentId)
         {
             if (!await _studentData.IsStudentExistAsync(studentId))
-                throw new InvalidOperationException($"Student with ID {studentId} does not exist.");
+                throw new KeyNotFoundException($"Student with ID {studentId} does not exist.");
         }
 
         private async Task EnsureClassHasAvailableCapacityAsync(int classID)
@@ -92,7 +90,13 @@ namespace School.BLL
         public async Task<StudentDetailsDTO?> GetStudentByIdAsync(int studentId)
         {
             ValidateStudentId(studentId);
-            return await _studentData.GetStudentByIdAsync(studentId);
+
+            StudentDetailsDTO? studentDetailsDTO = await _studentData.GetStudentByIdAsync(studentId);
+
+            if (studentDetailsDTO == null)
+                throw new KeyNotFoundException($"Student with ID {studentId} does not exist.");
+
+            return studentDetailsDTO;
         }
 
         public async Task<StudentDetailsDTO?> GetStudentByPersonIdAsync(int personId)
@@ -100,7 +104,12 @@ namespace School.BLL
             if (personId <= 0)
                 throw new ArgumentException("Person ID must be greater than zero.", nameof(personId));
 
-            return await _studentData.GetStudentByPersonIdAsync(personId);
+            StudentDetailsDTO? studentDetailsDTO = await _studentData.GetStudentByPersonIdAsync(personId);
+
+            if (studentDetailsDTO == null)
+                throw new KeyNotFoundException($"Student with person ID {personId} does not exist.");
+
+            return studentDetailsDTO;
         }
 
         public async Task<int> AddStudentAsync(StudentDTO student)
@@ -115,7 +124,12 @@ namespace School.BLL
 
             await EnsureClassHasAvailableCapacityAsync(student.ClassID);
 
-            return await _studentData.AddStudentAsync(student);
+            int newStudentId = await _studentData.AddStudentAsync(student);
+
+            if (newStudentId <= 0)
+                throw new InvalidOperationException("Failed to add student.");
+
+            return newStudentId;
         }
 
         public async Task<bool> UpdateStudentAsync(StudentDTO student)
@@ -130,11 +144,16 @@ namespace School.BLL
 
             await EnsureClassExistsAsync(student.ClassID);
 
-            await EnsurePersonIsNotStudentAsync(
-                student.PersonID,
-                student.StudentID);
+            await EnsureClassHasAvailableCapacityAsync(student.ClassID);
 
-            return await _studentData.UpdateStudentAsync(student);
+            await EnsurePersonIsNotStudentAsync(student.PersonID, student.StudentID);
+
+            bool isUpdated = await _studentData.UpdateStudentAsync(student);
+
+            if (!isUpdated)
+                throw new InvalidOperationException($"Failed to update student with ID {student.StudentID}");
+
+            return isUpdated;
         }
 
         public async Task<bool> DeleteStudentAsync(int studentId)
@@ -143,7 +162,12 @@ namespace School.BLL
 
             await EnsureStudentExistsAsync(studentId);
 
-            return await _studentData.DeleteStudentAsync(studentId);
+            bool isDeleted = await _studentData.DeleteStudentAsync(studentId);
+
+            if (!isDeleted)
+                throw new InvalidOperationException($"Failed to delete student with ID {studentId}");
+
+            return isDeleted;
         }
         #endregion
     }

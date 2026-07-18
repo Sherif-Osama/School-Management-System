@@ -1,7 +1,7 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Helpers;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.ClassesDTOs;
-using System.Text.RegularExpressions;
 
 namespace School.BLL
 {
@@ -24,11 +24,9 @@ namespace School.BLL
 
             ValidateGradeId(schoolClass.GradeID);
 
-            schoolClass.ClassName =
-                ValidateClassName(schoolClass.ClassName);
+            schoolClass.ClassName = ValidateClassName(schoolClass.ClassName);
 
-            schoolClass.AcademicYear =
-                ValidateAcademicYear(schoolClass.AcademicYear);
+            schoolClass.AcademicYear = AcademicYearHelper.ValidateAcademicYear(schoolClass.AcademicYear);
 
             ValidateCapacity(schoolClass.Capacity);
         }
@@ -36,106 +34,58 @@ namespace School.BLL
         private static void ValidateClassId(int classId)
         {
             if (classId <= 0)
-                throw new ArgumentOutOfRangeException(
-                    nameof(classId),
-                    "Class ID must be greater than zero.");
+                throw new ArgumentException("Class ID must be greater than zero.", nameof(classId));
         }
 
         private static void ValidateGradeId(byte gradeId)
         {
             if (gradeId <= 0)
-                throw new ArgumentOutOfRangeException(
-                    nameof(gradeId),
-                    "Grade ID must be greater than zero.");
+                throw new ArgumentException("Grade ID must be greater than zero.", nameof(gradeId));
         }
 
         private static string ValidateClassName(string className)
         {
             if (string.IsNullOrWhiteSpace(className))
-                throw new ArgumentException(
-                    "Class name is required.",
-                    nameof(className));
+                throw new ArgumentException("Class name is required.", nameof(className));
 
             className = className.Trim();
 
             if (className.Length > 10)
-                throw new ArgumentException(
-                    "Class name cannot exceed 10 characters.",
-                    nameof(className));
+                throw new ArgumentException("Class name cannot exceed 10 characters.", nameof(className));
 
             return className;
-        }
-
-        private static string ValidateAcademicYear(string academicYear)
-        {
-            if (string.IsNullOrWhiteSpace(academicYear))
-                throw new ArgumentException(
-                    "Academic year is required.",
-                    nameof(academicYear));
-
-            academicYear = academicYear.Trim();
-
-            if (!Regex.IsMatch(academicYear, @"^\d{4}-\d{4}$"))
-                throw new ArgumentException(
-                    "Academic year must be in the format YYYY-YYYY.",
-                    nameof(academicYear));
-
-            int startYear = int.Parse(academicYear[..4]);
-            int endYear = int.Parse(academicYear[5..]);
-
-            if (endYear != startYear + 1)
-                throw new ArgumentException(
-                    "Academic year is invalid.",
-                    nameof(academicYear));
-
-            return academicYear;
         }
 
         private static void ValidateCapacity(int capacity)
         {
             if (capacity is < 1 or > 100)
-                throw new ArgumentOutOfRangeException(
-                    nameof(capacity),
-                    "Capacity must be between 1 and 100.");
+                throw new ArgumentOutOfRangeException(nameof(capacity), "Capacity must be between 1 and 100.");
         }
 
         private async Task EnsureClassExistsAsync(int classId)
         {
             if (!await _classData.IsClassExistAsync(classId))
-                throw new InvalidOperationException(
-                    $"Class with ID {classId} does not exist.");
+                throw new KeyNotFoundException($"Class with ID {classId} does not exist.");
         }
 
         private async Task EnsureGradeExistsAsync(byte gradeId)
         {
             if (!await _gradeData.IsGradeExistAsync(gradeId))
-                throw new InvalidOperationException(
-                    $"Grade with ID {gradeId} does not exist.");
+                throw new KeyNotFoundException($"Grade with ID {gradeId} does not exist.");
         }
 
-        private async Task EnsureUniqueClassAsync(
-            byte gradeId,
-            string className,
-            string academicYear,
-            int? currentClassId = null)
+        private async Task EnsureUniqueClassAsync(byte gradeId, string className, string academicYear, int? currentClassId = null)
         {
-            ClassDetailsDTO? schoolClass =
-                await _classData.GetClassByDetailsAsync(
-                    gradeId,
-                    className,
-                    academicYear);
+            ClassDetailsDTO? schoolClass = await _classData.GetClassByDetailsAsync(gradeId, className, academicYear);
 
             if (schoolClass == null)
                 return;
 
-            if (currentClassId.HasValue &&
-                schoolClass.ClassID == currentClassId.Value)
+            if (currentClassId.HasValue && schoolClass.ClassID == currentClassId.Value)
                 return;
 
-            throw new InvalidOperationException(
-                $"Class '{className}' already exists in Grade {gradeId} for academic year '{academicYear}'.");
+            throw new InvalidOperationException($"Class '{className}' already exists in Grade {gradeId} for academic year '{academicYear}'.");
         }
-
         #endregion
 
         #region Public Methods
@@ -149,23 +99,27 @@ namespace School.BLL
         {
             ValidateClassId(classId);
 
-            return await _classData.GetClassByIdAsync(classId);
+            ClassDetailsDTO? schoolClass = await _classData.GetClassByIdAsync(classId);
+
+            if (schoolClass == null)
+                throw new KeyNotFoundException($"Class with ID {classId} does not exist.");
+
+            return schoolClass;
         }
 
-        public async Task<ClassDetailsDTO?> GetClassByDetailsAsync(
-            byte gradeId,
-            string className,
-            string academicYear)
+        public async Task<ClassDetailsDTO?> GetClassByDetailsAsync(byte gradeId, string className, string academicYear)
         {
             ValidateGradeId(gradeId);
 
             className = ValidateClassName(className);
-            academicYear = ValidateAcademicYear(academicYear);
+            academicYear = AcademicYearHelper.ValidateAcademicYear(academicYear);
 
-            return await _classData.GetClassByDetailsAsync(
-                gradeId,
-                className,
-                academicYear);
+            ClassDetailsDTO? classDetailsDTO = await _classData.GetClassByDetailsAsync(gradeId, className, academicYear);
+
+            if (classDetailsDTO == null)
+                throw new KeyNotFoundException($"Class '{className}' does not exist in Grade {gradeId} for academic year '{academicYear}'.");
+
+            return classDetailsDTO;
         }
 
         public async Task<int> AddClassAsync(ClassDTO schoolClass)
@@ -174,12 +128,14 @@ namespace School.BLL
 
             await EnsureGradeExistsAsync(schoolClass.GradeID);
 
-            await EnsureUniqueClassAsync(
-                schoolClass.GradeID,
-                schoolClass.ClassName,
-                schoolClass.AcademicYear);
+            await EnsureUniqueClassAsync(schoolClass.GradeID, schoolClass.ClassName, schoolClass.AcademicYear);
 
-            return await _classData.AddClassAsync(schoolClass);
+            int newClassId = await _classData.AddClassAsync(schoolClass);
+
+            if (newClassId <= 0)
+                throw new InvalidOperationException("Failed to add class.");
+
+            return newClassId;
         }
 
         public async Task<bool> UpdateClassAsync(ClassDTO schoolClass)
@@ -192,13 +148,15 @@ namespace School.BLL
 
             await EnsureGradeExistsAsync(schoolClass.GradeID);
 
-            await EnsureUniqueClassAsync(
-                schoolClass.GradeID,
-                schoolClass.ClassName,
-                schoolClass.AcademicYear,
-                schoolClass.ClassID);
+            await EnsureUniqueClassAsync(schoolClass.GradeID, schoolClass.ClassName, schoolClass.AcademicYear, schoolClass.ClassID);
 
-            return await _classData.UpdateClassAsync(schoolClass);
+
+            bool isUpdated = await _classData.UpdateClassAsync(schoolClass);
+
+            if (!isUpdated)
+                throw new InvalidOperationException($"Failed to update class with ID {schoolClass.ClassID}.");
+
+            return isUpdated;
         }
 
         public async Task<bool> DeleteClassAsync(int classId)
@@ -207,7 +165,12 @@ namespace School.BLL
 
             await EnsureClassExistsAsync(classId);
 
-            return await _classData.DeleteClassAsync(classId);
+            bool isDeleted = await _classData.DeleteClassAsync(classId);
+
+            if (!isDeleted)
+                throw new InvalidOperationException($"Failed to delete class with ID {classId}.");
+
+            return isDeleted;
         }
 
         public async Task<bool> IsClassExistAsync(int classId)

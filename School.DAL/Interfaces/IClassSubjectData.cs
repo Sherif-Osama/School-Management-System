@@ -10,7 +10,7 @@ namespace School.DAL.Interfaces
         Task<ClassSubjectDetailsDTO?> GetClassSubjectByDetailsAsync(int classId, int teacherId, int subjectId);
         Task<ClassSubjectDetailsDTO?> GetClassSubjectByIdAsync(int classSubjectId);
         Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsByClassIdAsync(int classId);
-        Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsBySubjectIdAsync(byte subjectId);
+        Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsBySubjectIdAsync(int subjectId);
         Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsByTeacherIdAsync(int teacherId);
         Task<bool> IsClassSubjectExistAsync(int classSubjectId);
         Task<bool> UpdateClassSubjectAsync(ClassSubjectDTO classSubject);

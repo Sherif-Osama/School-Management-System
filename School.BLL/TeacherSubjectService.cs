@@ -10,14 +10,18 @@ namespace School.BLL
         private readonly ITeacherData _teacherData;
         private readonly ISubjectData _subjectData;
 
-        public TeacherSubjectService(ITeacherSubjectData teacherSubjectData, ITeacherData teacherData, ISubjectData subjectData)
+        public TeacherSubjectService(
+            ITeacherSubjectData teacherSubjectData,
+            ITeacherData teacherData,
+            ISubjectData subjectData)
         {
             _teacherSubjectData = teacherSubjectData;
             _teacherData = teacherData;
             _subjectData = subjectData;
         }
 
-        #region Private Helpers
+        #region Validation
+
         private static void ValidateRelation(TeacherSubjectDTO relation)
         {
             ArgumentNullException.ThrowIfNull(relation);
@@ -29,53 +33,46 @@ namespace School.BLL
         private static void ValidateTeacherId(int teacherId)
         {
             if (teacherId <= 0)
-                throw new ArgumentOutOfRangeException(
-                    nameof(teacherId),
-                    "Teacher ID must be greater than zero.");
+                throw new ArgumentException("Teacher ID must be greater than zero.", nameof(teacherId));
         }
 
         private static void ValidateSubjectId(int subjectId)
         {
             if (subjectId <= 0)
-                throw new ArgumentOutOfRangeException(
-                    nameof(subjectId),
-                    "Subject ID must be greater than zero.");
+                throw new ArgumentException("Subject ID must be greater than zero.", nameof(subjectId));
         }
+        #endregion
+
+        #region Ensure
 
         private async Task EnsureTeacherExistsAsync(int teacherId)
         {
             if (!await _teacherData.IsTeacherExistAsync(teacherId))
-                throw new InvalidOperationException(
-                    $"Teacher with ID {teacherId} does not exist.");
+                throw new KeyNotFoundException($"Teacher with ID {teacherId} does not exist.");
         }
 
         private async Task EnsureSubjectExistsAsync(int subjectId)
         {
             if (!await _subjectData.IsSubjectExistAsync(subjectId))
-                throw new InvalidOperationException(
-                    $"Subject with ID {subjectId} does not exist.");
+                throw new KeyNotFoundException($"Subject with ID {subjectId} does not exist.");
         }
 
         private async Task EnsureRelationExistsAsync(TeacherSubjectDTO relation)
         {
             if (!await _teacherSubjectData.IsTeacherSubjectExistAsync(relation))
-                throw new InvalidOperationException(
-                    "The teacher is not assigned to this subject.");
+                throw new KeyNotFoundException("The teacher is not assigned to this subject.");
         }
 
         private async Task EnsureRelationDoesNotExistAsync(TeacherSubjectDTO relation)
         {
             if (await _teacherSubjectData.IsTeacherSubjectExistAsync(relation))
-                throw new InvalidOperationException(
-                    "This subject is already assigned to the teacher.");
+                throw new InvalidOperationException("This subject is already assigned to the teacher.");
         }
-
         #endregion
 
-        #region Public Methods
+        #region Public
 
-        public async Task<List<TeacherSubjectDetailsDTO>>
-            GetAllTeacherSubjectsAsync()
+        public async Task<List<TeacherSubjectDetailsDTO>> GetAllTeacherSubjectsAsync()
         {
             return await _teacherSubjectData.GetAllTeacherSubjectsAsync();
         }
@@ -103,12 +100,15 @@ namespace School.BLL
             ValidateRelation(relation);
 
             await EnsureTeacherExistsAsync(relation.TeacherID);
-
             await EnsureSubjectExistsAsync(relation.SubjectID);
-
             await EnsureRelationDoesNotExistAsync(relation);
 
-            return await _teacherSubjectData.AssignSubjectToTeacherAsync(relation);
+            bool isAssigned = await _teacherSubjectData.AssignSubjectToTeacherAsync(relation);
+
+            if (!isAssigned)
+                throw new InvalidOperationException("Failed to assign the subject to the teacher.");
+
+            return isAssigned;
         }
 
         public async Task<bool> RemoveSubjectFromTeacherAsync(TeacherSubjectDTO relation)
@@ -116,15 +116,16 @@ namespace School.BLL
             ValidateRelation(relation);
 
             await EnsureTeacherExistsAsync(relation.TeacherID);
-
             await EnsureSubjectExistsAsync(relation.SubjectID);
-
             await EnsureRelationExistsAsync(relation);
 
-            return await _teacherSubjectData
-                .RemoveSubjectFromTeacherAsync(relation);
-        }
+            bool isRemoved = await _teacherSubjectData.RemoveSubjectFromTeacherAsync(relation);
 
+            if (!isRemoved)
+                throw new InvalidOperationException("Failed to remove the subject from the teacher.");
+
+            return isRemoved;
+        }
         #endregion
     }
 }

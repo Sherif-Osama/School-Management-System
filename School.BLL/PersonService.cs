@@ -50,14 +50,13 @@ namespace School.BLL
         private static void ValidatePersonId(int personId)
         {
             if (personId <= 0)
-                throw new ArgumentOutOfRangeException(nameof(personId),
-                    "Person ID must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(personId), "Person ID must be greater than zero.");
         }
 
         private async Task EnsurePersonExistsAsync(int personId)
         {
             if (!await _personData.IsPersonExistAsync(personId))
-                throw new InvalidOperationException($"Person with ID {personId} does not exist.");
+                throw new KeyNotFoundException($"Person with ID {personId} does not exist.");
         }
 
         private async Task EnsureNationalIdIsUniqueAsync(string nationalId, int? currentPersonId = null)
@@ -86,7 +85,12 @@ namespace School.BLL
         {
             ValidatePersonId(personId);
 
-            return await _personData.GetPersonByIdAsync(personId);
+            PersonDTO? personDTO = await _personData.GetPersonByIdAsync(personId);
+
+            if (personDTO == null)
+                throw new KeyNotFoundException($"Person with ID {personId} does not exist.");
+
+            return personDTO;
         }
 
         public async Task<PersonDTO?> GetPersonByNationalIDAsync(string nationalId)
@@ -94,16 +98,30 @@ namespace School.BLL
             if (string.IsNullOrWhiteSpace(nationalId))
                 throw new ArgumentException("National ID is required.", nameof(nationalId));
 
-            return await _personData.GetPersonByNationalIDAsync(nationalId);
+            nationalId = nationalId.Trim();
+
+            PersonDTO? person = await _personData.GetPersonByNationalIDAsync(nationalId);
+
+            if (person == null)
+                throw new KeyNotFoundException("Person not found.");
+
+            return person;
         }
 
         public async Task<int> AddPersonAsync(PersonDTO person)
         {
             ValidatePerson(person);
 
+            person.NationalID = person.NationalID.Trim();
+
             await EnsureNationalIdIsUniqueAsync(person.NationalID);
 
-            return await _personData.AddPersonAsync(person);
+            int newPersonId = await _personData.AddPersonAsync(person);
+
+            if (newPersonId <= 0)
+                throw new InvalidOperationException("Failed to add person."); ;
+
+            return newPersonId;
         }
 
         public async Task<bool> UpdatePersonAsync(PersonDTO person)
@@ -116,7 +134,12 @@ namespace School.BLL
 
             await EnsureNationalIdIsUniqueAsync(person.NationalID, person.PersonID);
 
-            return await _personData.UpdatePersonAsync(person);
+            bool isUpdated = await _personData.UpdatePersonAsync(person);
+
+            if (!isUpdated)
+                throw new InvalidOperationException("Failed to update person.");
+
+            return isUpdated;
         }
 
         public async Task<bool> DeletePersonAsync(int personId)
@@ -125,7 +148,12 @@ namespace School.BLL
 
             await EnsurePersonExistsAsync(personId);
 
-            return await _personData.DeletePersonAsync(personId);
+            bool isDeleted = await _personData.DeletePersonAsync(personId);
+
+            if (!isDeleted)
+                throw new InvalidOperationException("Failed to delete person.");
+
+            return isDeleted;
         }
 
         public async Task<bool> IsPersonExistAsync(int personId)

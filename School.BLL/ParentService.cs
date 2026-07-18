@@ -29,43 +29,36 @@ namespace School.BLL
         private static void ValidateParentId(int parentId)
         {
             if (parentId <= 0)
-                throw new ArgumentOutOfRangeException(
-                    nameof(parentId),
-                    "Parent ID must be greater than zero.");
+                throw new ArgumentException("Parent ID must be greater than zero.", nameof(parentId));
         }
 
         private static void ValidatePersonId(int personId)
         {
             if (personId <= 0)
-                throw new ArgumentOutOfRangeException(
-                    nameof(personId),
-                    "Person ID must be greater than zero.");
+                throw new ArgumentException("Person ID must be greater than zero.", nameof(personId));
         }
 
         private async Task EnsureParentExistsAsync(int parentId)
         {
             if (!await _parentData.IsParentExistAsync(parentId))
-                throw new InvalidOperationException(
+                throw new KeyNotFoundException(
                     $"Parent with ID {parentId} does not exist.");
         }
 
         private async Task EnsurePersonExistsAsync(int personId)
         {
             if (!await _personData.IsPersonExistAsync(personId))
-                throw new InvalidOperationException(
-                    $"Person with ID {personId} does not exist.");
+                throw new KeyNotFoundException($"Person with ID {personId} does not exist.");
         }
 
         private async Task EnsurePersonIsNotParentAsync(int personId, int? currentParentId = null)
         {
-            ParentDetailsDTO? parent =
-                await _parentData.GetParentByPersonIdAsync(personId);
+            ParentDetailsDTO? parent = await _parentData.GetParentByPersonIdAsync(personId);
 
             if (parent == null)
                 return;
 
-            if (currentParentId.HasValue &&
-                parent.ParentID == currentParentId.Value)
+            if (currentParentId.HasValue && parent.ParentID == currentParentId.Value)
                 return;
 
             throw new InvalidOperationException(
@@ -75,8 +68,7 @@ namespace School.BLL
         private async Task EnsurePersonIsNotStudentAsync(int personId)
         {
             if (await _studentData.GetStudentByPersonIdAsync(personId) != null)
-                throw new InvalidOperationException(
-                    $"Person ID {personId} is already registered as a student.");
+                throw new InvalidOperationException($"Person ID {personId} is already registered as a student.");
         }
 
         #endregion
@@ -91,15 +83,24 @@ namespace School.BLL
         public async Task<ParentDetailsDTO?> GetParentByIdAsync(int parentId)
         {
             ValidateParentId(parentId);
+            ParentDetailsDTO? parentDetails = await _parentData.GetParentByIdAsync(parentId);
 
-            return await _parentData.GetParentByIdAsync(parentId);
+            if (parentDetails == null)
+                throw new KeyNotFoundException($"Parent with ID {parentId} does not exist.");
+
+            return parentDetails;
         }
 
         public async Task<ParentDetailsDTO?> GetParentByPersonIdAsync(int personId)
         {
             ValidatePersonId(personId);
 
-            return await _parentData.GetParentByPersonIdAsync(personId);
+            ParentDetailsDTO? parentDetails = await _parentData.GetParentByPersonIdAsync(personId);
+
+            if (parentDetails == null)
+                throw new KeyNotFoundException($"Parent with Person ID {personId} does not exist.");
+
+            return parentDetails;
         }
 
         public async Task<ParentDetailsDTO?> GetParentByNationalIdAsync(string nationalId)
@@ -107,7 +108,14 @@ namespace School.BLL
             if (string.IsNullOrWhiteSpace(nationalId))
                 throw new ArgumentException("National ID is required.", nameof(nationalId));
 
-            return await _parentData.GetParentByNationalIdAsync(nationalId);
+            nationalId = nationalId.Trim();
+
+            ParentDetailsDTO? parentDetails = await _parentData.GetParentByNationalIdAsync(nationalId);
+
+            if (parentDetails == null)
+                throw new KeyNotFoundException($"Parent with National ID {nationalId} does not exist.");
+
+            return parentDetails;
         }
 
         public async Task<int> AddParentAsync(ParentDTO parent)
@@ -120,7 +128,12 @@ namespace School.BLL
 
             await EnsurePersonIsNotStudentAsync(parent.PersonID);
 
-            return await _parentData.AddParentAsync(parent);
+            int newParentId = await _parentData.AddParentAsync(parent);
+
+            if (newParentId <= 0)
+                throw new InvalidOperationException("Failed to add parent.");
+
+            return newParentId;
         }
 
         public async Task<bool> UpdateParentAsync(ParentDTO parent)
@@ -133,13 +146,16 @@ namespace School.BLL
 
             await EnsurePersonExistsAsync(parent.PersonID);
 
-            await EnsurePersonIsNotParentAsync(
-                parent.PersonID,
-                parent.ParentID);
+            await EnsurePersonIsNotParentAsync(parent.PersonID, parent.ParentID);
 
             await EnsurePersonIsNotStudentAsync(parent.PersonID);
 
-            return await _parentData.UpdateParentAsync(parent);
+            bool isUpdated = await _parentData.UpdateParentAsync(parent);
+
+            if (!isUpdated)
+                throw new InvalidOperationException($"Failed to update parent with ID {parent.ParentID}");
+
+            return isUpdated;
         }
 
         public async Task<bool> DeleteParentAsync(int parentId)
@@ -147,8 +163,12 @@ namespace School.BLL
             ValidateParentId(parentId);
 
             await EnsureParentExistsAsync(parentId);
+            bool isDeleted = await _parentData.DeleteParentAsync(parentId);
 
-            return await _parentData.DeleteParentAsync(parentId);
+            if (!isDeleted)
+                throw new InvalidOperationException($"Failed to delete parent with ID {parentId}");
+
+            return isDeleted;
         }
 
         public async Task<bool> IsParentExistAsync(int parentId)

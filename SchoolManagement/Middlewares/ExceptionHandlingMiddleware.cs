@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using Microsoft.Data.SqlClient;
+using System.Net;
 using System.Text.Json;
 
 namespace School.API.Middlewares
@@ -43,9 +44,21 @@ namespace School.API.Middlewares
                     HttpStatusCode.Unauthorized,
                     ex.Message);
             }
+            catch (KeyNotFoundException ex)
+            {
+                await HandleExceptionAsync(
+                    context,
+                    HttpStatusCode.NotFound,
+                    ex.Message);
+            }
+            catch (SqlException ex) when (ex.Number == 547) // 547 represents Foreign key violation
+            {
+                await HandleExceptionAsync(context,
+                    HttpStatusCode.Conflict,
+                    "Cannot delete this record because it is referenced by other records.");
+            }
             catch (Exception)
             {
-                throw;
                 await HandleExceptionAsync(
                     context,
                     HttpStatusCode.InternalServerError,

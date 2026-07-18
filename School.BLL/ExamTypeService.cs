@@ -37,19 +37,17 @@ namespace School.BLL
             examName = examName.Trim();
 
             if (examName.Length < 3 || examName.Length > 50)
-                throw new ArgumentException("Exam name must be between 3 and 50 characters.", nameof(examName));
+                throw new ArgumentOutOfRangeException(nameof(examName), "Exam name must be between 3 and 50 characters.");
 
             return examName;
         }
-
         #endregion
 
         #region Ensure
-
         private async Task EnsureExamTypeExistsAsync(int examTypeId)
         {
             if (!await _examTypeData.IsExamTypeExistAsync(examTypeId))
-                throw new InvalidOperationException($"ExamType with ID {examTypeId} does not exist.");
+                throw new KeyNotFoundException($"Exam type with ID '{examTypeId}' does not exist.");
         }
 
         private async Task EnsureExamTypeNameUniqueAsync(string examName, int? currentExamTypeId = null)
@@ -59,13 +57,11 @@ namespace School.BLL
             if (examType == null)
                 return;
 
-            if (currentExamTypeId.HasValue &&
-                examType.ExamTypeID == currentExamTypeId.Value)
+            if (currentExamTypeId.HasValue && examType.ExamTypeID == currentExamTypeId.Value)
                 return;
 
             throw new InvalidOperationException("Exam name already exists.");
         }
-
         #endregion
 
         #region Public
@@ -79,14 +75,24 @@ namespace School.BLL
         {
             ValidateExamTypeId(examTypeId);
 
-            return await _examTypeData.GetExamTypeByIdAsync(examTypeId);
+            ExamTypeDTO? examTypeDTO = await _examTypeData.GetExamTypeByIdAsync(examTypeId);
+
+            if (examTypeDTO == null)
+                throw new KeyNotFoundException($"Exam type with ID '{examTypeId}' does not exist.");
+
+            return examTypeDTO;
         }
 
         public async Task<ExamTypeDTO?> GetExamTypeByNameAsync(string examName)
         {
             examName = ValidateExamTypeName(examName);
 
-            return await _examTypeData.GetExamTypeByNameAsync(examName);
+            ExamTypeDTO? examTypeDTO = await _examTypeData.GetExamTypeByNameAsync(examName);
+
+            if (examTypeDTO == null)
+                throw new KeyNotFoundException($"Exam type with name '{examName}' does not exist.");
+
+            return examTypeDTO;
         }
 
         public async Task<int> AddExamTypeAsync(ExamTypeDTO examType)
@@ -95,7 +101,12 @@ namespace School.BLL
 
             await EnsureExamTypeNameUniqueAsync(examType.ExamName);
 
-            return await _examTypeData.AddExamTypeAsync(examType);
+            int newExamTypeId = await _examTypeData.AddExamTypeAsync(examType);
+
+            if (newExamTypeId <= 0)
+                throw new InvalidOperationException("Failed to add exam type.");
+
+            return newExamTypeId;
         }
 
         public async Task<bool> UpdateExamTypeAsync(ExamTypeDTO examType)
@@ -106,7 +117,12 @@ namespace School.BLL
             await EnsureExamTypeExistsAsync(examType.ExamTypeID);
             await EnsureExamTypeNameUniqueAsync(examType.ExamName, examType.ExamTypeID);
 
-            return await _examTypeData.UpdateExamTypeAsync(examType);
+            bool isUpdated = await _examTypeData.UpdateExamTypeAsync(examType);
+
+            if (!isUpdated)
+                throw new InvalidOperationException($"Failed to update exam type with ID '{examType.ExamTypeID}'.");
+
+            return isUpdated;
         }
 
         public async Task<bool> DeleteExamTypeAsync(int examTypeId)
@@ -114,8 +130,12 @@ namespace School.BLL
             ValidateExamTypeId(examTypeId);
 
             await EnsureExamTypeExistsAsync(examTypeId);
+            bool isDeleted = await _examTypeData.DeleteExamTypeAsync(examTypeId);
 
-            return await _examTypeData.DeleteExamTypeAsync(examTypeId);
+            if (!isDeleted)
+                throw new InvalidOperationException($"Failed to delete exam type with ID '{examTypeId}'.");
+
+            return isDeleted;
         }
 
         #endregion

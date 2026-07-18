@@ -31,36 +31,29 @@ namespace School.BLL
             ValidateTime(schedule.StartTime, schedule.EndTime);
         }
 
-        private static int ValidateScheduleId(int scheduleId)
+        private static void ValidateScheduleId(int scheduleId)
         {
             if (scheduleId <= 0)
                 throw new ArgumentException("ScheduleID must be a positive number.", nameof(scheduleId));
-
-            return scheduleId;
         }
 
-        private static int ValidateClassSubjectId(int classSubjectId)
+
+        private static void ValidateClassSubjectId(int classSubjectId)
         {
             if (classSubjectId <= 0)
                 throw new ArgumentException("ClassSubjectID must be a positive number.", nameof(classSubjectId));
-
-            return classSubjectId;
         }
 
-        private static int ValidateClassroomId(int classroomId)
+        private static void ValidateClassroomId(int classroomId)
         {
             if (classroomId <= 0)
                 throw new ArgumentException("ClassroomID must be a positive number.", nameof(classroomId));
-
-            return classroomId;
         }
 
-        private static byte ValidateDayOfWeek(byte dayOfWeek)
+        private static void ValidateDayOfWeek(byte dayOfWeek)
         {
             if (dayOfWeek is < 1 or > 5)
-                throw new ArgumentException("DayOfWeek must be between 1 (Sunday) and 5 (Thursday).", nameof(dayOfWeek));
-
-            return dayOfWeek;
+                throw new ArgumentOutOfRangeException(nameof(dayOfWeek), "DayOfWeek must be between 1 (Sunday) and 5 (Thursday).");
         }
 
         private static void ValidateTime(TimeOnly startTime, TimeOnly endTime)
@@ -74,19 +67,13 @@ namespace School.BLL
         private async Task EnsureScheduleExistsAsync(int scheduleId)
         {
             if (!await _scheduleData.IsScheduleExistAsync(scheduleId))
-                throw new InvalidOperationException($"Schedule with ID {scheduleId} does not exist.");
-        }
-
-        private async Task EnsureClassSubjectExistsAsync(int classSubjectId)
-        {
-            if (!await _classSubjectData.IsClassSubjectExistAsync(classSubjectId))
-                throw new InvalidOperationException($"ClassSubject with ID {classSubjectId} does not exist.");
+                throw new KeyNotFoundException($"Schedule with ID {scheduleId} does not exist.");
         }
 
         private async Task EnsureClassroomExistsAsync(int classroomId)
         {
             if (!await _classroomData.IsClassroomExistAsync(classroomId))
-                throw new InvalidOperationException($"Classroom with ID {classroomId} does not exist.");
+                throw new KeyNotFoundException($"Classroom with ID {classroomId} does not exist.");
         }
 
         private async Task EnsureClassroomAvailableAsync(int classroomId, byte dayOfWeek, TimeOnly startTime, TimeOnly endTime, int? scheduleId = null)
@@ -97,38 +84,31 @@ namespace School.BLL
                 throw new InvalidOperationException("The classroom is already booked for the specified day and time.");
         }
 
-        private async Task<ClassSubjectDetailsDTO> EnsureClassSubjectAvailableAsync(int classSubjectId)
+        private async Task<ClassSubjectDetailsDTO> GetValidatedClassSubjectAsync(int classSubjectId)
         {
-            var classSubject = await _classSubjectData.GetClassSubjectByIdAsync(classSubjectId)
-                ?? throw new InvalidOperationException($"ClassSubject with ID {classSubjectId} does not exist.");
+            ClassSubjectDetailsDTO? classSubject = await _classSubjectData.GetClassSubjectByIdAsync(classSubjectId);
 
-            return classSubject;
+            return classSubject
+                ?? throw new KeyNotFoundException(
+                    $"ClassSubject with ID {classSubjectId} does not exist.");
         }
 
         private async Task EnsureTeacherExistsAsync(int teacherId)
         {
             if (!await _teacherData.IsTeacherExistAsync(teacherId))
-                throw new InvalidOperationException($"Teacher with ID {teacherId} does not exist.");
+                throw new KeyNotFoundException($"Teacher with ID {teacherId} does not exist.");
         }
 
-        private async Task EnsureTeacherAvailableAsync(int classSubjectId, byte dayOfWeek, TimeOnly startTime, TimeOnly endTime, int? scheduleId = null)
+        private async Task EnsureTeacherAvailableAsync(ClassSubjectDetailsDTO classSubject, byte dayOfWeek, TimeOnly startTime, TimeOnly endTime, int? scheduleId = null)
         {
-            var classSubject = await EnsureClassSubjectAvailableAsync(classSubjectId);
             bool isAvailable = await _scheduleData.IsTeacherAvailableAsync(classSubject.TeacherID, dayOfWeek, startTime, endTime, scheduleId);
 
             if (!isAvailable)
                 throw new InvalidOperationException("The teacher already has another class scheduled for the specified day and time.");
         }
 
-        private async Task EnsureClassAvailableAsync(
-            int classSubjectId,
-            byte dayOfWeek,
-            TimeOnly startTime,
-            TimeOnly endTime,
-            int? scheduleId = null)
+        private async Task EnsureClassAvailableAsync(ClassSubjectDetailsDTO classSubject, byte dayOfWeek, TimeOnly startTime, TimeOnly endTime, int? scheduleId = null)
         {
-
-            var classSubject = await EnsureClassSubjectAvailableAsync(classSubjectId);
             bool isAvailable = await _scheduleData.IsClassAvailableAsync(classSubject.ClassID, dayOfWeek, startTime, endTime, scheduleId);
 
             if (!isAvailable)
@@ -142,11 +122,15 @@ namespace School.BLL
             return _scheduleData.GetAllSchedulesAsync();
         }
 
-        public Task<ScheduleDetailsDTO?> GetScheduleByIdAsync(int scheduleId)
+        public async Task<ScheduleDetailsDTO?> GetScheduleByIdAsync(int scheduleId)
         {
             ValidateScheduleId(scheduleId);
+            ScheduleDetailsDTO? scheduleDetails = await _scheduleData.GetScheduleByIdAsync(scheduleId);
 
-            return _scheduleData.GetScheduleByIdAsync(scheduleId);
+            if (scheduleDetails == null)
+                throw new KeyNotFoundException($"Schedule with ID {scheduleId} does not exist.");
+
+            return scheduleDetails;
         }
 
         public Task<List<ScheduleDetailsDTO>> GetSchedulesByClassIdAsync(int classId)
@@ -170,13 +154,16 @@ namespace School.BLL
         public async Task<List<ScheduleDetailsDTO>> GetSchedulesByClassroomIdAsync(int classroomId)
         {
             ValidateClassroomId(classroomId);
+
             await EnsureClassroomExistsAsync(classroomId);
+
             return await _scheduleData.GetSchedulesByClassroomIdAsync(classroomId);
         }
 
         public Task<List<ScheduleDetailsDTO>> GetSchedulesByClassSubjectIdAsync(int classSubjectId)
         {
             ValidateClassSubjectId(classSubjectId);
+
             return _scheduleData.GetSchedulesByClassSubjectIdAsync(classSubjectId);
         }
 
@@ -184,14 +171,22 @@ namespace School.BLL
         {
             ValidateSchedule(schedule);
 
-            await EnsureClassSubjectExistsAsync(schedule.ClassSubjectID);
+            ClassSubjectDetailsDTO classSubject = await GetValidatedClassSubjectAsync(schedule.ClassSubjectID);
+
             await EnsureClassroomExistsAsync(schedule.ClassroomID);
 
             await EnsureClassroomAvailableAsync(schedule.ClassroomID, schedule.DayOfWeek, schedule.StartTime, schedule.EndTime);
-            await EnsureTeacherAvailableAsync(schedule.ClassSubjectID, schedule.DayOfWeek, schedule.StartTime, schedule.EndTime);
-            await EnsureClassAvailableAsync(schedule.ClassSubjectID, schedule.DayOfWeek, schedule.StartTime, schedule.EndTime);
 
-            return await _scheduleData.AddScheduleAsync(schedule);
+            await EnsureTeacherAvailableAsync(classSubject, schedule.DayOfWeek, schedule.StartTime, schedule.EndTime);
+
+            await EnsureClassAvailableAsync(classSubject, schedule.DayOfWeek, schedule.StartTime, schedule.EndTime);
+
+            int newScheduleId = await _scheduleData.AddScheduleAsync(schedule);
+
+            if (newScheduleId <= 0)
+                throw new InvalidOperationException("Failed to add the schedule.");
+
+            return newScheduleId;
         }
 
         public async Task<bool> UpdateScheduleAsync(ScheduleDTO schedule)
@@ -200,14 +195,18 @@ namespace School.BLL
             ValidateScheduleId(schedule.ScheduleID);
 
             await EnsureScheduleExistsAsync(schedule.ScheduleID);
-            await EnsureClassSubjectExistsAsync(schedule.ClassSubjectID);
+            ClassSubjectDetailsDTO classSubject = await GetValidatedClassSubjectAsync(schedule.ClassSubjectID);
             await EnsureClassroomExistsAsync(schedule.ClassroomID);
-
             await EnsureClassroomAvailableAsync(schedule.ClassroomID, schedule.DayOfWeek, schedule.StartTime, schedule.EndTime, schedule.ScheduleID);
-            await EnsureTeacherAvailableAsync(schedule.ClassSubjectID, schedule.DayOfWeek, schedule.StartTime, schedule.EndTime, schedule.ScheduleID);
-            await EnsureClassAvailableAsync(schedule.ClassSubjectID, schedule.DayOfWeek, schedule.StartTime, schedule.EndTime, schedule.ScheduleID);
+            await EnsureTeacherAvailableAsync(classSubject, schedule.DayOfWeek, schedule.StartTime, schedule.EndTime, schedule.ScheduleID);
+            await EnsureClassAvailableAsync(classSubject, schedule.DayOfWeek, schedule.StartTime, schedule.EndTime, schedule.ScheduleID);
 
-            return await _scheduleData.UpdateScheduleAsync(schedule);
+            bool isUpdated = await _scheduleData.UpdateScheduleAsync(schedule);
+
+            if (!isUpdated)
+                throw new InvalidOperationException($"Failed to update the schedule with ID {schedule.ScheduleID}.");
+
+            return isUpdated;
         }
 
         public async Task<bool> DeleteScheduleAsync(int scheduleId)
@@ -216,7 +215,12 @@ namespace School.BLL
 
             await EnsureScheduleExistsAsync(scheduleId);
 
-            return await _scheduleData.DeleteScheduleAsync(scheduleId);
+            bool isDeleted = await _scheduleData.DeleteScheduleAsync(scheduleId);
+
+            if (!isDeleted)
+                throw new InvalidOperationException($"Failed to delete the schedule with ID {scheduleId}.");
+
+            return isDeleted;
         }
         #endregion
     }

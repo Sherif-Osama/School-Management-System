@@ -9,7 +9,7 @@ namespace School.BLL.Interfaces
         Task<List<ClassSubjectDetailsDTO>> GetAllClassSubjectsAsync();
         Task<ClassSubjectDetailsDTO?> GetClassSubjectByIdAsync(int classSubjectId);
         Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsByClassIdAsync(int classId);
-        Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsBySubjectIdAsync(byte subjectId);
+        Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsBySubjectIdAsync(int subjectId);
         Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsByTeacherIdAsync(int teacherId);
         Task<bool> IsClassSubjectExistAsync(int classSubjectId);
         Task<bool> UpdateClassSubjectAsync(ClassSubjectDTO classSubject);

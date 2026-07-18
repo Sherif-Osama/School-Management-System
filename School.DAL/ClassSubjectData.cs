@@ -88,13 +88,13 @@ namespace School.DAL
             return await ReadClassSubjectsAsync(command);
         }
 
-        public async Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsBySubjectIdAsync(byte subjectId)
+        public async Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsBySubjectIdAsync(int subjectId)
         {
             using SqlConnection connection = await GetOpenConnectionAsync();
 
             using SqlCommand command = CreateStoredProcedure(connection, "SP_GetClassSubjectsBySubjectID");
 
-            command.Parameters.Add("@SubjectID", SqlDbType.TinyInt).Value = subjectId;
+            command.Parameters.Add("@SubjectID", SqlDbType.Int).Value = subjectId;
 
             return await ReadClassSubjectsAsync(command);
         }

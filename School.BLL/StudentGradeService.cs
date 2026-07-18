@@ -105,6 +105,7 @@ namespace School.BLL
                 throw new ArgumentException("Grade must be 0 when IsAbsent is true.", nameof(grade));
         }
 
+        //this method need to optimization!!!
         private async Task EnsureStudentGradeUniqueAsync(int studentId, int examId, int? studentGradeId = null)
         {
             List<StudentGradeDetailsDTO> examGrades = await _studentGradeData.GetStudentGradesByExamIdAsync(examId);
@@ -125,11 +126,16 @@ namespace School.BLL
             return _studentGradeData.GetAllStudentGradesAsync();
         }
 
-        public Task<StudentGradeDetailsDTO?> GetStudentGradeByIdAsync(int studentGradeId)
+        public async Task<StudentGradeDetailsDTO?> GetStudentGradeByIdAsync(int studentGradeId)
         {
             ValidateStudentGradeId(studentGradeId);
 
-            return _studentGradeData.GetStudentGradeByIdAsync(studentGradeId);
+            StudentGradeDetailsDTO? studentGradeDetails = await _studentGradeData.GetStudentGradeByIdAsync(studentGradeId);
+
+            if (studentGradeDetails == null)
+                throw new KeyNotFoundException($"StudentGrade with ID {studentGradeId} does not exist.");
+
+            return studentGradeDetails;
         }
 
         public Task<List<StudentGradeDetailsDTO>> GetStudentGradesByStudentIdAsync(int studentId)
@@ -175,7 +181,12 @@ namespace School.BLL
             EnsureGradeConsistentWithAbsence(studentGrade.Grade, studentGrade.IsAbsent);
             await EnsureStudentGradeUniqueAsync(studentGrade.StudentID, studentGrade.ExamID);
 
-            return await _studentGradeData.AddStudentGradeAsync(studentGrade);
+            int newStudentGradeId = await _studentGradeData.AddStudentGradeAsync(studentGrade);
+
+            if (newStudentGradeId <= 0)
+                throw new InvalidOperationException("Failed to add the student grade.");
+
+            return newStudentGradeId;
         }
 
         public async Task<bool> UpdateStudentGradeAsync(StudentGradeDTO studentGrade)
@@ -194,7 +205,12 @@ namespace School.BLL
             EnsureGradeConsistentWithAbsence(studentGrade.Grade, studentGrade.IsAbsent);
             await EnsureStudentGradeUniqueAsync(studentGrade.StudentID, studentGrade.ExamID, studentGrade.StudentGradeID);
 
-            return await _studentGradeData.UpdateStudentGradeAsync(studentGrade);
+            bool isUpdated = await _studentGradeData.UpdateStudentGradeAsync(studentGrade);
+
+            if (!isUpdated)
+                throw new InvalidOperationException($"Failed to update the student grade with ID {studentGrade.StudentGradeID}");
+
+            return isUpdated;
         }
 
         public async Task<bool> DeleteStudentGradeAsync(int studentGradeId)
@@ -203,7 +219,11 @@ namespace School.BLL
 
             await EnsureStudentGradeExistsAsync(studentGradeId);
 
-            return await _studentGradeData.DeleteStudentGradeAsync(studentGradeId);
+            bool isDeleted = await _studentGradeData.DeleteStudentGradeAsync(studentGradeId);
+            if (!isDeleted)
+                throw new InvalidOperationException($"Failed to delete the student grade with ID {studentGradeId}");
+
+            return isDeleted;
         }
         #endregion
     }

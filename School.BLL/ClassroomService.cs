@@ -61,14 +61,13 @@ namespace School.BLL
         private async Task EnsureClassroomExistsAsync(int classroomId)
         {
             if (!await _classroomData.IsClassroomExistAsync(classroomId))
-                throw new InvalidOperationException(
+                throw new KeyNotFoundException(
                     $"Classroom with ID {classroomId} does not exist.");
         }
 
         private async Task EnsureRoomNumberUniqueAsync(string roomName, int? currentClassroomId = null)
         {
-            ClassroomDTO? classroom =
-                await _classroomData.GetClassroomByRoomNameAsync(roomName);
+            ClassroomDTO? classroom = await _classroomData.GetClassroomByRoomNameAsync(roomName);
 
             if (classroom == null)
                 return;
@@ -92,14 +91,24 @@ namespace School.BLL
         {
             ValidateClassroomId(classroomId);
 
-            return await _classroomData.GetClassroomByIdAsync(classroomId);
+            ClassroomDTO? classroom = await _classroomData.GetClassroomByIdAsync(classroomId);
+
+            if (classroom == null)
+                throw new KeyNotFoundException($"Classroom with ID {classroomId} does not exist.");
+
+            return classroom;
         }
 
         public async Task<ClassroomDTO?> GetClassroomByRoomNameAsync(string roomName)
         {
             roomName = ValidateRoomNumber(roomName);
 
-            return await _classroomData.GetClassroomByRoomNameAsync(roomName);
+            ClassroomDTO? classroom = await _classroomData.GetClassroomByRoomNameAsync(roomName);
+
+            if (classroom == null)
+                throw new KeyNotFoundException($"Classroom with room name {roomName} does not exist.");
+
+            return classroom;
         }
 
         public async Task<int> AddClassroomAsync(ClassroomDTO classroom)
@@ -108,7 +117,12 @@ namespace School.BLL
 
             await EnsureRoomNumberUniqueAsync(classroom.RoomName);
 
-            return await _classroomData.AddClassroomAsync(classroom);
+            int newClassroomId = await _classroomData.AddClassroomAsync(classroom);
+
+            if (newClassroomId <= 0)
+                throw new InvalidOperationException("Failed to add classroom.");
+
+            return newClassroomId;
         }
 
         public async Task<bool> UpdateClassroomAsync(ClassroomDTO classroom)
@@ -121,7 +135,12 @@ namespace School.BLL
 
             await EnsureRoomNumberUniqueAsync(classroom.RoomName, classroom.ClassroomID);
 
-            return await _classroomData.UpdateClassroomAsync(classroom);
+            bool isUpdated = await _classroomData.UpdateClassroomAsync(classroom);
+
+            if (!isUpdated)
+                throw new InvalidOperationException($"Failed to update classroom with ID {classroom.ClassroomID}.");
+
+            return isUpdated;
         }
 
         public async Task<bool> DeleteClassroomAsync(int classroomId)
@@ -130,7 +149,12 @@ namespace School.BLL
 
             await EnsureClassroomExistsAsync(classroomId);
 
-            return await _classroomData.DeleteClassroomAsync(classroomId);
+            bool isDeleted = await _classroomData.DeleteClassroomAsync(classroomId);
+
+            if (!isDeleted)
+                throw new InvalidOperationException($"Failed to delete classroom with ID {classroomId}.");
+
+            return isDeleted;
         }
 
         public async Task<bool> IsClassroomExistAsync(int classroomId)

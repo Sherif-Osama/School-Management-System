@@ -18,48 +18,39 @@ namespace School.BLL
         }
 
         #region Private Helpers
-
         private static void ValidateRelation(StudentParentDTO relation)
         {
             ArgumentNullException.ThrowIfNull(relation);
 
             if (relation.StudentID <= 0)
-                throw new ArgumentOutOfRangeException(
-                    nameof(relation.StudentID),
-                    "Student ID must be greater than zero.");
+                throw new ArgumentException("Student ID must be greater than zero.", nameof(relation.StudentID));
 
             if (relation.ParentID <= 0)
-                throw new ArgumentOutOfRangeException(
-                    nameof(relation.ParentID),
-                    "Parent ID must be greater than zero.");
+                throw new ArgumentException("Parent ID must be greater than zero.", nameof(relation.ParentID));
         }
 
         private async Task EnsureStudentExistsAsync(int studentId)
         {
             if (!await _studentData.IsStudentExistAsync(studentId))
-                throw new InvalidOperationException(
-                    $"Student with ID {studentId} does not exist.");
+                throw new KeyNotFoundException($"Student with ID {studentId} does not exist.");
         }
 
         private async Task EnsureParentExistsAsync(int parentId)
         {
             if (!await _parentData.IsParentExistAsync(parentId))
-                throw new InvalidOperationException(
-                    $"Parent with ID {parentId} does not exist.");
+                throw new KeyNotFoundException($"Parent with ID {parentId} does not exist.");
         }
 
         private async Task EnsureRelationDoesNotExistAsync(StudentParentDTO relation)
         {
             if (await _studentParentData.IsStudentParentExistAsync(relation))
-                throw new InvalidOperationException(
-                    "This student is already linked to this parent.");
+                throw new InvalidOperationException("This student is already linked to this parent.");
         }
 
         private async Task EnsureRelationExistsAsync(StudentParentDTO relation)
         {
             if (!await _studentParentData.IsStudentParentExistAsync(relation))
-                throw new InvalidOperationException(
-                    "The relationship does not exist.");
+                throw new KeyNotFoundException("The relationship does not exist.");
         }
 
         #endregion
@@ -74,16 +65,18 @@ namespace School.BLL
         public async Task<List<StudentParentDetailsDTO>> GetParentsByStudentIdAsync(int studentId)
         {
             if (studentId <= 0)
-                throw new ArgumentOutOfRangeException(nameof(studentId));
+                throw new ArgumentException("student ID must be greater than zero.", nameof(studentId));
 
             await EnsureStudentExistsAsync(studentId);
+
+
             return await _studentParentData.GetParentsByStudentIdAsync(studentId);
         }
 
         public async Task<List<StudentParentDetailsDTO>> GetStudentsByParentIdAsync(int parentId)
         {
             if (parentId <= 0)
-                throw new ArgumentOutOfRangeException(nameof(parentId));
+                throw new ArgumentException("parent ID must be greater than zero.", nameof(parentId));
 
             await EnsureParentExistsAsync(parentId);
 
@@ -100,7 +93,12 @@ namespace School.BLL
 
             await EnsureRelationDoesNotExistAsync(relation);
 
-            return await _studentParentData.AddStudentParentAsync(relation);
+            bool isRelationAdded = await _studentParentData.AddStudentParentAsync(relation);
+
+            if (!isRelationAdded)
+                throw new InvalidOperationException("Failed to add the student-parent relationship.");
+
+            return isRelationAdded;
         }
 
         public async Task<bool> DeleteStudentParentAsync(StudentParentDTO relation)
@@ -109,7 +107,13 @@ namespace School.BLL
             await EnsureStudentExistsAsync(relation.StudentID);
             await EnsureParentExistsAsync(relation.ParentID);
             await EnsureRelationExistsAsync(relation);
-            return await _studentParentData.DeleteStudentParentAsync(relation);
+
+            bool isDeleted = await _studentParentData.DeleteStudentParentAsync(relation);
+
+            if (!isDeleted)
+                throw new InvalidOperationException("Failed to delete the student-parent relationship.");
+
+            return isDeleted;
         }
         #endregion
     }

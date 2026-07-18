@@ -13,5 +13,6 @@ namespace School.DAL.Interfaces
         Task<List<ExamDetailsDTO>> GetExamsByTeacherIdAsync(int teacherId);
         Task<bool> IsExamExistAsync(int examId);
         Task<bool> UpdateExamAsync(ExamDTO exam);
+        Task<bool> IsExamDuplicate(int classSubjectId, int examTypeId, int? examId = null);
     }
 }

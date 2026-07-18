@@ -145,6 +145,15 @@ namespace School.DAL
             command.Parameters.Add("@AttendanceID", SqlDbType.Int).Value = attendanceId;
             return Convert.ToBoolean(await command.ExecuteScalarAsync());
         }
+        public async Task<bool> IsStudentAttendanceExistsAsync(int studentId, DateOnly attendanceDate, int? attendanceId = null)
+        {
+            using SqlConnection connection = await GetOpenConnectionAsync();
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsStudentAttendanceExists");
+            command.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId;
+            command.Parameters.Add("@AttendanceDate", SqlDbType.Date).Value = attendanceDate.ToDateTime(TimeOnly.MinValue);
+            command.Parameters.Add("@AttendanceID", SqlDbType.Int).Value = attendanceId ?? (object)DBNull.Value;
+            return Convert.ToBoolean(await command.ExecuteScalarAsync());
+        }
         #endregion
     }
 }

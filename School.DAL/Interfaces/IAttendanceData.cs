@@ -14,5 +14,6 @@ namespace School.DAL.Interfaces
         Task<List<AttendanceDetailsDTO>> GetAttendancesByStudentIdAsync(int studentId);
         Task<bool> IsAttendanceExistAsync(int attendanceId);
         Task<bool> UpdateAttendanceAsync(AttendanceDTO attendance);
+        Task<bool> IsStudentAttendanceExistsAsync(int studentId, DateOnly attendanceDate, int? attendanceId = null);
     }
 }

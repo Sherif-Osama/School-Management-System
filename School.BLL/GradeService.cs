@@ -24,24 +24,18 @@ namespace School.BLL
         private static void ValidateGradeId(byte gradeId)
         {
             if (gradeId <= 0)
-                throw new ArgumentOutOfRangeException(
-                    nameof(gradeId),
-                    "Grade ID must be greater than zero.");
+                throw new ArgumentException("Grade ID must be greater than zero.", nameof(gradeId));
         }
 
         private static string ValidateGradeName(string gradeName)
         {
             if (string.IsNullOrWhiteSpace(gradeName))
-                throw new ArgumentException(
-                    "Grade name is required.",
-                    nameof(gradeName));
+                throw new ArgumentException("Grade name is required.", nameof(gradeName));
 
             gradeName = gradeName.Trim();
 
             if (gradeName.Length > 50)
-                throw new ArgumentException(
-                    "Grade name cannot exceed 50 characters.",
-                    nameof(gradeName));
+                throw new ArgumentOutOfRangeException(nameof(gradeName), "Grade name cannot exceed 50 characters.");
 
             return gradeName;
         }
@@ -49,31 +43,24 @@ namespace School.BLL
         private async Task EnsureGradeExistsAsync(byte gradeId)
         {
             if (!await _gradeData.IsGradeExistAsync(gradeId))
-                throw new InvalidOperationException(
-                    $"Grade with ID {gradeId} does not exist.");
+                throw new KeyNotFoundException($"Grade with ID {gradeId} does not exist.");
         }
 
-        private async Task EnsureGradeNameIsUniqueAsync(
-            string gradeName,
-            byte? currentGradeId = null)
+        private async Task EnsureGradeNameIsUniqueAsync(string gradeName, byte? currentGradeId = null)
         {
             GradeDTO? grade = await _gradeData.GetGradeByNameAsync(gradeName);
 
             if (grade == null)
                 return;
 
-            if (currentGradeId.HasValue &&
-                grade.GradeID == currentGradeId.Value)
+            if (currentGradeId.HasValue && grade.GradeID == currentGradeId.Value)
                 return;
 
-            throw new InvalidOperationException(
-                $"Grade '{gradeName}' already exists.");
+            throw new InvalidOperationException($"Grade '{gradeName}' already exists.");
         }
-
         #endregion
 
         #region Public Methods
-
         public async Task<List<GradeDTO>> GetAllGradesAsync()
         {
             return await _gradeData.GetAllGradesAsync();
@@ -83,14 +70,24 @@ namespace School.BLL
         {
             ValidateGradeId(gradeId);
 
-            return await _gradeData.GetGradeByIdAsync(gradeId);
+            GradeDTO? grade = await _gradeData.GetGradeByIdAsync(gradeId);
+
+            if (grade == null)
+                throw new KeyNotFoundException($"Grade with ID {gradeId} does not exist.");
+
+            return grade;
         }
 
         public async Task<GradeDTO?> GetGradeByNameAsync(string gradeName)
         {
             gradeName = ValidateGradeName(gradeName);
 
-            return await _gradeData.GetGradeByNameAsync(gradeName);
+            GradeDTO? gradeDTO = await _gradeData.GetGradeByNameAsync(gradeName);
+
+            if (gradeDTO == null)
+                throw new KeyNotFoundException($"Grade with name {gradeName} does not exist.");
+
+            return gradeDTO;
         }
 
         public async Task<int> AddGradeAsync(GradeDTO grade)
@@ -98,8 +95,12 @@ namespace School.BLL
             ValidateGrade(grade);
 
             await EnsureGradeNameIsUniqueAsync(grade.GradeName);
+            int newGradeId = await _gradeData.AddGradeAsync(grade);
 
-            return await _gradeData.AddGradeAsync(grade);
+            if (newGradeId <= 0)
+                throw new InvalidOperationException("Failed to add grade.");
+
+            return newGradeId;
         }
 
         public async Task<bool> UpdateGradeAsync(GradeDTO grade)
@@ -110,11 +111,14 @@ namespace School.BLL
 
             await EnsureGradeExistsAsync(grade.GradeID);
 
-            await EnsureGradeNameIsUniqueAsync(
-                grade.GradeName,
-                grade.GradeID);
+            await EnsureGradeNameIsUniqueAsync(grade.GradeName, grade.GradeID);
 
-            return await _gradeData.UpdateGradeAsync(grade);
+            bool isUpdated = await _gradeData.UpdateGradeAsync(grade);
+
+            if (!isUpdated)
+                throw new InvalidOperationException($"Failed to update grade with ID {grade.GradeID}.");
+
+            return isUpdated;
         }
 
         public async Task<bool> DeleteGradeAsync(byte gradeId)
@@ -123,7 +127,11 @@ namespace School.BLL
 
             await EnsureGradeExistsAsync(gradeId);
 
-            return await _gradeData.DeleteGradeAsync(gradeId);
+            bool isDeleted = await _gradeData.DeleteGradeAsync(gradeId);
+            if (!isDeleted)
+                throw new InvalidOperationException($"Failed to delete grade with ID {gradeId}.");
+
+            return isDeleted;
         }
 
         public async Task<bool> IsGradeExistAsync(byte gradeId)

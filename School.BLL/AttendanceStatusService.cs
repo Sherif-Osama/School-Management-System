@@ -18,15 +18,13 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(status);
 
-            ValidateStatusName(status.StatusName);
+            status.StatusName = ValidateStatusName(status.StatusName);
         }
 
-        private static int ValidateStatusId(int statusId)
+        private static void ValidateStatusId(int statusId)
         {
             if (statusId <= 0)
-                throw new ArgumentException("StatusID must be a positive number.", nameof(statusId));
-
-            return statusId;
+                throw new ArgumentException("StatusID must be greater than zero.", nameof(statusId));
         }
 
         private static string ValidateStatusName(string statusName)
@@ -47,7 +45,7 @@ namespace School.BLL
         private async Task EnsureStatusExistsAsync(int statusId)
         {
             if (!await _attendanceStatusData.IsAttendanceStatusExistAsync(statusId))
-                throw new InvalidOperationException($"AttendanceStatus with ID {statusId} does not exist.");
+                throw new KeyNotFoundException($"AttendanceStatus with ID {statusId} does not exist.");
         }
 
         private async Task EnsureStatusNameUniqueAsync(string statusName, int? statusId = null)
@@ -65,18 +63,28 @@ namespace School.BLL
             return _attendanceStatusData.GetAllAttendanceStatusesAsync();
         }
 
-        public Task<AttendanceStatusDTO?> GetAttendanceStatusByIdAsync(int statusId)
+        public async Task<AttendanceStatusDTO?> GetAttendanceStatusByIdAsync(int statusId)
         {
             ValidateStatusId(statusId);
 
-            return _attendanceStatusData.GetAttendanceStatusByIdAsync(statusId);
+            AttendanceStatusDTO? attendance = await _attendanceStatusData.GetAttendanceStatusByIdAsync(statusId);
+
+            if (attendance == null)
+                throw new KeyNotFoundException($"Attendance status with ID {statusId} does not exist.");
+
+            return attendance;
         }
 
-        public Task<AttendanceStatusDTO?> GetAttendanceStatusByNameAsync(string statusName)
+        public async Task<AttendanceStatusDTO?> GetAttendanceStatusByNameAsync(string statusName)
         {
             statusName = ValidateStatusName(statusName);
 
-            return _attendanceStatusData.GetAttendanceStatusByNameAsync(statusName);
+            AttendanceStatusDTO? attendance = await _attendanceStatusData.GetAttendanceStatusByNameAsync(statusName);
+
+            if (attendance == null)
+                throw new KeyNotFoundException($"Attendance status with name '{statusName}' does not exist.");
+
+            return attendance;
         }
 
         public async Task<int> AddAttendanceStatusAsync(AttendanceStatusDTO status)
@@ -85,7 +93,12 @@ namespace School.BLL
 
             await EnsureStatusNameUniqueAsync(status.StatusName);
 
-            return await _attendanceStatusData.AddAttendanceStatusAsync(status);
+            int newStatusId = await _attendanceStatusData.AddAttendanceStatusAsync(status);
+
+            if (newStatusId <= 0)
+                throw new InvalidOperationException("Failed to add the attendance status.");
+
+            return newStatusId;
         }
 
         public async Task<bool> UpdateAttendanceStatusAsync(AttendanceStatusDTO status)
@@ -96,7 +109,12 @@ namespace School.BLL
             await EnsureStatusExistsAsync(status.StatusID);
             await EnsureStatusNameUniqueAsync(status.StatusName, status.StatusID);
 
-            return await _attendanceStatusData.UpdateAttendanceStatusAsync(status);
+            bool isUpdated = await _attendanceStatusData.UpdateAttendanceStatusAsync(status);
+
+            if (!isUpdated)
+                throw new InvalidOperationException($"Failed to update attendance status with ID {status.StatusID}.");
+
+            return isUpdated;
         }
 
         public async Task<bool> DeleteAttendanceStatusAsync(int statusId)
@@ -105,7 +123,12 @@ namespace School.BLL
 
             await EnsureStatusExistsAsync(statusId);
 
-            return await _attendanceStatusData.DeleteAttendanceStatusAsync(statusId);
+            bool isDeleted = await _attendanceStatusData.DeleteAttendanceStatusAsync(statusId);
+
+            if (!isDeleted)
+                throw new InvalidOperationException($"Failed to delete attendance status with ID {statusId}.");
+
+            return isDeleted;
         }
         #endregion
     }

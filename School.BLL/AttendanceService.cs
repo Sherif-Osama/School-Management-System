@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Helpers;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.AttendanceDTOs;
 using School.DTO.StudentsDTOs;
@@ -55,8 +56,7 @@ namespace School.BLL
 
             DateOnly today = DateOnly.FromDateTime(DateTime.Today);
 
-            if (attendanceDate > today)
-                throw new ArgumentException("AttendanceDate cannot be in the future.", nameof(attendanceDate));
+            if (attendanceDate > today) throw new ArgumentException("AttendanceDate cannot be in the future.", nameof(attendanceDate));
 
             return attendanceDate;
         }
@@ -66,7 +66,7 @@ namespace School.BLL
         private async Task<StudentDetailsDTO> GetStudentOrThrowAsync(int studentId)
         {
             return await _studentData.GetStudentByIdAsync(studentId)
-                ?? throw new InvalidOperationException($"Student with ID {studentId} does not exist.");
+                ?? throw new KeyNotFoundException($"Student with ID {studentId} does not exist.");
         }
 
         private async Task EnsureAttendanceExistsAsync(int attendanceId)
@@ -78,7 +78,7 @@ namespace School.BLL
         private async Task EnsureAttendanceStatusExistsAsync(int statusId)
         {
             if (!await _attendanceStatusData.IsAttendanceStatusExistAsync(statusId))
-                throw new InvalidOperationException($"AttendanceStatus with ID {statusId} does not exist.");
+                throw new KeyNotFoundException($"AttendanceStatus with ID {statusId} does not exist.");
         }
 
         private static void EnsureStudentIsActive(StudentDetailsDTO student)
@@ -95,7 +95,7 @@ namespace School.BLL
             if (!schoolClass.IsActive)
                 throw new InvalidOperationException("Cannot record attendance for an inactive class.");
 
-            (DateOnly start, DateOnly end) = ParseAcademicYear(schoolClass.AcademicYear);
+            (DateOnly start, DateOnly end) = AcademicYearHelper.GetAcademicYearRange(schoolClass.AcademicYear);
 
             if (attendanceDate < start || attendanceDate > end)
                 throw new ArgumentException(
@@ -115,70 +115,61 @@ namespace School.BLL
 
         private async Task EnsureAttendanceUniqueAsync(int studentId, DateOnly attendanceDate, int? attendanceId = null)
         {
-            List<AttendanceDetailsDTO> studentAttendances = await _attendanceData.GetAttendancesByStudentIdAsync(studentId);
+            bool exists = await _attendanceData.IsStudentAttendanceExistsAsync(studentId, attendanceDate, attendanceId);
 
-            bool isDuplicate = studentAttendances.Exists(a =>
-                a.AttendanceDate == attendanceDate &&
-                (attendanceId == null || a.AttendanceID != attendanceId.Value));
-
-            if (isDuplicate)
-                throw new InvalidOperationException($"Student {studentId} already has an attendance record for {attendanceDate:yyyy-MM-dd}.");
-        }
-
-        private static (DateOnly Start, DateOnly End) ParseAcademicYear(string academicYear)
-        {
-            // Expected format: "2025-2026" -> academic year runs Sep 1, 2025 to Aug 31, 2026
-            string[] parts = academicYear.Split('-');
-
-            if (parts.Length != 2 ||
-                !int.TryParse(parts[0], out int startYear) ||
-                !int.TryParse(parts[1], out int endYear))
-                throw new InvalidOperationException($"AcademicYear '{academicYear}' is not in a recognizable 'YYYY-YYYY' format.");
-
-            return (new DateOnly(startYear, 9, 1), new DateOnly(endYear, 8, 31));
+            if (exists)
+            {
+                throw new InvalidOperationException(
+                    $"Student {studentId} already has an attendance record for {attendanceDate:yyyy-MM-dd}.");
+            }
         }
         #endregion
 
         #region Public
-        public Task<List<AttendanceDetailsDTO>> GetAllAttendancesAsync()
+        public async Task<List<AttendanceDetailsDTO>> GetAllAttendancesAsync()
         {
-            return _attendanceData.GetAllAttendancesAsync();
+            return await _attendanceData.GetAllAttendancesAsync();
         }
 
-        public Task<AttendanceDetailsDTO?> GetAttendanceByIdAsync(int attendanceId)
+        public async Task<AttendanceDetailsDTO?> GetAttendanceByIdAsync(int attendanceId)
         {
             ValidateAttendanceId(attendanceId);
 
-            return _attendanceData.GetAttendanceByIdAsync(attendanceId);
+            AttendanceDetailsDTO? attendance = await _attendanceData.GetAttendanceByIdAsync(attendanceId);
+
+            if (attendance == null)
+                throw new KeyNotFoundException($"Attendance with ID {attendanceId} does not exist.");
+
+            return attendance;
         }
 
-        public Task<List<AttendanceDetailsDTO>> GetAttendancesByStudentIdAsync(int studentId)
+        public async Task<List<AttendanceDetailsDTO>> GetAttendancesByStudentIdAsync(int studentId)
         {
             ValidateStudentId(studentId);
 
-            return _attendanceData.GetAttendancesByStudentIdAsync(studentId);
+            return await _attendanceData.GetAttendancesByStudentIdAsync(studentId);
         }
 
-        public Task<List<AttendanceDetailsDTO>> GetAttendancesByClassIdAsync(int classId)
+        public async Task<List<AttendanceDetailsDTO>> GetAttendancesByClassIdAsync(int classId)
         {
             if (classId <= 0)
                 throw new ArgumentException("ClassID must be a positive number.", nameof(classId));
 
-            return _attendanceData.GetAttendancesByClassIdAsync(classId);
+            return await _attendanceData.GetAttendancesByClassIdAsync(classId);
         }
 
-        public Task<List<AttendanceDetailsDTO>> GetAttendancesByDateAsync(DateOnly attendanceDate)
+        public async Task<List<AttendanceDetailsDTO>> GetAttendancesByDateAsync(DateOnly attendanceDate)
         {
             ValidateAttendanceDate(attendanceDate);
 
-            return _attendanceData.GetAttendancesByDateAsync(attendanceDate);
+            return await _attendanceData.GetAttendancesByDateAsync(attendanceDate);
         }
 
-        public Task<List<AttendanceDetailsDTO>> GetAttendancesByStatusIdAsync(int statusId)
+        public async Task<List<AttendanceDetailsDTO>> GetAttendancesByStatusIdAsync(int statusId)
         {
             ValidateStatusId(statusId);
 
-            return _attendanceData.GetAttendancesByStatusIdAsync(statusId);
+            return await _attendanceData.GetAttendancesByStatusIdAsync(statusId);
         }
 
         public async Task<int> AddAttendanceAsync(AttendanceDTO attendance)
@@ -193,7 +184,12 @@ namespace School.BLL
             EnsureAttendanceDateNotBeforeEnrollment(student, attendance.AttendanceDate);
             await EnsureAttendanceUniqueAsync(attendance.StudentID, attendance.AttendanceDate);
 
-            return await _attendanceData.AddAttendanceAsync(attendance);
+            int newAttendanceId = await _attendanceData.AddAttendanceAsync(attendance);
+
+            if (newAttendanceId < 0)
+                throw new InvalidOperationException("Failed to add attendance.");
+
+            return newAttendanceId;
         }
 
         public async Task<bool> UpdateAttendanceAsync(AttendanceDTO attendance)
@@ -211,7 +207,12 @@ namespace School.BLL
             EnsureAttendanceDateNotBeforeEnrollment(student, attendance.AttendanceDate);
             await EnsureAttendanceUniqueAsync(attendance.StudentID, attendance.AttendanceDate, attendance.AttendanceID);
 
-            return await _attendanceData.UpdateAttendanceAsync(attendance);
+            bool isUpdated = await _attendanceData.UpdateAttendanceAsync(attendance);
+
+            if (!isUpdated)
+                throw new InvalidOperationException($"Failed to update attendance with ID {attendance.AttendanceID}.");
+
+            return isUpdated;
         }
 
         public async Task<bool> DeleteAttendanceAsync(int attendanceId)
@@ -220,7 +221,12 @@ namespace School.BLL
 
             await EnsureAttendanceExistsAsync(attendanceId);
 
-            return await _attendanceData.DeleteAttendanceAsync(attendanceId);
+            bool isDeleted = await _attendanceData.DeleteAttendanceAsync(attendanceId);
+
+            if (!isDeleted)
+                throw new InvalidOperationException($"Failed to delete attendance with ID {attendanceId}.");
+
+            return isDeleted;
         }
         #endregion
     }

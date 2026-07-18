@@ -35,37 +35,30 @@ namespace School.BLL
         private static void ValidateTeacherId(int teacherId)
         {
             if (teacherId <= 0)
-                throw new ArgumentOutOfRangeException(
-                    nameof(teacherId),
-                    "Teacher ID must be greater than zero.");
+                throw new ArgumentException("Teacher ID must be greater than zero.", nameof(teacherId));
         }
 
         private static void ValidatePersonId(int personId)
         {
             if (personId <= 0)
-                throw new ArgumentOutOfRangeException(
-                    nameof(personId),
-                    "Person ID must be greater than zero.");
+                throw new ArgumentException("Person ID must be greater than zero.", nameof(personId));
         }
 
         private async Task EnsureTeacherExistsAsync(int teacherId)
         {
             if (!await _teacherData.IsTeacherExistAsync(teacherId))
-                throw new InvalidOperationException(
-                    $"Teacher with ID {teacherId} does not exist.");
+                throw new KeyNotFoundException($"Teacher with ID {teacherId} does not exist.");
         }
 
         private async Task EnsurePersonExistsAsync(int personId)
         {
             if (!await _personData.IsPersonExistAsync(personId))
-                throw new InvalidOperationException(
-                    $"Person with ID {personId} does not exist.");
+                throw new KeyNotFoundException($"Person with ID {personId} does not exist.");
         }
 
         private async Task EnsurePersonIsNotTeacherAsync(int personId, int? currentTeacherId = null)
         {
-            TeacherDetailsDTO? teacher =
-                await _teacherData.GetTeacherByPersonIdAsync(personId);
+            TeacherDetailsDTO? teacher = await _teacherData.GetTeacherByPersonIdAsync(personId);
 
             if (teacher == null)
                 return;
@@ -81,8 +74,7 @@ namespace School.BLL
         private async Task EnsurePersonIsNotStudentAsync(int personId)
         {
             if (await _studentData.GetStudentByPersonIdAsync(personId) != null)
-                throw new InvalidOperationException(
-                    $"Person ID {personId} is already registered as a student.");
+                throw new InvalidOperationException($"Person ID {personId} is already registered as a student.");
         }
         #endregion
 
@@ -97,14 +89,24 @@ namespace School.BLL
         {
             ValidateTeacherId(teacherId);
 
-            return await _teacherData.GetTeacherByIdAsync(teacherId);
+            TeacherDetailsDTO? teacher = await _teacherData.GetTeacherByIdAsync(teacherId);
+
+            if (teacher == null)
+                throw new KeyNotFoundException($"Teacher with ID {teacherId} does not exist.");
+
+            return teacher;
         }
 
         public async Task<TeacherDetailsDTO?> GetTeacherByPersonIdAsync(int personId)
         {
             ValidatePersonId(personId);
 
-            return await _teacherData.GetTeacherByPersonIdAsync(personId);
+            TeacherDetailsDTO? teacher = await _teacherData.GetTeacherByPersonIdAsync(personId);
+
+            if (teacher == null)
+                throw new KeyNotFoundException($"Teacher with Person ID {personId} does not exist.");
+
+            return teacher;
         }
 
         public async Task<TeacherDetailsDTO?> GetTeacherByNationalIdAsync(string nationalId)
@@ -112,7 +114,14 @@ namespace School.BLL
             if (string.IsNullOrWhiteSpace(nationalId))
                 throw new ArgumentException("National ID is required.", nameof(nationalId));
 
-            return await _teacherData.GetTeacherByNationalIdAsync(nationalId);
+            nationalId = nationalId.Trim();
+
+            TeacherDetailsDTO? teacher = await _teacherData.GetTeacherByNationalIdAsync(nationalId);
+
+            if (teacher == null)
+                throw new KeyNotFoundException($"Teacher with National ID '{nationalId}' does not exist.");
+
+            return teacher;
         }
 
         public async Task<int> AddTeacherAsync(TeacherDTO teacher)
@@ -120,31 +129,33 @@ namespace School.BLL
             ValidateTeacher(teacher);
 
             await EnsurePersonExistsAsync(teacher.PersonID);
-
             await EnsurePersonIsNotTeacherAsync(teacher.PersonID);
-
             await EnsurePersonIsNotStudentAsync(teacher.PersonID);
 
-            return await _teacherData.AddTeacherAsync(teacher);
+            int newTeacherId = await _teacherData.AddTeacherAsync(teacher);
+
+            if (newTeacherId <= 0)
+                throw new InvalidOperationException("Failed to add teacher.");
+
+            return newTeacherId;
         }
 
         public async Task<bool> UpdateTeacherAsync(TeacherDTO teacher)
         {
             ValidateTeacher(teacher);
-
             ValidateTeacherId(teacher.TeacherID);
 
             await EnsureTeacherExistsAsync(teacher.TeacherID);
-
             await EnsurePersonExistsAsync(teacher.PersonID);
-
-            await EnsurePersonIsNotTeacherAsync(
-                teacher.PersonID,
-                teacher.TeacherID);
-
+            await EnsurePersonIsNotTeacherAsync(teacher.PersonID, teacher.TeacherID);
             await EnsurePersonIsNotStudentAsync(teacher.PersonID);
 
-            return await _teacherData.UpdateTeacherAsync(teacher);
+            bool isUpdated = await _teacherData.UpdateTeacherAsync(teacher);
+
+            if (!isUpdated)
+                throw new InvalidOperationException($"Failed to update teacher with ID {teacher.TeacherID}.");
+
+            return isUpdated;
         }
 
         public async Task<bool> DeleteTeacherAsync(int teacherId)
@@ -153,7 +164,12 @@ namespace School.BLL
 
             await EnsureTeacherExistsAsync(teacherId);
 
-            return await _teacherData.DeleteTeacherAsync(teacherId);
+            bool isDeleted = await _teacherData.DeleteTeacherAsync(teacherId);
+
+            if (!isDeleted)
+                throw new InvalidOperationException($"Failed to delete teacher with ID {teacherId}.");
+
+            return isDeleted;
         }
 
         public async Task<bool> IsTeacherExistAsync(int teacherId)

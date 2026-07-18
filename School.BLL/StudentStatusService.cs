@@ -14,6 +14,7 @@ namespace School.BLL
         }
 
         #region Validation
+
         private static void ValidateStatus(StudentStatusDTO status)
         {
             ArgumentNullException.ThrowIfNull(status);
@@ -24,7 +25,7 @@ namespace School.BLL
         private static void ValidateStatusId(int statusId)
         {
             if (statusId <= 0)
-                throw new ArgumentException("StatusID must be a positive number.", nameof(statusId));
+                throw new ArgumentException("StatusID must be greater than zero.", nameof(statusId));
         }
 
         private static string ValidateStatusName(string statusName)
@@ -39,42 +40,61 @@ namespace School.BLL
 
             return statusName;
         }
+
         #endregion
 
         #region Ensure
+
         private async Task EnsureStatusExistsAsync(int statusId)
         {
             if (!await _studentStatusData.IsStudentStatusExistAsync(statusId))
-                throw new InvalidOperationException($"StudentStatus with ID {statusId} does not exist.");
+                throw new KeyNotFoundException($"Student status with ID {statusId} does not exist.");
         }
 
-        private async Task EnsureStatusNameUniqueAsync(string statusName, int? statusId = null)
+        private async Task EnsureStatusNameUniqueAsync(string statusName, int? currentStatusId = null)
         {
             StudentStatusDTO? existing = await _studentStatusData.GetStudentStatusByNameAsync(statusName);
 
-            if (existing != null && (statusId == null || existing.StatusID != statusId.Value))
-                throw new InvalidOperationException($"A status named '{statusName}' already exists.");
+            if (existing == null)
+                return;
+
+            if (currentStatusId.HasValue && existing.StatusID == currentStatusId.Value)
+                return;
+
+            throw new InvalidOperationException($"Student status '{statusName}' already exists.");
         }
+
         #endregion
 
         #region Public
-        public Task<List<StudentStatusDTO>> GetAllStudentStatusesAsync()
+
+        public async Task<List<StudentStatusDTO>> GetAllStudentStatusesAsync()
         {
-            return _studentStatusData.GetAllStudentStatusesAsync();
+            return await _studentStatusData.GetAllStudentStatusesAsync();
         }
 
-        public Task<StudentStatusDTO?> GetStudentStatusByIdAsync(int statusId)
+        public async Task<StudentStatusDTO?> GetStudentStatusByIdAsync(int statusId)
         {
             ValidateStatusId(statusId);
 
-            return _studentStatusData.GetStudentStatusByIdAsync(statusId);
+            StudentStatusDTO? status = await _studentStatusData.GetStudentStatusByIdAsync(statusId);
+
+            if (status == null)
+                throw new KeyNotFoundException($"Student status with ID {statusId} does not exist.");
+
+            return status;
         }
 
-        public Task<StudentStatusDTO?> GetStudentStatusByNameAsync(string statusName)
+        public async Task<StudentStatusDTO?> GetStudentStatusByNameAsync(string statusName)
         {
             statusName = ValidateStatusName(statusName);
 
-            return _studentStatusData.GetStudentStatusByNameAsync(statusName);
+            StudentStatusDTO? status = await _studentStatusData.GetStudentStatusByNameAsync(statusName);
+
+            if (status == null)
+                throw new KeyNotFoundException($"Student status '{statusName}' does not exist.");
+
+            return status;
         }
 
         public async Task<int> AddStudentStatusAsync(StudentStatusDTO status)
@@ -83,7 +103,12 @@ namespace School.BLL
 
             await EnsureStatusNameUniqueAsync(status.StatusName);
 
-            return await _studentStatusData.AddStudentStatusAsync(status);
+            int newStatusId = await _studentStatusData.AddStudentStatusAsync(status);
+
+            if (newStatusId <= 0)
+                throw new InvalidOperationException("Failed to add student status.");
+
+            return newStatusId;
         }
 
         public async Task<bool> UpdateStudentStatusAsync(StudentStatusDTO status)
@@ -94,7 +119,12 @@ namespace School.BLL
             await EnsureStatusExistsAsync(status.StatusID);
             await EnsureStatusNameUniqueAsync(status.StatusName, status.StatusID);
 
-            return await _studentStatusData.UpdateStudentStatusAsync(status);
+            bool isUpdated = await _studentStatusData.UpdateStudentStatusAsync(status);
+
+            if (!isUpdated)
+                throw new InvalidOperationException($"Failed to update student status with ID {status.StatusID}.");
+
+            return isUpdated;
         }
 
         public async Task<bool> DeleteStudentStatusAsync(int statusId)
@@ -103,7 +133,12 @@ namespace School.BLL
 
             await EnsureStatusExistsAsync(statusId);
 
-            return await _studentStatusData.DeleteStudentStatusAsync(statusId);
+            bool isDeleted = await _studentStatusData.DeleteStudentStatusAsync(statusId);
+
+            if (!isDeleted)
+                throw new InvalidOperationException($"Failed to delete student status with ID {statusId}.");
+
+            return isDeleted;
         }
         #endregion
     }

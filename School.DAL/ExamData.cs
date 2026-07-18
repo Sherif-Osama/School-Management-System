@@ -138,6 +138,18 @@ namespace School.DAL
             command.Parameters.Add("@ExamID", SqlDbType.Int).Value = examId;
             return Convert.ToBoolean(await command.ExecuteScalarAsync());
         }
+
+        public async Task<bool> IsExamDuplicate(int classSubjectId, int examTypeId, int? examId = null)
+        {
+            using SqlConnection connection = await GetOpenConnectionAsync();
+            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsExamExists");
+
+            command.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = classSubjectId;
+            command.Parameters.Add("@ExamTypeID", SqlDbType.Int).Value = examTypeId;
+            command.Parameters.Add("@ExamID", SqlDbType.Int).Value = (object?)examId ?? DBNull.Value;
+
+            return Convert.ToBoolean(await command.ExecuteScalarAsync());
+        }
         #endregion
     }
 }
