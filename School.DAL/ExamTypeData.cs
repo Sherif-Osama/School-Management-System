@@ -12,6 +12,7 @@ namespace School.DAL
         public ExamTypeData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
+
         private static ExamTypeDTO MapExamType(SqlDataReader reader)
         {
             return new ExamTypeDTO
@@ -26,107 +27,37 @@ namespace School.DAL
             command.Parameters.Add("@ExamName", SqlDbType.NVarChar).Value = examType.ExamName.Trim();
         }
 
-        private static async Task<List<ExamTypeDTO>> ReadExamTypesAsync(SqlCommand command)
-        {
-            List<ExamTypeDTO> examTypes = [];
-
-            using SqlDataReader reader = await command.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-                examTypes.Add(MapExamType(reader));
-
-            return examTypes;
-        }
-
         #endregion
 
         #region Public Methods
 
-        public async Task<List<ExamTypeDTO>> GetAllExamTypesAsync()
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<List<ExamTypeDTO>> GetAllExamTypesAsync() =>
+            QueryListAsync("SP_GetAllExamTypes", null, MapExamType);
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllExamTypes");
+        public Task<ExamTypeDTO?> GetExamTypeByIdAsync(int examTypeId) =>
+            QuerySingleAsync("SP_GetExamTypeByID", cmd => cmd.Parameters.Add("@ExamTypeID", SqlDbType.Int).Value = examTypeId,
+                MapExamType);
 
-            return await ReadExamTypesAsync(command);
-        }
+        public Task<ExamTypeDTO?> GetExamTypeByNameAsync(string examName) =>
+            QuerySingleAsync("SP_GetExamTypeByName", cmd => cmd.Parameters.Add("@ExamName", SqlDbType.NVarChar).Value = examName.Trim(),
+                MapExamType);
 
-        public async Task<ExamTypeDTO?> GetExamTypeByIdAsync(int examTypeId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<int> AddExamTypeAsync(ExamTypeDTO examType) =>
+            InsertAsync<int>("SP_AddExamType", cmd => AddParameters(cmd, examType), "@ExamTypeID", SqlDbType.Int);
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetExamTypeByID");
+        public Task<bool> UpdateExamTypeAsync(ExamTypeDTO examType) =>
+            ExecuteNonQueryAsync("SP_UpdateExamType",
+                cmd =>
+                {
+                    cmd.Parameters.Add("@ExamTypeID", SqlDbType.Int).Value = examType.ExamTypeID;
+                    AddParameters(cmd, examType);
+                });
 
-            command.Parameters.Add("@ExamTypeID", SqlDbType.Int).Value = examTypeId;
+        public Task<bool> DeleteExamTypeAsync(int examTypeId) =>
+            ExecuteNonQueryAsync("SP_DeleteExamType", cmd => cmd.Parameters.Add("@ExamTypeID", SqlDbType.Int).Value = examTypeId);
 
-            return (await ReadExamTypesAsync(command)).FirstOrDefault();
-        }
-
-        public async Task<ExamTypeDTO?> GetExamTypeByNameAsync(string examName)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetExamTypeByName");
-
-            command.Parameters.Add("@ExamName", SqlDbType.NVarChar).Value = examName.Trim();
-
-            return (await ReadExamTypesAsync(command)).FirstOrDefault();
-        }
-
-        public async Task<int> AddExamTypeAsync(ExamTypeDTO examType)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddExamType");
-
-            AddParameters(command, examType);
-
-            SqlParameter outputExamTypeId = new("@ExamTypeID", SqlDbType.Int)
-            {
-                Direction = ParameterDirection.Output
-            };
-
-            command.Parameters.Add(outputExamTypeId);
-
-            await command.ExecuteNonQueryAsync();
-
-            return (int)outputExamTypeId.Value;
-        }
-
-        public async Task<bool> UpdateExamTypeAsync(ExamTypeDTO examType)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateExamType");
-
-            command.Parameters.Add("@ExamTypeID", SqlDbType.Int).Value = examType.ExamTypeID;
-
-            AddParameters(command, examType);
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> DeleteExamTypeAsync(int examTypeId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteExamType");
-
-            command.Parameters.Add("@ExamTypeID", SqlDbType.Int).Value = examTypeId;
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> IsExamTypeExistAsync(int examTypeId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsExamTypeExists");
-
-            command.Parameters.Add("@ExamTypeID", SqlDbType.Int).Value = examTypeId;
-
-            return Convert.ToBoolean(await command.ExecuteScalarAsync());
-        }
+        public Task<bool> IsExamTypeExistAsync(int examTypeId) =>
+            ExecuteExistsAsync("SP_IsExamTypeExists", cmd => cmd.Parameters.Add("@ExamTypeID", SqlDbType.Int).Value = examTypeId);
 
         #endregion
     }

@@ -4,27 +4,14 @@ using School.DAL.Common;
 using School.DAL.Interfaces;
 using School.DTO.PersonDTOs;
 using System.Data;
+
 namespace School.DAL
 {
-
     public class PersonData : BaseData, IPersonData
     {
         public PersonData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
-        private static async Task<List<PersonDTO>> ReadPeopleAsync(SqlCommand command)
-        {
-            List<PersonDTO> people = [];
-
-            using SqlDataReader reader = await command.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-            {
-                people.Add(MapPerson(reader));
-            }
-
-            return people;
-        }
 
         private static PersonDTO MapPerson(SqlDataReader reader)
         {
@@ -61,81 +48,40 @@ namespace School.DAL
             command.Parameters.Add("@ImagePath", SqlDbType.NVarChar, 250).Value = person.ImagePath ?? (object)DBNull.Value;
             command.Parameters.Add("@CityID", SqlDbType.Int).Value = person.CityID;
         }
+
         #endregion
 
         #region Public Methods
-        public async Task<List<PersonDTO>> GetAllPeopleAsync()
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllPeople");
 
-            return await ReadPeopleAsync(command);
-        }
+        public Task<List<PersonDTO>> GetAllPeopleAsync() =>
+            QueryListAsync("SP_GetAllPeople", null, MapPerson);
 
-        public async Task<PersonDTO?> GetPersonByIdAsync(int personId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetPersonByID");
-            command.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId;
-            return (await ReadPeopleAsync(command)).FirstOrDefault();
-        }
+        public Task<PersonDTO?> GetPersonByIdAsync(int personId) =>
+            QuerySingleAsync("SP_GetPersonByID", cmd => cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId,
+                MapPerson);
 
-        public async Task<PersonDTO?> GetPersonByNationalIDAsync(string nationalId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<PersonDTO?> GetPersonByNationalIDAsync(string nationalId) =>
+            QuerySingleAsync("SP_GetPersonByNationalID", cmd => cmd.Parameters.Add("@NationalID", SqlDbType.NVarChar, 50).Value = nationalId,
+                MapPerson);
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetPersonByNationalID");
+        public Task<int> AddPersonAsync(PersonDTO person) =>
+            InsertAsync<int>("SP_AddPerson", cmd => AddParameters(cmd, person), "@PersonID",
+                SqlDbType.Int);
 
-            command.Parameters.Add("@NationalID", SqlDbType.NVarChar, 50).Value = nationalId;
+        public Task<bool> UpdatePersonAsync(PersonDTO person) =>
+            ExecuteNonQueryAsync("SP_UpdatePerson",
+                cmd =>
+                {
+                    cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = person.PersonID;
+                    AddParameters(cmd, person);
+                });
 
-            return (await ReadPeopleAsync(command)).FirstOrDefault();
-        }
+        public Task<bool> DeletePersonAsync(int personId) =>
+            ExecuteNonQueryAsync("SP_DeletePerson", cmd => cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId);
 
-        public async Task<int> AddPersonAsync(PersonDTO person)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<bool> IsPersonExistAsync(int personId) =>
+            ExecuteExistsAsync("SP_IsPersonExist", cmd => cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId);
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddPerson");
-
-            AddParameters(command, person);
-
-            var outputIdParam = new SqlParameter("@PersonID", SqlDbType.Int)
-            {
-                Direction = ParameterDirection.Output
-            };
-
-            command.Parameters.Add(outputIdParam);
-            await command.ExecuteNonQueryAsync();
-
-            return (int)outputIdParam.Value;
-        }
-
-        public async Task<bool> UpdatePersonAsync(PersonDTO person)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdatePerson");
-            command.Parameters.Add("@PersonID", SqlDbType.Int).Value = person.PersonID;
-            AddParameters(command, person);
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> DeletePersonAsync(int personId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeletePerson");
-            command.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId;
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> IsPersonExistAsync(int personId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsPersonExist");
-            command.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId;
-            return Convert.ToBoolean(await command.ExecuteScalarAsync());
-        }
         #endregion
-
     }
 }

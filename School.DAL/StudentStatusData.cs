@@ -4,12 +4,15 @@ using School.DAL.Common;
 using School.DAL.Interfaces;
 using School.DTO.StudentStatusDTOs;
 using System.Data;
+
 namespace School.DAL
 {
     public class StudentStatusData : BaseData, IStudentStatusData
     {
-        public StudentStatusData(IConfiguration connectionString) : base(connectionString) { }
+        public StudentStatusData(IConfiguration configuration) : base(configuration) { }
+
         #region Helper Methods
+
         private static StudentStatusDTO MapStudentStatus(SqlDataReader reader)
         {
             return new StudentStatusDTO
@@ -22,99 +25,36 @@ namespace School.DAL
 
         private static void AddParameters(SqlCommand command, StudentStatusDTO status)
         {
-            command.Parameters.Add("@StatusName", SqlDbType.NVarChar).Value =
-                status.StatusName.Trim();
+            command.Parameters.Add("@StatusName", SqlDbType.NVarChar).Value = status.StatusName.Trim();
             command.Parameters.Add("@IsActive", SqlDbType.Bit).Value = status.IsActive;
-        }
-
-        private static async Task<List<StudentStatusDTO>> ReadStudentStatusesAsync(SqlCommand command)
-        {
-            List<StudentStatusDTO> statuses = [];
-
-            using SqlDataReader reader = await command.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-                statuses.Add(MapStudentStatus(reader));
-
-            return statuses;
         }
 
         #endregion
 
         #region Public Methods
 
-        public async Task<List<StudentStatusDTO>> GetAllStudentStatusesAsync()
+        public Task<List<StudentStatusDTO>> GetAllStudentStatusesAsync() => QueryListAsync("SP_GetAllStatuses", null, MapStudentStatus);
+
+        public Task<StudentStatusDTO?> GetStudentStatusByIdAsync(int statusId)
         {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllStatuses");
-            return await ReadStudentStatusesAsync(command);
+            return QuerySingleAsync("SP_GetStatusByID", cmd => cmd.Parameters.Add("@StatusID", SqlDbType.Int).Value = statusId,
+                MapStudentStatus);
         }
 
-        public async Task<StudentStatusDTO?> GetStudentStatusByIdAsync(int statusId)
+        public Task<StudentStatusDTO?> GetStudentStatusByNameAsync(string statusName)
         {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetStatusByID");
-            command.Parameters.Add("@StatusID", SqlDbType.Int).Value = statusId;
-            return (await ReadStudentStatusesAsync(command)).FirstOrDefault();
+            return QuerySingleAsync("SP_GetStatusByName", cmd => cmd.Parameters.Add("@StatusName", SqlDbType.NVarChar).Value = statusName.Trim(),
+                            MapStudentStatus);
         }
 
-        public async Task<StudentStatusDTO?> GetStudentStatusByNameAsync(string statusName)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetStatusByName");
-            command.Parameters.Add("@StatusName", SqlDbType.NVarChar).Value = statusName.Trim();
-            return (await ReadStudentStatusesAsync(command)).FirstOrDefault();
-        }
 
-        public async Task<int> AddStudentStatusAsync(StudentStatusDTO status)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddStatus");
-            AddParameters(command, status);
-            SqlParameter outputStatusId = new("@StatusID", SqlDbType.Int)
-            {
-                Direction = ParameterDirection.Output
-            };
-            command.Parameters.Add(outputStatusId);
-            await command.ExecuteNonQueryAsync();
-            return (int)outputStatusId.Value;
-        }
+        public Task<int> AddStudentStatusAsync(StudentStatusDTO status) => InsertAsync<int>("SP_AddStatus", cmd => AddParameters(cmd, status), "@StatusID", SqlDbType.Int);
 
-        public async Task<bool> UpdateStudentStatusAsync(StudentStatusDTO status)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<bool> UpdateStudentStatusAsync(StudentStatusDTO status) => ExecuteNonQueryAsync("SP_UpdateStatus", cmd => { cmd.Parameters.Add("@StatusID", SqlDbType.Int).Value = status.StatusID; AddParameters(cmd, status); });
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateStatus");
+        public Task<bool> DeleteStudentStatusAsync(int statusId) => ExecuteNonQueryAsync("SP_DeleteStatus", cmd => cmd.Parameters.Add("@StatusID", SqlDbType.Int).Value = statusId);
 
-            command.Parameters.Add("@StatusID", SqlDbType.Int).Value = status.StatusID;
-
-            AddParameters(command, status);
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> DeleteStudentStatusAsync(int statusId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteStatus");
-
-            command.Parameters.Add("@StatusID", SqlDbType.Int).Value = statusId;
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> IsStudentStatusExistAsync(int statusId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsStatusExists");
-
-            command.Parameters.Add("@StatusID", SqlDbType.Int).Value = statusId;
-
-            return Convert.ToBoolean(await command.ExecuteScalarAsync());
-        }
-
+        public Task<bool> IsStudentStatusExistAsync(int statusId) => ExecuteExistsAsync("SP_IsStatusExists", cmd => cmd.Parameters.Add("@StatusID", SqlDbType.Int).Value = statusId);
         #endregion
     }
 }

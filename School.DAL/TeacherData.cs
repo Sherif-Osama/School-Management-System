@@ -4,6 +4,7 @@ using School.DAL.Common;
 using School.DAL.Interfaces;
 using School.DTO.TeachersDTOs;
 using System.Data;
+
 namespace School.DAL
 {
     public class TeacherData : BaseData, ITeacherData
@@ -11,6 +12,7 @@ namespace School.DAL
         public TeacherData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
+
         private static TeacherDetailsDTO MapTeacherDetails(SqlDataReader reader)
         {
             return new TeacherDetailsDTO
@@ -44,99 +46,41 @@ namespace School.DAL
             command.Parameters.Add("@IsActive", SqlDbType.Bit).Value = teacher.IsActive;
         }
 
-        private static async Task<List<TeacherDetailsDTO>> ReadTeacherDetailsAsync(SqlCommand command)
-        {
-            List<TeacherDetailsDTO> teachers = [];
-            using SqlDataReader reader = await command.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-            {
-                teachers.Add(MapTeacherDetails(reader));
-            }
-            return teachers;
-        }
         #endregion
 
         #region Public Methods
-        public async Task<List<TeacherDetailsDTO>> GetAllTeachersAsync()
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllTeachers");
-            return await ReadTeacherDetailsAsync(command);
-        }
 
-        public async Task<TeacherDetailsDTO?> GetTeacherByIdAsync(int teacherId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetTeacherByID");
-            command.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId;
-            return (await ReadTeacherDetailsAsync(command)).FirstOrDefault();
-        }
+        public Task<List<TeacherDetailsDTO>> GetAllTeachersAsync() =>
+            QueryListAsync("SP_GetAllTeachers", null, MapTeacherDetails);
 
-        public async Task<TeacherDetailsDTO?> GetTeacherByPersonIdAsync(int personId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetTeacherByPersonID");
-            command.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId;
-            return (await ReadTeacherDetailsAsync(command)).FirstOrDefault();
-        }
+        public Task<TeacherDetailsDTO?> GetTeacherByIdAsync(int teacherId) =>
+            QuerySingleAsync("SP_GetTeacherByID", cmd => cmd.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId,
+                MapTeacherDetails);
 
-        public async Task<TeacherDetailsDTO?> GetTeacherByNationalIdAsync(string nationalId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<TeacherDetailsDTO?> GetTeacherByPersonIdAsync(int personId) =>
+            QuerySingleAsync("SP_GetTeacherByPersonID", cmd => cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId,
+                MapTeacherDetails);
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetTeacherByNationalID");
-            command.Parameters.Add("@NationalID", SqlDbType.NVarChar).Value = nationalId;
+        public Task<TeacherDetailsDTO?> GetTeacherByNationalIdAsync(string nationalId) =>
+            QuerySingleAsync("SP_GetTeacherByNationalID", cmd => cmd.Parameters.Add("@NationalID", SqlDbType.NVarChar).Value = nationalId,
+                MapTeacherDetails);
 
-            return (await ReadTeacherDetailsAsync(command)).FirstOrDefault();
-        }
+        public Task<int> AddTeacherAsync(TeacherDTO teacher) =>
+            InsertAsync<int>("SP_AddTeacher", cmd => AddParameters(cmd, teacher), "@TeacherID", SqlDbType.Int);
 
-        public async Task<int> AddTeacherAsync(TeacherDTO teacher)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<bool> UpdateTeacherAsync(TeacherDTO teacher) =>
+            ExecuteNonQueryAsync("SP_UpdateTeacher",
+                cmd =>
+                {
+                    cmd.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacher.TeacherID;
+                    AddParameters(cmd, teacher);
+                });
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddTeacher");
+        public Task<bool> DeleteTeacherAsync(int teacherId) =>
+            ExecuteNonQueryAsync("SP_DeleteTeacher", cmd => cmd.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId);
 
-            AddParameters(command, teacher);
-
-            var outpuTeacherId = new SqlParameter("@TeacherID", SqlDbType.Int) { Direction = ParameterDirection.Output };
-
-            command.Parameters.Add(outpuTeacherId);
-
-            await command.ExecuteNonQueryAsync();
-
-            return (int)outpuTeacherId.Value;
-        }
-
-        public async Task<bool> UpdateTeacherAsync(TeacherDTO teacher)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateTeacher");
-            command.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacher.TeacherID;
-            AddParameters(command, teacher);
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> DeleteTeacherAsync(int teacherId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteTeacher");
-
-            command.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId;
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> IsTeacherExistAsync(int teacherId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsTeacherExists");
-
-            command.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId;
-
-            return Convert.ToBoolean(await command.ExecuteScalarAsync());
-        }
+        public Task<bool> IsTeacherExistAsync(int teacherId) =>
+            ExecuteExistsAsync("SP_IsTeacherExists", cmd => cmd.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId);
 
         #endregion
     }

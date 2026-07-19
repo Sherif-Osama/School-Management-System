@@ -10,55 +10,35 @@ namespace School.DAL
     public class StudentData : BaseData, IStudentData
     {
         public StudentData(IConfiguration configuration) : base(configuration) { }
+
         #region Helper Methods
+
         private static StudentDetailsDTO MapStudentDetails(SqlDataReader reader)
         {
             return new StudentDetailsDTO
             {
                 StudentID = reader.GetInt32(reader.GetOrdinal("StudentID")),
-
                 PersonID = reader.GetInt32(reader.GetOrdinal("PersonID")),
-
                 ClassID = reader.GetInt32(reader.GetOrdinal("ClassID")),
-
                 GradeID = reader.GetByte(reader.GetOrdinal("GradeID")),
-
                 GradeName = reader.GetString(reader.GetOrdinal("GradeName")),
-
                 ClassName = reader.GetString(reader.GetOrdinal("ClassName")),
-
                 AcademicYear = reader.GetString(reader.GetOrdinal("AcademicYear")),
-
                 EnrollmentDate = reader.GetDateTime(reader.GetOrdinal("EnrollmentDate")),
-
                 StatusID = reader.GetInt32(reader.GetOrdinal("StatusID")),
-
                 StatusName = reader.GetString(reader.GetOrdinal("StatusName")),
-
                 NationalID = reader.GetString(reader.GetOrdinal("NationalID")),
-
                 FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
-
                 SecondName = reader.GetString(reader.GetOrdinal("SecondName")),
-
                 ThirdName = reader.GetString(reader.GetOrdinal("ThirdName")),
-
                 LastName = reader.IsDBNull(reader.GetOrdinal("LastName")) ? null : reader.GetString(reader.GetOrdinal("LastName")),
-
                 DateOfBirth = reader.GetDateTime(reader.GetOrdinal("DateOfBirth")),
-
                 Gender = reader.GetByte(reader.GetOrdinal("Gender")),
-
                 Address = reader.IsDBNull(reader.GetOrdinal("Address")) ? null : reader.GetString(reader.GetOrdinal("Address")),
-
                 Phone = reader.GetString(reader.GetOrdinal("Phone")),
-
                 Email = reader.IsDBNull(reader.GetOrdinal("Email")) ? null : reader.GetString(reader.GetOrdinal("Email")),
-
                 ImagePath = reader.IsDBNull(reader.GetOrdinal("ImagePath")) ? null : reader.GetString(reader.GetOrdinal("ImagePath")),
-
                 CityID = reader.GetInt32(reader.GetOrdinal("CityID"))
-
             };
         }
 
@@ -70,93 +50,38 @@ namespace School.DAL
             command.Parameters.Add("@StatusID", SqlDbType.Int).Value = student.StatusID;
         }
 
-        private static async Task<List<StudentDetailsDTO>> ReadStudentDetailsAsync(SqlCommand command)
-        {
-            List<StudentDetailsDTO> studentsDetails = [];
-            using SqlDataReader reader = await command.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-            {
-                studentsDetails.Add(MapStudentDetails(reader));
-            }
-
-            return studentsDetails;
-        }
         #endregion
 
         #region Public Methods
-        public async Task<List<StudentDetailsDTO>> GetAllStudentsAsync()
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllStudents");
 
-            return await ReadStudentDetailsAsync(command);
-        }
+        public Task<List<StudentDetailsDTO>> GetAllStudentsAsync() =>
+            QueryListAsync("SP_GetAllStudents", null, MapStudentDetails);
 
-        public async Task<StudentDetailsDTO?> GetStudentByIdAsync(int studentId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetStudentByID");
+        public Task<StudentDetailsDTO?> GetStudentByIdAsync(int studentId) =>
+            QuerySingleAsync("SP_GetStudentByID", cmd => cmd.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId,
+                MapStudentDetails);
 
-            command.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId;
+        public Task<StudentDetailsDTO?> GetStudentByPersonIdAsync(int personId) =>
+            QuerySingleAsync("SP_GetStudentByPersonID", cmd => cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId,
+                MapStudentDetails);
 
-            return (await ReadStudentDetailsAsync(command)).FirstOrDefault();
-        }
+        public Task<int> AddStudentAsync(StudentDTO student) =>
+            InsertAsync<int>("SP_AddStudent", cmd => AddParameters(cmd, student), "@StudentID", SqlDbType.Int);
 
-        public async Task<StudentDetailsDTO?> GetStudentByPersonIdAsync(int personId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetStudentByPersonID");
+        public Task<bool> UpdateStudentAsync(StudentDTO student) =>
+            ExecuteNonQueryAsync("SP_UpdateStudent",
+                cmd =>
+                {
+                    cmd.Parameters.Add("@StudentID", SqlDbType.Int).Value = student.StudentID;
+                    AddParameters(cmd, student);
+                });
 
-            command.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId;
+        public Task<bool> DeleteStudentAsync(int studentId) =>
+            ExecuteNonQueryAsync("SP_DeleteStudent", cmd => cmd.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId);
 
-            return (await ReadStudentDetailsAsync(command)).FirstOrDefault();
-        }
+        public Task<bool> IsStudentExistAsync(int studentId) =>
+            ExecuteExistsAsync("SP_IsStudentExist", cmd => cmd.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId);
 
-        public async Task<int> AddStudentAsync(StudentDTO student)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddStudent");
-
-            AddParameters(command, student);
-
-            var outputStudentId = new SqlParameter("@StudentID", SqlDbType.Int) { Direction = ParameterDirection.Output };
-
-            command.Parameters.Add(outputStudentId);
-
-            await command.ExecuteNonQueryAsync();
-
-            return (int)outputStudentId.Value;
-        }
-
-        public async Task<bool> UpdateStudentAsync(StudentDTO student)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateStudent");
-            command.Parameters.Add("@StudentID", SqlDbType.Int).Value = student.StudentID;
-            AddParameters(command, student);
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> DeleteStudentAsync(int studentId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteStudent");
-            command.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId;
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> IsStudentExistAsync(int studentId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsStudentExist");
-
-            command.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId;
-
-            return Convert.ToBoolean(await command.ExecuteScalarAsync());
-        }
         #endregion
     }
 }

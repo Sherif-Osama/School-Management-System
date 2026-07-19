@@ -4,6 +4,7 @@ using School.DAL.Common;
 using School.DAL.Interfaces;
 using School.DTO.AttendanceDTOs;
 using System.Data;
+
 namespace School.DAL
 {
     public class AttendanceData : BaseData, IAttendanceData
@@ -11,6 +12,7 @@ namespace School.DAL
         public AttendanceData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
+
         private static AttendanceDetailsDTO MapAttendanceDetails(SqlDataReader reader)
         {
             return new AttendanceDetailsDTO
@@ -30,7 +32,6 @@ namespace School.DAL
                 AttendanceDate = DateOnly.FromDateTime(reader.GetDateTime(reader.GetOrdinal("AttendanceDate"))),
                 StatusID = reader.GetInt32(reader.GetOrdinal("StatusID")),
                 StatusName = reader.GetString(reader.GetOrdinal("StatusName"))
-
             };
         }
 
@@ -41,119 +42,59 @@ namespace School.DAL
             command.Parameters.Add("@StatusID", SqlDbType.Int).Value = attendance.StatusID;
         }
 
-        private static async Task<List<AttendanceDetailsDTO>> ReadAttendancesAsync(SqlCommand command)
-        {
-            List<AttendanceDetailsDTO> attendances = [];
-            using SqlDataReader reader = await command.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-            {
-                attendances.Add(MapAttendanceDetails(reader));
-            }
-
-            return attendances;
-        }
         #endregion
 
         #region Public Methods
-        public async Task<List<AttendanceDetailsDTO>> GetAllAttendancesAsync()
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllAttendances");
-            return await ReadAttendancesAsync(command);
-        }
 
-        public async Task<AttendanceDetailsDTO?> GetAttendanceByIdAsync(int attendanceId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAttendanceByID");
+        public Task<List<AttendanceDetailsDTO>> GetAllAttendancesAsync() =>
+            QueryListAsync("SP_GetAllAttendances", null, MapAttendanceDetails);
 
-            command.Parameters.Add("@AttendanceID", SqlDbType.Int).Value = attendanceId;
+        public Task<AttendanceDetailsDTO?> GetAttendanceByIdAsync(int attendanceId) =>
+            QuerySingleAsync("SP_GetAttendanceByID", cmd => cmd.Parameters.Add("@AttendanceID", SqlDbType.Int).Value = attendanceId,
+                MapAttendanceDetails);
 
-            return (await ReadAttendancesAsync(command)).FirstOrDefault();
-        }
+        public Task<List<AttendanceDetailsDTO>> GetAttendancesByStudentIdAsync(int studentId) =>
+            QueryListAsync("SP_GetAttendancesByStudentID", cmd => cmd.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId,
+                MapAttendanceDetails);
 
-        public async Task<List<AttendanceDetailsDTO>> GetAttendancesByStudentIdAsync(int studentId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAttendancesByStudentID");
-            command.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId;
-            return await ReadAttendancesAsync(command);
-        }
+        public Task<List<AttendanceDetailsDTO>> GetAttendancesByClassIdAsync(int classId) =>
+            QueryListAsync("SP_GetAttendancesByClassID", cmd => cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId,
+                MapAttendanceDetails);
 
-        public async Task<List<AttendanceDetailsDTO>> GetAttendancesByClassIdAsync(int classId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAttendancesByClassID");
+        public Task<List<AttendanceDetailsDTO>> GetAttendancesByDateAsync(DateOnly attendanceDate) =>
+            QueryListAsync("SP_GetAttendancesByDate", cmd => cmd.Parameters.Add("@AttendanceDate", SqlDbType.Date).Value = attendanceDate.ToDateTime(TimeOnly.MinValue),
+                MapAttendanceDetails);
 
-            command.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId;
+        public Task<List<AttendanceDetailsDTO>> GetAttendancesByStatusIdAsync(int statusId) =>
+            QueryListAsync("SP_GetAttendancesByStatusID", cmd => cmd.Parameters.Add("@StatusID", SqlDbType.Int).Value = statusId,
+                MapAttendanceDetails);
 
-            return await ReadAttendancesAsync(command);
-        }
+        public Task<int> AddAttendanceAsync(AttendanceDTO attendance) =>
+            InsertAsync<int>("SP_AddAttendance", cmd => AddParameters(cmd, attendance), "@AttendanceID", SqlDbType.Int);
 
-        public async Task<List<AttendanceDetailsDTO>> GetAttendancesByDateAsync(DateOnly attendanceDate)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAttendancesByDate");
+        public Task<bool> UpdateAttendanceAsync(AttendanceDTO attendance) =>
+            ExecuteNonQueryAsync("SP_UpdateAttendance",
+                cmd =>
+                {
+                    cmd.Parameters.Add("@AttendanceID", SqlDbType.Int).Value = attendance.AttendanceID;
+                    AddParameters(cmd, attendance);
+                });
 
-            command.Parameters.Add("@AttendanceDate", SqlDbType.Date).Value = attendanceDate.ToDateTime(TimeOnly.MinValue);
+        public Task<bool> DeleteAttendanceAsync(int attendanceId) =>
+            ExecuteNonQueryAsync("SP_DeleteAttendance", cmd => cmd.Parameters.Add("@AttendanceID", SqlDbType.Int).Value = attendanceId);
 
-            return await ReadAttendancesAsync(command);
-        }
+        public Task<bool> IsAttendanceExistAsync(int attendanceId) =>
+            ExecuteExistsAsync("SP_IsAttendanceExists", cmd => cmd.Parameters.Add("@AttendanceID", SqlDbType.Int).Value = attendanceId);
 
-        public async Task<List<AttendanceDetailsDTO>> GetAttendancesByStatusIdAsync(int statusId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAttendancesByStatusID");
-            command.Parameters.Add("@StatusID", SqlDbType.Int).Value = statusId;
-            return await ReadAttendancesAsync(command);
-        }
+        public Task<bool> IsStudentAttendanceExistsAsync(int studentId, DateOnly attendanceDate, int? attendanceId = null) =>
+            ExecuteExistsAsync("SP_IsStudentAttendanceExists",
+                cmd =>
+                {
+                    cmd.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId;
+                    cmd.Parameters.Add("@AttendanceDate", SqlDbType.Date).Value = attendanceDate.ToDateTime(TimeOnly.MinValue);
+                    cmd.Parameters.Add("@AttendanceID", SqlDbType.Int).Value = attendanceId ?? (object)DBNull.Value;
+                });
 
-        public async Task<int> AddAttendanceAsync(AttendanceDTO attendance)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddAttendance");
-            AddParameters(command, attendance);
-            var outputAttendanceId = new SqlParameter("@AttendanceID", SqlDbType.Int) { Direction = ParameterDirection.Output };
-            command.Parameters.Add(outputAttendanceId);
-            await command.ExecuteNonQueryAsync();
-
-            return (int)outputAttendanceId.Value;
-        }
-
-        public async Task<bool> UpdateAttendanceAsync(AttendanceDTO attendance)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateAttendance");
-            command.Parameters.Add("@AttendanceID", SqlDbType.Int).Value = attendance.AttendanceID;
-            AddParameters(command, attendance);
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> DeleteAttendanceAsync(int attendanceId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteAttendance");
-            command.Parameters.Add("@AttendanceID", SqlDbType.Int).Value = attendanceId;
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> IsAttendanceExistAsync(int attendanceId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsAttendanceExists");
-            command.Parameters.Add("@AttendanceID", SqlDbType.Int).Value = attendanceId;
-            return Convert.ToBoolean(await command.ExecuteScalarAsync());
-        }
-        public async Task<bool> IsStudentAttendanceExistsAsync(int studentId, DateOnly attendanceDate, int? attendanceId = null)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsStudentAttendanceExists");
-            command.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId;
-            command.Parameters.Add("@AttendanceDate", SqlDbType.Date).Value = attendanceDate.ToDateTime(TimeOnly.MinValue);
-            command.Parameters.Add("@AttendanceID", SqlDbType.Int).Value = attendanceId ?? (object)DBNull.Value;
-            return Convert.ToBoolean(await command.ExecuteScalarAsync());
-        }
         #endregion
     }
 }

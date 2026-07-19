@@ -4,6 +4,7 @@ using School.DAL.Common;
 using School.DAL.Interfaces;
 using School.DTO.GradesDTOs;
 using System.Data;
+
 namespace School.DAL
 {
     public class GradeData : BaseData, IGradeData
@@ -11,6 +12,7 @@ namespace School.DAL
         public GradeData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
+
         private static GradeDTO MapGrade(SqlDataReader reader)
         {
             return new GradeDTO
@@ -25,104 +27,37 @@ namespace School.DAL
             command.Parameters.Add("@GradeName", SqlDbType.NVarChar).Value = grade.GradeName;
         }
 
-        private static async Task<List<GradeDTO>> ReadGradesAsync(SqlCommand command)
-        {
-            List<GradeDTO> grades = [];
-
-            using SqlDataReader reader = await command.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-                grades.Add(MapGrade(reader));
-
-            return grades;
-        }
         #endregion
 
         #region Public Methods
 
-        public async Task<List<GradeDTO>> GetAllGradesAsync()
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllGrades");
-            return await ReadGradesAsync(command);
-        }
+        public Task<List<GradeDTO>> GetAllGradesAsync() =>
+            QueryListAsync("SP_GetAllGrades", null, MapGrade);
 
-        public async Task<GradeDTO?> GetGradeByIdAsync(byte gradeId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<GradeDTO?> GetGradeByIdAsync(byte gradeId) =>
+            QuerySingleAsync("SP_GetGradeByID", cmd => cmd.Parameters.Add("@GradeID", SqlDbType.TinyInt).Value = gradeId,
+                MapGrade);
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetGradeByID");
+        public Task<GradeDTO?> GetGradeByNameAsync(string gradeName) =>
+            QuerySingleAsync("SP_GetGradeByName", cmd => cmd.Parameters.Add("@GradeName", SqlDbType.NVarChar).Value = gradeName,
+                MapGrade);
 
-            command.Parameters.Add("@GradeID", SqlDbType.TinyInt).Value = gradeId;
+        public Task<int> AddGradeAsync(GradeDTO grade) =>
+            InsertAsync<int>("SP_AddGrade", cmd => AddParameters(cmd, grade), "@GradeID", SqlDbType.TinyInt);
 
-            return (await ReadGradesAsync(command)).FirstOrDefault();
-        }
+        public Task<bool> UpdateGradeAsync(GradeDTO grade) =>
+            ExecuteNonQueryAsync("SP_UpdateGrade",
+                cmd =>
+                {
+                    cmd.Parameters.Add("@GradeID", SqlDbType.TinyInt).Value = grade.GradeID;
+                    AddParameters(cmd, grade);
+                });
 
-        public async Task<GradeDTO?> GetGradeByNameAsync(string gradeName)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<bool> DeleteGradeAsync(byte gradeId) =>
+            ExecuteNonQueryAsync("SP_DeleteGrade", cmd => cmd.Parameters.Add("@GradeID", SqlDbType.TinyInt).Value = gradeId);
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetGradeByName");
-
-            command.Parameters.Add("@GradeName", SqlDbType.NVarChar).Value = gradeName;
-
-            return (await ReadGradesAsync(command)).FirstOrDefault();
-        }
-
-        public async Task<int> AddGradeAsync(GradeDTO grade)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddGrade");
-
-            AddParameters(command, grade);
-
-            SqlParameter outputGradeId = new("@GradeID", SqlDbType.TinyInt)
-            {
-                Direction = ParameterDirection.Output
-            };
-
-            command.Parameters.Add(outputGradeId);
-
-            await command.ExecuteNonQueryAsync();
-
-            return (int)outputGradeId.Value;
-        }
-
-        public async Task<bool> UpdateGradeAsync(GradeDTO grade)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateGrade");
-
-            command.Parameters.Add("@GradeID", SqlDbType.TinyInt).Value = grade.GradeID;
-
-            AddParameters(command, grade);
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> DeleteGradeAsync(byte gradeId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteGrade");
-
-            command.Parameters.Add("@GradeID", SqlDbType.TinyInt).Value = gradeId;
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> IsGradeExistAsync(byte gradeId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsGradeExists");
-
-            command.Parameters.Add("@GradeID", SqlDbType.TinyInt).Value = gradeId;
-
-            return Convert.ToBoolean(await command.ExecuteScalarAsync());
-        }
+        public Task<bool> IsGradeExistAsync(byte gradeId) =>
+            ExecuteExistsAsync("SP_IsGradeExists", cmd => cmd.Parameters.Add("@GradeID", SqlDbType.TinyInt).Value = gradeId);
 
         #endregion
     }

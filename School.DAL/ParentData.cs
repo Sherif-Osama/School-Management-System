@@ -4,12 +4,15 @@ using School.DAL.Common;
 using School.DAL.Interfaces;
 using School.DTO.ParentsDTOs;
 using System.Data;
+
 namespace School.DAL
 {
     public class ParentData : BaseData, IParentData
     {
         public ParentData(IConfiguration configuration) : base(configuration) { }
+
         #region Helper Methods
+
         private static ParentDetailsDTO MapParentDetails(SqlDataReader reader)
         {
             return new ParentDetailsDTO
@@ -36,105 +39,43 @@ namespace School.DAL
             command.Parameters.Add("@PersonID", SqlDbType.Int).Value = parent.PersonID;
         }
 
-        private static async Task<List<ParentDetailsDTO>> ReadParentDetailsAsync(SqlCommand command)
-        {
-            List<ParentDetailsDTO> parents = [];
-
-            using SqlDataReader reader = await command.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-                parents.Add(MapParentDetails(reader));
-
-            return parents;
-        }
-
         #endregion
 
         #region Public Methods
 
-        public async Task<List<ParentDetailsDTO>> GetAllParentsAsync()
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllParents");
-            return await ReadParentDetailsAsync(command);
-        }
+        public Task<List<ParentDetailsDTO>> GetAllParentsAsync() =>
+            QueryListAsync("SP_GetAllParents", null, MapParentDetails);
 
-        public async Task<ParentDetailsDTO?> GetParentByIdAsync(int parentId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<ParentDetailsDTO?> GetParentByIdAsync(int parentId) =>
+            QuerySingleAsync("SP_GetParentByID", cmd => cmd.Parameters.Add("@ParentID", SqlDbType.Int).Value = parentId,
+                MapParentDetails);
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetParentByID");
-            command.Parameters.Add("@ParentID", SqlDbType.Int).Value = parentId;
+        public Task<ParentDetailsDTO?> GetParentByPersonIdAsync(int personId) =>
+            QuerySingleAsync("SP_GetParentByPersonID", cmd => cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId,
+                MapParentDetails);
 
-            return (await ReadParentDetailsAsync(command)).FirstOrDefault();
-        }
+        public Task<ParentDetailsDTO?> GetParentByNationalIdAsync(string nationalId) =>
+            QuerySingleAsync("SP_GetParentByNationalID", cmd => cmd.Parameters.Add("@NationalID", SqlDbType.NVarChar, 14).Value = nationalId,
+                MapParentDetails);
 
-        public async Task<ParentDetailsDTO?> GetParentByPersonIdAsync(int personId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetParentByPersonID");
-            command.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId;
-            return (await ReadParentDetailsAsync(command)).FirstOrDefault();
-        }
+        public Task<int> AddParentAsync(ParentDTO parent) =>
+            InsertAsync<int>("SP_AddParent", cmd => AddParameters(cmd, parent), "@ParentID",
+                SqlDbType.Int);
 
-        public async Task<ParentDetailsDTO?> GetParentByNationalIdAsync(string nationalId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<bool> UpdateParentAsync(ParentDTO parent) =>
+            ExecuteNonQueryAsync("SP_UpdateParent",
+                cmd =>
+                {
+                    cmd.Parameters.Add("@ParentID", SqlDbType.Int).Value = parent.ParentID;
+                    AddParameters(cmd, parent);
+                });
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetParentByNationalID");
-            command.Parameters.Add("@NationalID", SqlDbType.NVarChar, 14).Value = nationalId;
+        public Task<bool> DeleteParentAsync(int parentId) =>
+            ExecuteNonQueryAsync("SP_DeleteParent", cmd => cmd.Parameters.Add("@ParentID", SqlDbType.Int).Value = parentId);
 
-            return (await ReadParentDetailsAsync(command)).FirstOrDefault();
-        }
+        public Task<bool> IsParentExistAsync(int parentId) =>
+            ExecuteExistsAsync("SP_IsParentExists", cmd => cmd.Parameters.Add("@ParentID", SqlDbType.Int).Value = parentId);
 
-        public async Task<int> AddParentAsync(ParentDTO parent)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddParent");
-            AddParameters(command, parent);
-
-            SqlParameter outputParentId = new("@ParentID", SqlDbType.Int)
-            {
-                Direction = ParameterDirection.Output
-            };
-
-            command.Parameters.Add(outputParentId);
-
-            await command.ExecuteNonQueryAsync();
-
-            return (int)outputParentId.Value;
-        }
-
-        public async Task<bool> UpdateParentAsync(ParentDTO parent)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateParent");
-            command.Parameters.Add("@ParentID", SqlDbType.Int).Value = parent.ParentID;
-            AddParameters(command, parent);
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> DeleteParentAsync(int parentId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteParent");
-            command.Parameters.Add("@ParentID", SqlDbType.Int).Value = parentId;
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> IsParentExistAsync(int parentId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsParentExists");
-
-            command.Parameters.Add("@ParentID", SqlDbType.Int).Value = parentId;
-
-            return Convert.ToBoolean(await command.ExecuteScalarAsync());
-        }
         #endregion
     }
 }

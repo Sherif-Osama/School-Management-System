@@ -4,6 +4,7 @@ using School.DAL.Common;
 using School.DAL.Interfaces;
 using School.DTO.AssociationsDTOs.ClassSubjectDTOs;
 using System.Data;
+
 namespace School.DAL
 {
     public class ClassSubjectData : BaseData, IClassSubjectData
@@ -11,6 +12,7 @@ namespace School.DAL
         public ClassSubjectData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
+
         private static ClassSubjectDetailsDTO MapClassSubjectDetails(SqlDataReader reader)
         {
             return new ClassSubjectDetailsDTO
@@ -38,135 +40,56 @@ namespace School.DAL
             command.Parameters.Add("@SubjectID", SqlDbType.TinyInt).Value = classSubject.SubjectID;
         }
 
-        private static async Task<List<ClassSubjectDetailsDTO>> ReadClassSubjectsAsync(SqlCommand command)
-        {
-            List<ClassSubjectDetailsDTO> classSubjects = [];
-            using SqlDataReader reader = await command.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-                classSubjects.Add(MapClassSubjectDetails(reader));
-            return classSubjects;
-        }
-
         #endregion
 
         #region Public Methods
 
-        public async Task<List<ClassSubjectDetailsDTO>> GetAllClassSubjectsAsync()
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllClassSubjects");
-            return await ReadClassSubjectsAsync(command);
-        }
+        public Task<List<ClassSubjectDetailsDTO>> GetAllClassSubjectsAsync() =>
+            QueryListAsync("SP_GetAllClassSubjects", null, MapClassSubjectDetails);
 
-        public async Task<ClassSubjectDetailsDTO?> GetClassSubjectByIdAsync(int classSubjectId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetClassSubjectByID");
-            command.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = classSubjectId;
-            return (await ReadClassSubjectsAsync(command)).FirstOrDefault();
-        }
+        public Task<ClassSubjectDetailsDTO?> GetClassSubjectByIdAsync(int classSubjectId) =>
+            QuerySingleAsync("SP_GetClassSubjectByID", cmd => cmd.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = classSubjectId,
+                MapClassSubjectDetails);
 
-        public async Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsByClassIdAsync(int classId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsByClassIdAsync(int classId) =>
+            QueryListAsync("SP_GetClassSubjectsByClassID", cmd => cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId,
+                MapClassSubjectDetails);
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetClassSubjectsByClassID");
+        public Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsByTeacherIdAsync(int teacherId) =>
+            QueryListAsync("SP_GetClassSubjectsByTeacherID", cmd => cmd.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId,
+                MapClassSubjectDetails);
 
-            command.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId;
+        public Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsBySubjectIdAsync(int subjectId) =>
+            QueryListAsync("SP_GetClassSubjectsBySubjectID", cmd => cmd.Parameters.Add("@SubjectID", SqlDbType.Int).Value = subjectId,
+                MapClassSubjectDetails);
 
-            return await ReadClassSubjectsAsync(command);
-        }
+        public Task<ClassSubjectDetailsDTO?> GetClassSubjectByDetailsAsync(int classId, int teacherId, int subjectId) =>
+            QuerySingleAsync("SP_GetClassSubjectByDetails",
+                cmd =>
+                {
+                    cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId;
+                    cmd.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId;
+                    cmd.Parameters.Add("@SubjectID", SqlDbType.TinyInt).Value = subjectId;
+                },
+                MapClassSubjectDetails);
 
-        public async Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsByTeacherIdAsync(int teacherId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<int> AddClassSubjectAsync(ClassSubjectDTO classSubject) =>
+            InsertAsync<int>("SP_AddClassSubject", cmd => AddParameters(cmd, classSubject), "@ClassSubjectID", SqlDbType.Int);
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetClassSubjectsByTeacherID");
+        public Task<bool> UpdateClassSubjectAsync(ClassSubjectDTO classSubject) =>
+            ExecuteNonQueryAsync("SP_UpdateClassSubject",
+                cmd =>
+                {
+                    cmd.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = classSubject.ClassSubjectID;
+                    AddParameters(cmd, classSubject);
+                });
 
-            command.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId;
+        public Task<bool> DeleteClassSubjectAsync(int classSubjectId) =>
+            ExecuteNonQueryAsync("SP_DeleteClassSubject", cmd => cmd.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = classSubjectId);
 
-            return await ReadClassSubjectsAsync(command);
-        }
+        public Task<bool> IsClassSubjectExistAsync(int classSubjectId) =>
+            ExecuteExistsAsync("SP_IsClassSubjectExists", cmd => cmd.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = classSubjectId);
 
-        public async Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsBySubjectIdAsync(int subjectId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetClassSubjectsBySubjectID");
-
-            command.Parameters.Add("@SubjectID", SqlDbType.Int).Value = subjectId;
-
-            return await ReadClassSubjectsAsync(command);
-        }
-
-        public async Task<ClassSubjectDetailsDTO?> GetClassSubjectByDetailsAsync(int classId, int teacherId, int subjectId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetClassSubjectByDetails");
-
-            command.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId;
-            command.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId;
-            command.Parameters.Add("@SubjectID", SqlDbType.TinyInt).Value = subjectId;
-
-            return (await ReadClassSubjectsAsync(command)).FirstOrDefault();
-        }
-
-        public async Task<int> AddClassSubjectAsync(ClassSubjectDTO classSubject)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddClassSubject");
-
-            AddParameters(command, classSubject);
-
-            SqlParameter outputId = new("@ClassSubjectID", SqlDbType.Int)
-            {
-                Direction = ParameterDirection.Output
-            };
-
-            command.Parameters.Add(outputId);
-
-            await command.ExecuteNonQueryAsync();
-
-            return (int)outputId.Value;
-        }
-
-        public async Task<bool> UpdateClassSubjectAsync(ClassSubjectDTO classSubject)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateClassSubject");
-
-            command.Parameters.Add("@ClassSubjectID", SqlDbType.Int)
-                .Value = classSubject.ClassSubjectID;
-
-            AddParameters(command, classSubject);
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> DeleteClassSubjectAsync(int classSubjectId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteClassSubject");
-
-            command.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = classSubjectId;
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> IsClassSubjectExistAsync(int classSubjectId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsClassSubjectExists");
-
-            command.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = classSubjectId;
-
-            return Convert.ToBoolean(await command.ExecuteScalarAsync());
-        }
         #endregion
     }
 }

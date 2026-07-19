@@ -4,6 +4,7 @@ using School.DAL.Common;
 using School.DAL.Interfaces;
 using School.DTO.ClassroomDTOs;
 using System.Data;
+
 namespace School.DAL
 {
     public class ClassroomData : BaseData, IClassroomData
@@ -11,6 +12,7 @@ namespace School.DAL
         public ClassroomData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
+
         private static ClassroomDTO MapClassroom(SqlDataReader reader)
         {
             return new ClassroomDTO
@@ -27,82 +29,37 @@ namespace School.DAL
             command.Parameters.Add("@Capacity", SqlDbType.Int).Value = classroom.Capacity;
         }
 
-        private static async Task<List<ClassroomDTO>> ReadClassroomsAsync(SqlCommand command)
-        {
-            List<ClassroomDTO> classrooms = [];
-
-            using SqlDataReader reader = await command.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-                classrooms.Add(MapClassroom(reader));
-
-            return classrooms;
-        }
         #endregion
 
         #region Public Methods
 
-        public async Task<List<ClassroomDTO>> GetAllClassroomsAsync()
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllClassrooms");
-            return await ReadClassroomsAsync(command);
-        }
+        public Task<List<ClassroomDTO>> GetAllClassroomsAsync() => QueryListAsync("SP_GetAllClassrooms", null, MapClassroom);
 
-        public async Task<ClassroomDTO?> GetClassroomByIdAsync(int classroomId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetClassroomByID");
-            command.Parameters.Add("@ClassroomID", SqlDbType.Int).Value = classroomId;
-            return (await ReadClassroomsAsync(command)).FirstOrDefault();
-        }
+        public Task<ClassroomDTO?> GetClassroomByIdAsync(int classroomId) =>
+            QuerySingleAsync("SP_GetClassroomByID", cmd => cmd.Parameters.Add("@ClassroomID", SqlDbType.Int).Value = classroomId,
+                MapClassroom);
 
-        public async Task<ClassroomDTO?> GetClassroomByRoomNameAsync(string roomName)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetClassroomByRoomName");
-            command.Parameters.Add("@RoomName", SqlDbType.NVarChar, 20).Value = roomName.Trim();
-            return (await ReadClassroomsAsync(command)).FirstOrDefault();
-        }
+        public Task<ClassroomDTO?> GetClassroomByRoomNameAsync(string roomName) =>
+            QuerySingleAsync("SP_GetClassroomByRoomName", cmd => cmd.Parameters.Add("@RoomName", SqlDbType.NVarChar, 20).Value = roomName.Trim(),
+                MapClassroom);
 
-        public async Task<int> AddClassroomAsync(ClassroomDTO classroom)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddClassroom");
-            AddParameters(command, classroom);
-            SqlParameter outputId = new("@ClassroomID", SqlDbType.Int)
-            {
-                Direction = ParameterDirection.Output
-            };
-            command.Parameters.Add(outputId);
-            await command.ExecuteNonQueryAsync();
-            return (int)outputId.Value;
-        }
+        public Task<int> AddClassroomAsync(ClassroomDTO classroom) =>
+            InsertAsync<int>("SP_AddClassroom", cmd => AddParameters(cmd, classroom), "@ClassroomID", SqlDbType.Int);
 
-        public async Task<bool> UpdateClassroomAsync(ClassroomDTO classroom)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateClassroom");
-            command.Parameters.Add("@ClassroomID", SqlDbType.Int).Value = classroom.ClassroomID;
-            AddParameters(command, classroom);
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
+        public Task<bool> UpdateClassroomAsync(ClassroomDTO classroom) =>
+            ExecuteNonQueryAsync("SP_UpdateClassroom",
+                cmd =>
+                {
+                    cmd.Parameters.Add("@ClassroomID", SqlDbType.Int).Value = classroom.ClassroomID;
+                    AddParameters(cmd, classroom);
+                });
 
-        public async Task<bool> DeleteClassroomAsync(int classroomId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteClassroom");
-            command.Parameters.Add("@ClassroomID", SqlDbType.Int).Value = classroomId;
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
+        public Task<bool> DeleteClassroomAsync(int classroomId) =>
+            ExecuteNonQueryAsync("SP_DeleteClassroom", cmd => cmd.Parameters.Add("@ClassroomID", SqlDbType.Int).Value = classroomId);
 
-        public async Task<bool> IsClassroomExistAsync(int classroomId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsClassroomExists");
-            command.Parameters.Add("@ClassroomID", SqlDbType.Int).Value = classroomId;
-            return Convert.ToBoolean(await command.ExecuteScalarAsync());
-        }
+        public Task<bool> IsClassroomExistAsync(int classroomId) =>
+            ExecuteExistsAsync("SP_IsClassroomExists", cmd => cmd.Parameters.Add("@ClassroomID", SqlDbType.Int).Value = classroomId);
+
         #endregion
     }
 }

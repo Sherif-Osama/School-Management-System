@@ -4,6 +4,7 @@ using School.DAL.Common;
 using School.DAL.Interfaces;
 using School.DTO.ExamDTOs;
 using System.Data;
+
 namespace School.DAL
 {
     public class ExamData : BaseData, IExamData
@@ -42,114 +43,54 @@ namespace School.DAL
             command.Parameters.Add("@TotalMarks", SqlDbType.Decimal).Value = exam.TotalMarks;
         }
 
-        private static async Task<List<ExamDetailsDTO>> ReadExamsAsync(SqlCommand command)
-        {
-            List<ExamDetailsDTO> exams = [];
-            using SqlDataReader reader = await command.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-            {
-                exams.Add(MapExamDetails(reader));
-            }
-
-            return exams;
-        }
         #endregion
 
         #region Public Methods
-        public async Task<List<ExamDetailsDTO>> GetAllExamsAsync()
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAll_Exams");
-            return await ReadExamsAsync(command);
-        }
 
-        public async Task<ExamDetailsDTO?> GetExamByIdAsync(int examId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetExamByID");
-            command.Parameters.Add("@ExamID", SqlDbType.Int).Value = examId;
+        public Task<List<ExamDetailsDTO>> GetAllExamsAsync() =>
+            QueryListAsync("SP_GetAll_Exams", null, MapExamDetails);
 
-            return (await ReadExamsAsync(command)).FirstOrDefault();
-        }
+        public Task<ExamDetailsDTO?> GetExamByIdAsync(int examId) =>
+            QuerySingleAsync("SP_GetExamByID", cmd => cmd.Parameters.Add("@ExamID", SqlDbType.Int).Value = examId,
+                MapExamDetails);
 
-        public async Task<List<ExamDetailsDTO>> GetExamsByClassIdAsync(int classId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetExamsByClassID");
+        public Task<List<ExamDetailsDTO>> GetExamsByClassIdAsync(int classId) =>
+            QueryListAsync("SP_GetExamsByClassID", cmd => cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId,
+                MapExamDetails);
 
-            command.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId;
+        public Task<List<ExamDetailsDTO>> GetExamsByTeacherIdAsync(int teacherId) =>
+            QueryListAsync("SP_GetExamsByTeacherID", cmd => cmd.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId,
+                MapExamDetails);
 
-            return await ReadExamsAsync(command);
-        }
+        public Task<List<ExamDetailsDTO>> GetExamsBySubjectIdAsync(int subjectId) =>
+            QueryListAsync("SP_GetExamsBySubjectID", cmd => cmd.Parameters.Add("@SubjectID", SqlDbType.Int).Value = subjectId, MapExamDetails);
 
-        public async Task<List<ExamDetailsDTO>> GetExamsByTeacherIdAsync(int teacherId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetExamsByTeacherID");
+        public Task<int> AddExamAsync(ExamDTO exam) =>
+            InsertAsync<int>("SP_AddExam", cmd => AddParameters(cmd, exam), "@ExamID", SqlDbType.Int);
 
-            command.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId;
+        public Task<bool> UpdateExamAsync(ExamDTO exam) =>
+            ExecuteNonQueryAsync("SP_UpdateExam",
+                cmd =>
+                {
+                    cmd.Parameters.Add("@ExamID", SqlDbType.Int).Value = exam.ExamID;
+                    AddParameters(cmd, exam);
+                });
 
-            return await ReadExamsAsync(command);
-        }
+        public Task<bool> DeleteExamAsync(int examId) =>
+            ExecuteNonQueryAsync("SP_DeleteExam", cmd => cmd.Parameters.Add("@ExamID", SqlDbType.Int).Value = examId);
 
-        public async Task<List<ExamDetailsDTO>> GetExamsBySubjectIdAsync(int subjectId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetExamsBySubjectID");
-            command.Parameters.Add("@SubjectID", SqlDbType.Int).Value = subjectId;
-            return await ReadExamsAsync(command);
-        }
+        public Task<bool> IsExamExistAsync(int examId) =>
+            ExecuteExistsAsync("SP_IsExamExists", cmd => cmd.Parameters.Add("@ExamID", SqlDbType.Int).Value = examId);
 
-        public async Task<int> AddExamAsync(ExamDTO exam)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddExam");
-            AddParameters(command, exam);
-            var outputExamId = new SqlParameter("@ExamID", SqlDbType.Int) { Direction = ParameterDirection.Output };
-            command.Parameters.Add(outputExamId);
-            await command.ExecuteNonQueryAsync();
-            return (int)outputExamId.Value;
-        }
+        public Task<bool> IsExamDuplicate(int classSubjectId, int examTypeId, int? examId = null) =>
+            ExecuteExistsAsync("SP_IsExamDuplicate",
+                cmd =>
+                {
+                    cmd.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = classSubjectId;
+                    cmd.Parameters.Add("@ExamTypeID", SqlDbType.Int).Value = examTypeId;
+                    cmd.Parameters.Add("@ExamID", SqlDbType.Int).Value = (object?)examId ?? DBNull.Value;
+                });
 
-        public async Task<bool> UpdateExamAsync(ExamDTO exam)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateExam");
-            command.Parameters.Add("@ExamID", SqlDbType.Int).Value = exam.ExamID;
-            AddParameters(command, exam);
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> DeleteExamAsync(int examId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteExam");
-            command.Parameters.Add("@ExamID", SqlDbType.Int).Value = examId;
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> IsExamExistAsync(int examId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsExamExists");
-            command.Parameters.Add("@ExamID", SqlDbType.Int).Value = examId;
-            return Convert.ToBoolean(await command.ExecuteScalarAsync());
-        }
-
-        public async Task<bool> IsExamDuplicate(int classSubjectId, int examTypeId, int? examId = null)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsExamExists");
-
-            command.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = classSubjectId;
-            command.Parameters.Add("@ExamTypeID", SqlDbType.Int).Value = examTypeId;
-            command.Parameters.Add("@ExamID", SqlDbType.Int).Value = (object?)examId ?? DBNull.Value;
-
-            return Convert.ToBoolean(await command.ExecuteScalarAsync());
-        }
         #endregion
     }
 }

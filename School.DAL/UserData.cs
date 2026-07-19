@@ -1,10 +1,10 @@
-﻿
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
 using School.DAL.Interfaces;
 using School.DTO.UserDTOs;
 using System.Data;
+
 namespace School.DAL
 {
     public class UserData : BaseData, IUserData
@@ -12,6 +12,7 @@ namespace School.DAL
         public UserData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
+
         private static UserDetailsDTO MapUserDetails(SqlDataReader reader)
         {
             return new UserDetailsDTO
@@ -42,144 +43,60 @@ namespace School.DAL
             command.Parameters.Add("@IsActive", SqlDbType.Bit).Value = user.IsActive;
         }
 
-        private static async Task<List<UserDetailsDTO>> ReadUsersAsync(SqlCommand command)
-        {
-            List<UserDetailsDTO> users = [];
-
-            using SqlDataReader reader = await command.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-                users.Add(MapUserDetails(reader));
-
-            return users;
-        }
-
         #endregion
 
         #region Public Methods
 
-        public async Task<List<UserDetailsDTO>> GetAllUsersAsync()
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<List<UserDetailsDTO>> GetAllUsersAsync() =>
+            QueryListAsync("SP_GetAllUsers", null, MapUserDetails);
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllUsers");
+        public Task<UserDetailsDTO?> GetUserByIdAsync(int userId) =>
+            QuerySingleAsync("SP_GetUserByID", cmd => cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = userId,
+                MapUserDetails);
 
-            return await ReadUsersAsync(command);
-        }
+        public Task<UserDetailsDTO?> GetUserByPersonIdAsync(int personId) =>
+            QuerySingleAsync("SP_GetUserByPersonID", cmd => cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId,
+                MapUserDetails);
 
-        public async Task<UserDetailsDTO?> GetUserByIdAsync(int userId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<UserDetailsDTO?> GetUserByUsernameAsync(string username) =>
+            QuerySingleAsync("SP_GetUserByUsername", cmd => cmd.Parameters.Add("@Username", SqlDbType.NVarChar).Value = username.Trim(),
+                MapUserDetails);
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetUserByID");
+        public Task<int> AddUserAsync(UserDTO user) =>
+            InsertAsync<int>("SP_Add_User",
+                cmd =>
+                {
+                    AddParameters(cmd, user);
+                    cmd.Parameters.Add("@PasswordHash", SqlDbType.NVarChar).Value = user.Password;
+                },
+                "@UserID", SqlDbType.Int);
 
-            command.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
+        public Task<bool> UpdateUserAsync(UpdateUserDTO user) =>
+            ExecuteNonQueryAsync("SP_UpdateUser",
+                cmd =>
+                {
+                    cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = user.UserID;
+                    cmd.Parameters.Add("@Username", SqlDbType.NVarChar).Value = user.Username;
+                    cmd.Parameters.Add("@IsActive", SqlDbType.Bit).Value = user.IsActive;
+                });
 
-            return (await ReadUsersAsync(command)).FirstOrDefault();
-        }
+        public Task<string?> GetPasswordHashByUserIdAsync(int userId) =>
+            ExecuteScalarStringAsync("SP_GetPasswordHashByUserID", cmd => cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = userId);
 
-        public async Task<UserDetailsDTO?> GetUserByPersonIdAsync(int personId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<bool> UpdatePasswordAsync(int userId, string passwordHash) =>
+            ExecuteNonQueryAsync(
+                "SP_UpdatePassword",
+                cmd =>
+                {
+                    cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
+                    cmd.Parameters.Add("@PasswordHash", SqlDbType.NVarChar).Value = passwordHash;
+                });
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetUserByPersonID");
+        public Task<bool> DeleteUserAsync(int userId) =>
+            ExecuteNonQueryAsync("SP_DeleteUser", cmd => cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = userId);
 
-            command.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId;
-
-            return (await ReadUsersAsync(command)).FirstOrDefault();
-        }
-
-        public async Task<UserDetailsDTO?> GetUserByUsernameAsync(string username)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetUserByUsername");
-
-            command.Parameters.Add("@Username", SqlDbType.NVarChar).Value = username.Trim();
-
-            return (await ReadUsersAsync(command)).FirstOrDefault();
-        }
-
-        public async Task<int> AddUserAsync(UserDTO user)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_Add_User");
-
-            AddParameters(command, user);
-
-            command.Parameters.Add("@PasswordHash", SqlDbType.NVarChar).Value = user.Password;
-
-            SqlParameter outputUserId = new("@UserID", SqlDbType.Int)
-            {
-                Direction = ParameterDirection.Output
-            };
-
-            command.Parameters.Add(outputUserId);
-            await command.ExecuteNonQueryAsync();
-            return (int)outputUserId.Value;
-        }
-
-        public async Task<bool> UpdateUserAsync(UpdateUserDTO user)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateUser");
-            command.Parameters.Add("@UserID", SqlDbType.Int).Value = user.UserID;
-            command.Parameters.Add("@Username", SqlDbType.NVarChar).Value = user.Username;
-            command.Parameters.Add("@IsActive", SqlDbType.Bit).Value = user.IsActive;
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<string?> GetPasswordHashByUserIdAsync(int userId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetPasswordHashByUserID");
-
-            command.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
-
-            object? result = await command.ExecuteScalarAsync();
-
-            return result == null || result == DBNull.Value
-                ? null
-                : result.ToString();
-        }
-
-        public async Task<bool> UpdatePasswordAsync(int userId, string passwordHash)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdatePassword");
-
-            command.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
-            command.Parameters.Add("@PasswordHash", SqlDbType.NVarChar).Value = passwordHash;
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> DeleteUserAsync(int userId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteUser");
-
-            command.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> IsUserExistAsync(int userId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsUserExists");
-
-            command.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
-
-            return Convert.ToBoolean(await command.ExecuteScalarAsync());
-        }
+        public Task<bool> IsUserExistAsync(int userId) =>
+            ExecuteExistsAsync("SP_IsUserExists", cmd => cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = userId);
 
         #endregion
     }

@@ -12,6 +12,7 @@ namespace School.DAL
         public ClassData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
+
         private static ClassDetailsDTO MapClassDetails(SqlDataReader reader)
         {
             return new ClassDetailsDTO
@@ -35,122 +36,47 @@ namespace School.DAL
             command.Parameters.Add("@IsActive", SqlDbType.Bit).Value = schoolClass.IsActive;
         }
 
-        private static async Task<List<ClassDetailsDTO>> ReadClassDetailsAsync(SqlCommand command)
-        {
-            List<ClassDetailsDTO> classes = [];
-
-            using SqlDataReader reader = await command.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-            {
-                classes.Add(MapClassDetails(reader));
-            }
-
-            return classes;
-        }
-
         #endregion
 
         #region Public Methods
 
-        public async Task<List<ClassDetailsDTO>> GetAllClassesAsync()
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<List<ClassDetailsDTO>> GetAllClassesAsync() =>
+            QueryListAsync("SP_GetAllClasses", null, MapClassDetails);
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllClasses");
+        public Task<ClassDetailsDTO?> GetClassByIdAsync(int classId) =>
+            QuerySingleAsync("SP_GetClassByID", cmd => cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId,
+                MapClassDetails);
 
-            return await ReadClassDetailsAsync(command);
-        }
+        public Task<ClassDetailsDTO?> GetClassByDetailsAsync(byte gradeId, string className, string academicYear) =>
+            QuerySingleAsync("SP_GetClassByName",
+                cmd =>
+                {
+                    cmd.Parameters.Add("@GradeID", SqlDbType.TinyInt).Value = gradeId;
+                    cmd.Parameters.Add("@ClassName", SqlDbType.NVarChar).Value = className;
+                    cmd.Parameters.Add("@AcademicYear", SqlDbType.NVarChar).Value = academicYear;
+                },
+                MapClassDetails);
 
-        public async Task<ClassDetailsDTO?> GetClassByIdAsync(int classId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<int> AddClassAsync(ClassDTO schoolClass) =>
+            InsertAsync<int>("SP_AddClass", cmd => AddParameters(cmd, schoolClass), "@ClassID", SqlDbType.Int);
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetClassByID");
+        public Task<bool> UpdateClassAsync(ClassDTO schoolClass) =>
+            ExecuteNonQueryAsync("SP_UpdateClass",
+                cmd =>
+                {
+                    cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = schoolClass.ClassID;
+                    AddParameters(cmd, schoolClass);
+                });
 
-            command.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId;
+        public Task<bool> DeleteClassAsync(int classId) =>
+            ExecuteNonQueryAsync("SP_DeleteClass", cmd => cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId);
 
-            return (await ReadClassDetailsAsync(command)).FirstOrDefault();
-        }
+        public Task<bool> IsClassExistAsync(int classId) =>
+            ExecuteExistsAsync("SP_IsClassExists", cmd => cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId);
 
-        public async Task<ClassDetailsDTO?> GetClassByDetailsAsync(byte gradeId, string className, string academicYear)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<bool> HasClassAvailableCapacityAsync(int classID) =>
+            ExecuteExistsAsync("SP_HasClassAvailableCapacity", cmd => cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = classID);
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetClassByName");
-
-            command.Parameters.Add("@GradeID", SqlDbType.TinyInt).Value = gradeId;
-            command.Parameters.Add("@ClassName", SqlDbType.NVarChar).Value = className;
-            command.Parameters.Add("@AcademicYear", SqlDbType.NVarChar).Value = academicYear;
-
-            return (await ReadClassDetailsAsync(command)).FirstOrDefault();
-        }
-
-        public async Task<int> AddClassAsync(ClassDTO schoolClass)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddClass");
-
-            AddParameters(command, schoolClass);
-
-            SqlParameter outputClassId = new("@ClassID", SqlDbType.Int)
-            {
-                Direction = ParameterDirection.Output
-            };
-
-            command.Parameters.Add(outputClassId);
-
-            await command.ExecuteNonQueryAsync();
-
-            return (int)outputClassId.Value;
-        }
-
-        public async Task<bool> UpdateClassAsync(ClassDTO schoolClass)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateClass");
-
-            command.Parameters.Add("@ClassID", SqlDbType.Int).Value = schoolClass.ClassID;
-
-            AddParameters(command, schoolClass);
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> DeleteClassAsync(int classId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteClass");
-
-            command.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId;
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> IsClassExistAsync(int classId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsClassExists");
-
-            command.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId;
-
-            return Convert.ToBoolean(await command.ExecuteScalarAsync());
-        }
-
-        public async Task<bool> HasClassAvailableCapacityAsync(int classID)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_HasClassAvailableCapacity");
-
-            command.Parameters.Add("@ClassID", SqlDbType.Int).Value = classID;
-
-            return Convert.ToBoolean(await command.ExecuteScalarAsync());
-        }
         #endregion
     }
 }

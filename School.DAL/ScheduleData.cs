@@ -4,54 +4,37 @@ using School.DAL.Common;
 using School.DAL.Interfaces;
 using School.DTO.ScheduleDTOs;
 using System.Data;
+
 namespace School.DAL
 {
     public class ScheduleData : BaseData, IScheduleData
     {
-
         public ScheduleData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
+
         private static ScheduleDetailsDTO MapScheduleDetails(SqlDataReader reader)
         {
             return new ScheduleDetailsDTO
             {
                 ScheduleID = reader.GetInt32(reader.GetOrdinal("ScheduleID")),
-
                 GradeID = reader.GetByte(reader.GetOrdinal("GradeID")),
-
                 GradeName = reader.GetString(reader.GetOrdinal("GradeName")),
-
                 ClassID = reader.GetInt32(reader.GetOrdinal("ClassID")),
-
                 ClassName = reader.GetString(reader.GetOrdinal("ClassName")),
-
                 AcademicYear = reader.GetString(reader.GetOrdinal("AcademicYear")),
-
                 SubjectID = reader.GetInt32(reader.GetOrdinal("SubjectID")),
-
                 SubjectName = reader.GetString(reader.GetOrdinal("SubjectName")),
-
                 TeacherID = reader.GetInt32(reader.GetOrdinal("TeacherID")),
-
                 FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
-
                 SecondName = reader.GetString(reader.GetOrdinal("SecondName")),
-
                 ThirdName = reader.GetString(reader.GetOrdinal("ThirdName")),
-
                 LastName = reader.IsDBNull(reader.GetOrdinal("LastName")) ? null : reader.GetString(reader.GetOrdinal("LastName")),
-
                 ClassroomID = reader.GetInt32(reader.GetOrdinal("ClassroomID")),
-
                 RoomName = reader.GetString(reader.GetOrdinal("RoomName")),
-
                 DayOfWeek = reader.GetByte(reader.GetOrdinal("DayOfWeek")),
-
                 DayName = reader.GetString(reader.GetOrdinal("DayName")),
-
                 StartTime = TimeOnly.FromTimeSpan(reader.GetTimeSpan(reader.GetOrdinal("StartTime"))),
-
                 EndTime = TimeOnly.FromTimeSpan(reader.GetTimeSpan(reader.GetOrdinal("EndTime")))
             };
         }
@@ -65,147 +48,72 @@ namespace School.DAL
             command.Parameters.Add("@ClassroomID", SqlDbType.Int).Value = schedule.ClassroomID;
         }
 
-        private static async Task<List<ScheduleDetailsDTO>> ReadScheduleDetailsAsync(SqlCommand command)
-        {
-            List<ScheduleDetailsDTO> schedulesDetails = [];
-            using SqlDataReader reader = await command.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
+        private Task<bool> CheckAvailabilityAsync(
+            string procedureName, string idParameterName, int id,
+            byte dayOfWeek, TimeOnly startTime, TimeOnly endTime, int? scheduleId) =>
+            ExecuteExistsAsync(procedureName, cmd =>
             {
-                schedulesDetails.Add(MapScheduleDetails(reader));
-            }
+                cmd.Parameters.Add(idParameterName, SqlDbType.Int).Value = id;
+                cmd.Parameters.Add("@DayOfWeek", SqlDbType.TinyInt).Value = dayOfWeek;
+                cmd.Parameters.Add("@StartTime", SqlDbType.Time).Value = startTime.ToTimeSpan();
+                cmd.Parameters.Add("@EndTime", SqlDbType.Time).Value = endTime.ToTimeSpan();
+                cmd.Parameters.Add("@ScheduleID", SqlDbType.Int).Value = (object?)scheduleId ?? DBNull.Value;
+            });
 
-            return schedulesDetails;
-        }
-
-        private async Task<bool> CheckAvailabilityAsync(string procedureName, string idParameterName, int id, byte dayOfWeek, TimeOnly startTime, TimeOnly endTime, int? scheduleId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, procedureName);
-
-            command.Parameters.Add(idParameterName, SqlDbType.Int).Value = id;
-            command.Parameters.Add("@DayOfWeek", SqlDbType.TinyInt).Value = dayOfWeek;
-            command.Parameters.Add("@StartTime", SqlDbType.Time).Value = startTime.ToTimeSpan();
-            command.Parameters.Add("@EndTime", SqlDbType.Time).Value = endTime.ToTimeSpan();
-            command.Parameters.Add("@ScheduleID", SqlDbType.Int).Value = (object?)scheduleId ?? DBNull.Value;
-
-            return Convert.ToBoolean(await command.ExecuteScalarAsync());
-        }
-        #endregion
+        #endregion Helper Methods
 
         #region Public Methods
-        public async Task<List<ScheduleDetailsDTO>> GetAllSchedulesAsync()
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetAllSchedules");
 
-            return await ReadScheduleDetailsAsync(command);
-        }
+        public Task<List<ScheduleDetailsDTO>> GetAllSchedulesAsync() =>
+            QueryListAsync("SP_GetAllSchedules", null, MapScheduleDetails);
 
-        public async Task<ScheduleDetailsDTO?> GetScheduleByIdAsync(int scheduleId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetScheduleByID");
+        public Task<ScheduleDetailsDTO?> GetScheduleByIdAsync(int scheduleId) =>
+            QuerySingleAsync("SP_GetScheduleByID", cmd => cmd.Parameters.Add("@ScheduleID", SqlDbType.Int).Value = scheduleId,
+                MapScheduleDetails);
 
-            command.Parameters.Add("@ScheduleID", SqlDbType.Int).Value = scheduleId;
+        public Task<List<ScheduleDetailsDTO>> GetSchedulesByClassIdAsync(int classId) =>
+            QueryListAsync("SP_GetSchedulesByClassID", cmd => cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId,
+                MapScheduleDetails);
 
-            return (await ReadScheduleDetailsAsync(command)).FirstOrDefault();
-        }
+        public Task<List<ScheduleDetailsDTO>> GetSchedulesByClassroomIdAsync(int classroomId) =>
+            QueryListAsync("SP_GetSchedulesByClassroomID", cmd => cmd.Parameters.Add("@ClassroomID", SqlDbType.Int).Value = classroomId,
+                MapScheduleDetails);
 
-        public async Task<List<ScheduleDetailsDTO>> GetSchedulesByClassIdAsync(int classId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetSchedulesByClassID");
-            command.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId;
-            return await ReadScheduleDetailsAsync(command);
-        }
+        public Task<List<ScheduleDetailsDTO>> GetSchedulesByClassSubjectIdAsync(int classSubjectId) =>
+            QueryListAsync("SP_GetSchedulesByClassSubjectID", cmd => cmd.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = classSubjectId,
+                MapScheduleDetails);
 
-        public async Task<List<ScheduleDetailsDTO>> GetSchedulesByClassroomIdAsync(int classroomId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetSchedulesByClassroomID");
-            command.Parameters.Add("@ClassroomID", SqlDbType.Int).Value = classroomId;
+        public Task<List<ScheduleDetailsDTO>> GetSchedulesByTeacherIdAsync(int teacherId) =>
+            QueryListAsync("SP_GetSchedulesByTeacherID", cmd => cmd.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId,
+                MapScheduleDetails);
 
-            return await ReadScheduleDetailsAsync(command);
-        }
+        public Task<int> AddScheduleAsync(ScheduleDTO schedule) =>
+            InsertAsync<int>("SP_AddSchedule", cmd => AddParameters(cmd, schedule), "@ScheduleID",
+                SqlDbType.Int);
 
-        public async Task<List<ScheduleDetailsDTO>> GetSchedulesByClassSubjectIdAsync(int classSubjectId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetSchedulesByClassSubjectID");
+        public Task<bool> UpdateScheduleAsync(ScheduleDTO schedule) =>
+            ExecuteNonQueryAsync("SP_UpdateSchedule",
+                cmd =>
+                {
+                    cmd.Parameters.Add("@ScheduleID", SqlDbType.Int).Value = schedule.ScheduleID;
+                    AddParameters(cmd, schedule);
+                });
 
-            command.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = classSubjectId;
+        public Task<bool> DeleteScheduleAsync(int scheduleId) =>
+            ExecuteNonQueryAsync("SP_DeleteSchedule", cmd => cmd.Parameters.Add("@ScheduleID", SqlDbType.Int).Value = scheduleId);
 
-            return await ReadScheduleDetailsAsync(command);
-        }
+        public Task<bool> IsScheduleExistAsync(int scheduleId) =>
+            ExecuteExistsAsync("SP_IsScheduleExists", cmd => cmd.Parameters.Add("@ScheduleID", SqlDbType.Int).Value = scheduleId);
 
-        public async Task<List<ScheduleDetailsDTO>> GetSchedulesByTeacherIdAsync(int teacherId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_GetSchedulesByTeacherID");
-            command.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId;
-            return await ReadScheduleDetailsAsync(command);
-        }
+        public Task<bool> IsClassAvailableAsync(int classId, byte dayOfWeek, TimeOnly startTime, TimeOnly endTime, int? scheduleId = null) =>
+            CheckAvailabilityAsync("SP_IsClassAvailable", "@ClassID", classId, dayOfWeek, startTime, endTime, scheduleId);
 
-        public async Task<int> AddScheduleAsync(ScheduleDTO schedule)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
+        public Task<bool> IsClassroomAvailableAsync(int classroomId, byte dayOfWeek, TimeOnly startTime, TimeOnly endTime, int? scheduleId = null) =>
+            CheckAvailabilityAsync("SP_IsClassroomAvailable", "@ClassroomID", classroomId, dayOfWeek, startTime, endTime, scheduleId);
 
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_AddSchedule");
+        public Task<bool> IsTeacherAvailableAsync(int teacherId, byte dayOfWeek, TimeOnly startTime, TimeOnly endTime, int? scheduleId = null) =>
+            CheckAvailabilityAsync("SP_IsTeacherAvailable", "@TeacherID", teacherId, dayOfWeek, startTime, endTime, scheduleId);
 
-            AddParameters(command, schedule);
-
-            var outputScheduleId = new SqlParameter("@ScheduleID", SqlDbType.Int) { Direction = ParameterDirection.Output };
-
-            command.Parameters.Add(outputScheduleId);
-
-            await command.ExecuteNonQueryAsync();
-
-            return (int)outputScheduleId.Value;
-        }
-
-        public async Task<bool> UpdateScheduleAsync(ScheduleDTO schedule)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_UpdateSchedule");
-            command.Parameters.Add("@ScheduleID", SqlDbType.Int).Value = schedule.ScheduleID;
-            AddParameters(command, schedule);
-
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> DeleteScheduleAsync(int scheduleId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_DeleteSchedule");
-            command.Parameters.Add("@ScheduleID", SqlDbType.Int).Value = scheduleId;
-            return await command.ExecuteNonQueryAsync() > 0;
-        }
-
-        public async Task<bool> IsScheduleExistAsync(int scheduleId)
-        {
-            using SqlConnection connection = await GetOpenConnectionAsync();
-            using SqlCommand command = CreateStoredProcedure(connection, "SP_IsScheduleExists");
-
-            command.Parameters.Add("@ScheduleID", SqlDbType.Int).Value = scheduleId;
-
-            return Convert.ToBoolean(await command.ExecuteScalarAsync());
-        }
-
-        public Task<bool> IsClassAvailableAsync(int classId, byte dayOfWeek, TimeOnly startTime, TimeOnly endTime, int? scheduleId = null)
-        {
-            return CheckAvailabilityAsync("SP_IsClassAvailable", "@ClassID", classId, dayOfWeek, startTime, endTime, scheduleId);
-        }
-
-        public Task<bool> IsClassroomAvailableAsync(int classroomId, byte dayOfWeek, TimeOnly startTime, TimeOnly endTime, int? scheduleId = null)
-        {
-            return CheckAvailabilityAsync("SP_IsClassroomAvailable", "@ClassroomID", classroomId, dayOfWeek, startTime, endTime, scheduleId);
-        }
-
-        public Task<bool> IsTeacherAvailableAsync(int teacherId, byte dayOfWeek, TimeOnly startTime, TimeOnly endTime, int? scheduleId = null)
-        {
-            return CheckAvailabilityAsync("SP_IsTeacherAvailable", "@TeacherID", teacherId, dayOfWeek, startTime, endTime, scheduleId);
-        }
         #endregion
     }
 }
