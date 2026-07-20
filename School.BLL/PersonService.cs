@@ -119,7 +119,7 @@ namespace School.BLL
             int newPersonId = await _personData.AddPersonAsync(person);
 
             if (newPersonId <= 0)
-                throw new InvalidOperationException("Failed to add person."); ;
+                throw new InvalidOperationException("Failed to add person.");
 
             return newPersonId;
         }

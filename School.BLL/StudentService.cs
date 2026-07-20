@@ -9,12 +9,16 @@ namespace School.BLL
         private readonly IStudentData _studentData;
         private readonly IPersonData _personData;
         private readonly IClassData _classData;
+        private readonly ITeacherData _teacherData;
+        private readonly IParentData _parentData;
 
-        public StudentService(IStudentData studentData, IPersonData personData, IClassData classData)
+        public StudentService(IStudentData studentData, IPersonData personData, IClassData classData, ITeacherData teacherData, IParentData parentData)
         {
             _studentData = studentData;
             _personData = personData;
             _classData = classData;
+            _teacherData = teacherData;
+            _parentData = parentData;
         }
 
         #region Helpers Methods
@@ -65,6 +69,20 @@ namespace School.BLL
                 return;
 
             throw new InvalidOperationException($"Person ID {personId} is already linked to another student.");
+        }
+
+        // A person who is already a Teacher cannot also be registered as a Student.
+        private async Task EnsurePersonIsNotTeacherAsync(int personId)
+        {
+            if (await _teacherData.GetTeacherByPersonIdAsync(personId) != null)
+                throw new InvalidOperationException($"Person ID {personId} is already registered as a teacher.");
+        }
+
+        // A person who is already a Parent cannot also be registered as a Student.
+        private async Task EnsurePersonIsNotParentAsync(int personId)
+        {
+            if (await _parentData.GetParentByPersonIdAsync(personId) != null)
+                throw new InvalidOperationException($"Person ID {personId} is already registered as a parent.");
         }
 
         private async Task EnsureStudentExistsAsync(int studentId)
@@ -122,6 +140,10 @@ namespace School.BLL
 
             await EnsurePersonIsNotStudentAsync(student.PersonID);
 
+            await EnsurePersonIsNotTeacherAsync(student.PersonID);
+
+            await EnsurePersonIsNotParentAsync(student.PersonID);
+
             await EnsureClassHasAvailableCapacityAsync(student.ClassID);
 
             int newStudentId = await _studentData.AddStudentAsync(student);
@@ -147,6 +169,10 @@ namespace School.BLL
             await EnsureClassHasAvailableCapacityAsync(student.ClassID);
 
             await EnsurePersonIsNotStudentAsync(student.PersonID, student.StudentID);
+
+            await EnsurePersonIsNotTeacherAsync(student.PersonID);
+
+            await EnsurePersonIsNotParentAsync(student.PersonID);
 
             bool isUpdated = await _studentData.UpdateStudentAsync(student);
 

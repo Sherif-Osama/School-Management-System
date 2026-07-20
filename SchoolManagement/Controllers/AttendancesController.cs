@@ -9,7 +9,6 @@ namespace School.API.Controllers
     public class AttendancesController : ControllerBase
     {
         private readonly IAttendanceService _attendanceService;
-
         public AttendancesController(IAttendanceService attendanceService)
         {
             _attendanceService = attendanceService;
