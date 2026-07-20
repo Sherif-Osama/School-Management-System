@@ -28,6 +28,8 @@ namespace School.BLL
             services.AddScoped<IAttendanceStatusService, AttendanceStatusService>();
             services.AddScoped<IAttendanceService, AttendanceService>();
             services.AddScoped<IStudentGradeService, StudentGradeService>();
+            services.AddScoped<ICountryService, CountryService>();
+            services.AddScoped<ICityService, CityService>();
 
             return services;
         }

@@ -44,6 +44,10 @@ namespace School.DAL
 
             services.AddScoped<IStudentGradeData, StudentGradeData>();
 
+            services.AddScoped<ICountryData, CountryData>();
+
+            services.AddScoped<ICityData, CityData>();
+
             return services;
         }
     }
