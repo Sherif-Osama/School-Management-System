@@ -128,7 +128,7 @@ SchoolManagement/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Sherif-Osama/SchoolManagement.git
+   git clone https://github.com/Sherif-Osama/School-Management-System.git
    cd SchoolManagement
    ```
 
