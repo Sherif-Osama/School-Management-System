@@ -66,7 +66,7 @@ A single `ExceptionHandlingMiddleware` translates domain exceptions into consist
 
 ## Features
 
-The API exposes 18 resource controllers covering the full school domain:
+The API exposes 21 resource controllers covering the full school domain:
 
 - **People & Identity** — `People`, `Users` (BCrypt-hashed passwords, password change flow)
 - **Academic structure** — `Grades`, `Classes`, `Subjects`, `ClassSubjects` (teacher-subject-class assignments), `Classrooms`
