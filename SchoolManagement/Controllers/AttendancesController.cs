@@ -55,7 +55,7 @@ namespace School.API.Controllers
             return Ok(await _attendanceService.GetAttendancesByDateAsync(attendanceDate));
         }
 
-        [HttpGet("Status/{statusId}")]
+        [HttpGet("Status/{statusId:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<AttendanceDetailsDTO>>> GetAttendancesByStatusId(int statusId)
         {
