@@ -54,6 +54,8 @@ namespace School.DAL
 
             services.AddScoped<IRolePermissionData, RolePermissionData>();
 
+            services.AddScoped<IUserRoleData, UserRoleData>();
+
             return services;
         }
     }

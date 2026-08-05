@@ -33,6 +33,8 @@ namespace School.BLL
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<IPermissionService, PermissionService>();
             services.AddScoped<IRolePermissionService, RolePermissionService>();
+
+            services.AddScoped<IUserRoleService, UserRoleService>();
             return services;
         }
     }
