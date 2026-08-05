@@ -114,8 +114,8 @@ namespace School.BLL
 
         public async Task<bool> UpdateRoleAsync(RoleDTO role)
         {
-            ValidateRoleId(role.RoleID);
             ValidateRole(role);
+            ValidateRoleId(role.RoleID);
 
             await EnsureRoleExistsAsync(role.RoleID);
             await EnsureRoleNameUniqueAsync(role.RoleName, role.RoleID);

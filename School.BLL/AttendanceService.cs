@@ -126,9 +126,9 @@ namespace School.BLL
         #endregion
 
         #region Public
-        public async Task<List<AttendanceDetailsDTO>> GetAllAttendancesAsync()
+        public Task<List<AttendanceDetailsDTO>> GetAllAttendancesAsync()
         {
-            return await _attendanceData.GetAllAttendancesAsync();
+            return _attendanceData.GetAllAttendancesAsync();
         }
 
         public async Task<AttendanceDetailsDTO?> GetAttendanceByIdAsync(int attendanceId)
@@ -186,7 +186,7 @@ namespace School.BLL
 
             int newAttendanceId = await _attendanceData.AddAttendanceAsync(attendance);
 
-            if (newAttendanceId < 0)
+            if (newAttendanceId <= 0)
                 throw new InvalidOperationException("Failed to add attendance.");
 
             return newAttendanceId;

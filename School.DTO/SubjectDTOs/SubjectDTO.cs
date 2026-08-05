@@ -1,4 +1,4 @@
-﻿namespace School.DTO.SubjectDTO
+﻿namespace School.DTO.SubjectDTOs
 {
     public class SubjectDTO
     {
