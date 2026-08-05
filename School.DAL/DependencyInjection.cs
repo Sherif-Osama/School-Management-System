@@ -49,6 +49,9 @@ namespace School.DAL
             services.AddScoped<ICityData, CityData>();
 
             services.AddScoped<IRoleData, RoleData>();
+
+            services.AddScoped<IPermissionData, PermissionData>();
+
             return services;
         }
     }
