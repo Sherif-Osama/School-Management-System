@@ -30,7 +30,7 @@ namespace School.BLL
             services.AddScoped<IStudentGradeService, StudentGradeService>();
             services.AddScoped<ICountryService, CountryService>();
             services.AddScoped<ICityService, CityService>();
-
+            services.AddScoped<IRoleService, RoleService>();
             return services;
         }
     }
