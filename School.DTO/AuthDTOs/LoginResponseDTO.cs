@@ -2,8 +2,8 @@
 {
     public class LoginResponseDTO
     {
-        public string AccessToken { get; set; } = string.Empty;
+        public required string AccessToken { get; set; }
 
-        public DateTime ExpiresAt { get; set; }
+        public required DateTime ExpiresAt { get; set; }
     }
 }

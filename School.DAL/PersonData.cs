@@ -53,11 +53,9 @@ namespace School.DAL
 
         #region Public Methods
 
-        public Task<List<PersonDTO>> GetAllPeopleAsync() =>
-            QueryListAsync("SP_GetAllPeople", null, MapPerson);
+        public Task<List<PersonDTO>> GetAllPeopleAsync() => QueryListAsync("SP_GetAllPeople", null, MapPerson);
 
-        public Task<PersonDTO?> GetPersonByIdAsync(int personId) =>
-            QuerySingleAsync("SP_GetPersonByID", cmd => cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId,
+        public Task<PersonDTO?> GetPersonByIdAsync(int personId) => QuerySingleAsync("SP_GetPersonByID", cmd => cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId,
                 MapPerson);
 
         public Task<PersonDTO?> GetPersonByNationalIDAsync(string nationalId) =>
