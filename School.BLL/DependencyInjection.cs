@@ -31,8 +31,8 @@ namespace School.BLL
             services.AddScoped<ICountryService, CountryService>();
             services.AddScoped<ICityService, CityService>();
             services.AddScoped<IRoleService, RoleService>();
-
             services.AddScoped<IPermissionService, PermissionService>();
+            services.AddScoped<IRolePermissionService, RolePermissionService>();
             return services;
         }
     }
