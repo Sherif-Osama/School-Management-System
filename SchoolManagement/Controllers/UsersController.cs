@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
 using School.DTO.UserDTOs;
 
@@ -16,6 +17,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Users.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<UserDetailsDTO>>> GetAllUsers()
         {
@@ -23,6 +25,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [Authorize(Policy = "Users.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<UserDetailsDTO>> GetUserById(int id)
@@ -37,10 +40,10 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Search")]
+        [Authorize(Policy = "Users.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<UserDetailsDTO>> GetUserByUsername(
-            [FromQuery] string username)
+        public async Task<ActionResult<UserDetailsDTO>> GetUserByUsername([FromQuery] string username)
         {
             UserDetailsDTO? user =
                 await _userService.GetUserByUsernameAsync(username);
@@ -52,31 +55,31 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Person/{personId:int}")]
+        [Authorize(Policy = "Users.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<UserDetailsDTO>> GetUserByPersonId(int personId)
         {
-
             UserDetailsDTO? user = await _userService.GetUserByPersonIdAsync(personId);
             if (user is null)
                 return NotFound("User not found.");
 
             return Ok(user);
         }
+
         [HttpPost]
+        [Authorize(Policy = "Users.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<ActionResult<int>> AddUser(UserDTO user)
         {
             int userId =
                 await _userService.AddUserAsync(user);
 
-            return CreatedAtAction(
-                nameof(GetUserById),
-                new { id = userId },
-                userId);
+            return CreatedAtAction(nameof(GetUserById), new { id = userId }, userId);
         }
 
         [HttpPut]
+        [Authorize(Policy = "Users.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateUser(UpdateUserDTO user)
         {
@@ -86,6 +89,7 @@ namespace School.API.Controllers
         }
 
         [HttpPut("ChangePassword")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> ChangePassword(
             UpdatePasswordDTO changePassword)
@@ -96,6 +100,7 @@ namespace School.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Policy = "Users.Delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> DeleteUser(int id)
         {

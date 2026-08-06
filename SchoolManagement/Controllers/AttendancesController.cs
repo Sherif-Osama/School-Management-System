@@ -16,7 +16,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "Students.View")]
+        [Authorize(Policy = "Attendance.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<AttendanceDetailsDTO>>> GetAllAttendances()
         {
@@ -24,6 +24,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [Authorize(Policy = "Attendance.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<AttendanceDetailsDTO>> GetAttendanceById(int id)
@@ -37,6 +38,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Student/{studentId:int}")]
+        [Authorize(Policy = "Attendance.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<AttendanceDetailsDTO>>> GetAttendancesByStudentId(int studentId)
         {
@@ -44,6 +46,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Class/{classId:int}")]
+        [Authorize(Policy = "Attendance.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<AttendanceDetailsDTO>>> GetAttendancesByClassId(int classId)
         {
@@ -51,6 +54,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Date/{attendanceDate:datetime}")]
+        [Authorize(Policy = "Attendance.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<AttendanceDetailsDTO>>> GetAttendancesByDate(DateOnly attendanceDate)
         {
@@ -58,6 +62,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Status/{statusId:int}")]
+        [Authorize(Policy = "Attendance.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<AttendanceDetailsDTO>>> GetAttendancesByStatusId(int statusId)
         {
@@ -65,6 +70,7 @@ namespace School.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "Attendance.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<ActionResult<int>> AddAttendance(AttendanceDTO attendanceDTO)
         {
@@ -77,6 +83,7 @@ namespace School.API.Controllers
         }
 
         [HttpPut]
+        [Authorize(Policy = "Attendance.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> UpdateAttendance(AttendanceDTO attendanceDTO)
         {
@@ -86,6 +93,7 @@ namespace School.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Policy = "Attendance.Delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> DeleteAttendance(int id)
         {

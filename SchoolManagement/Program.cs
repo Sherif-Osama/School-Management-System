@@ -11,7 +11,6 @@ namespace SchoolManagement
 
             // Add services to the container.
             builder.Services.AddBLL();
-
             //Extension  method to add JWT authentication
             builder.Services.AddJwtAuthentication(builder.Configuration);
             builder.Services.AddPermissionAuthorization();

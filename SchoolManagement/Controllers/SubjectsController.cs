@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
 using School.DTO.SubjectDTOs;
 
@@ -16,6 +17,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Subjects.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<SubjectDTO>>> GetAllSubjects()
         {
@@ -23,6 +25,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [Authorize(Policy = "Subjects.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<SubjectDTO>> GetSubjectById(int id)
@@ -36,6 +39,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Name/{name}")]
+        [Authorize(Policy = "Subjects.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<SubjectDTO>> GetSubjectByName(string name)
@@ -49,6 +53,7 @@ namespace School.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "Subjects.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<ActionResult<int>> AddSubject(SubjectDTO subjectDTO)
         {
@@ -61,6 +66,7 @@ namespace School.API.Controllers
         }
 
         [HttpPut]
+        [Authorize(Policy = "Subjects.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> UpdateSubject(SubjectDTO subjectDTO)
         {
@@ -70,6 +76,7 @@ namespace School.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Policy = "Subjects.Delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> DeleteSubject(int id)
         {

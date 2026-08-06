@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
 using School.DTO.StudentsDTOs;
 
@@ -16,6 +17,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Students.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<StudentDetailsDTO>>> GetAllStudents()
         {
@@ -23,6 +25,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [Authorize(Policy = "Students.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<StudentDetailsDTO>> GetStudentById(int id)
@@ -36,6 +39,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Person/{personId:int}")]
+        [Authorize(Policy = "Students.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<StudentDetailsDTO>> GetStudentByPersonId(int personId)
@@ -49,6 +53,7 @@ namespace School.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "Students.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<ActionResult<int>> AddStudent(StudentDTO studentDTO)
         {
@@ -61,6 +66,7 @@ namespace School.API.Controllers
         }
 
         [HttpPut]
+        [Authorize(Policy = "Students.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> UpdateStudent(StudentDTO studentDTO)
         {
@@ -70,6 +76,7 @@ namespace School.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Policy = "Students.Delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> DeleteStudent(int id)
         {

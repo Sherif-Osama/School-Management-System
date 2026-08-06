@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
 using School.DTO.PersonDTOs;
 
@@ -16,6 +17,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Users.View")]
         public async Task<ActionResult<List<PersonDTO>>> GetAllPeople()
         {
             var people = await _personService.GetAllPeopleAsync();
@@ -26,6 +28,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet("{id:int}")]
+        [Authorize(Policy = "Users.View")]
         public async Task<ActionResult<PersonDTO>> GetPersonById(int id)
         {
             var person = await _personService.GetPersonByIdAsync(id);
@@ -39,6 +42,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet("NationalID/{nationalId}")]
+        [Authorize(Policy = "Users.View")]
         public async Task<ActionResult<PersonDTO>> GetPersonByNationalId(string nationalId)
         {
             var person = await _personService.GetPersonByNationalIDAsync(nationalId);
@@ -51,6 +55,7 @@ namespace School.API.Controllers
 
         [ProducesResponseType(StatusCodes.Status201Created)]
         [HttpPost]
+        [Authorize(Policy = "Users.Create")]
         public async Task<ActionResult<int>> AddPersonAsync(PersonDTO newPersonDTO)
         {
             int personId = await _personService.AddPersonAsync(newPersonDTO);
@@ -61,6 +66,7 @@ namespace School.API.Controllers
 
         [ProducesResponseType(StatusCodes.Status200OK)]
         [HttpPut("Update")]
+        [Authorize(Policy = "Users.Update")]
         public async Task<ActionResult> UpdatePersonAsync(PersonDTO updatedPersonDTO)
         {
             await _personService.UpdatePersonAsync(updatedPersonDTO);
@@ -70,6 +76,7 @@ namespace School.API.Controllers
 
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [HttpDelete("{id:int}")]
+        [Authorize(Policy = "Users.Delete")]
         public async Task<IActionResult> DeletePersonAsync(int id)
         {
             await _personService.DeletePersonAsync(id);

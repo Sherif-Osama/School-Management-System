@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
 using School.DTO.AssociationsDTOs.TeacherSubjectDTOs;
 
@@ -16,6 +17,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Teachers.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<TeacherSubjectDetailsDTO>>> GetAllTeacherSubjects()
         {
@@ -23,6 +25,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Teacher/{teacherId:int}")]
+        [Authorize(Policy = "Teachers.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<List<TeacherSubjectDetailsDTO>>> GetSubjectsByTeacherId(int teacherId)
@@ -34,6 +37,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Subject/{subjectId:int}")]
+        [Authorize(Policy = "Teachers.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<List<TeacherSubjectDetailsDTO>>> GetTeachersBySubjectId(byte subjectId)
@@ -45,6 +49,7 @@ namespace School.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "Teachers.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> AssignSubjectToTeacher(
             TeacherSubjectDTO relation)
@@ -55,6 +60,7 @@ namespace School.API.Controllers
         }
 
         [HttpDelete]
+        [Authorize(Policy = "Teachers.Update")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> RemoveSubjectFromTeacher(
             TeacherSubjectDTO relation)

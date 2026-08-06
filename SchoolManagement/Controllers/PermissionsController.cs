@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
 using School.DTO.PermissionDTOs;
 
@@ -16,6 +17,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Permissions.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<PermissionDTO>>> GetAllPermissions()
         {
@@ -23,6 +25,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [Authorize(Policy = "Permissions.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<PermissionDTO>> GetPermissionById(int id)
@@ -36,6 +39,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Name/{permissionName}")]
+        [Authorize(Policy = "Permissions.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<PermissionDTO>> GetPermissionByName(string permissionName)
@@ -49,6 +53,7 @@ namespace School.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "Permissions.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<ActionResult<int>> AddPermission(PermissionDTO permission)
         {
@@ -61,6 +66,7 @@ namespace School.API.Controllers
         }
 
         [HttpPut]
+        [Authorize(Policy = "Permissions.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdatePermission(PermissionDTO permission)
         {
@@ -70,6 +76,7 @@ namespace School.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Policy = "Permissions.Delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> DeletePermission(int id)
         {

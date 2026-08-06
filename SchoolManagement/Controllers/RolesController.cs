@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
 using School.DTO.RoleDTOs;
 
@@ -16,6 +17,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Roles.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<RoleDTO>>> GetAllRoles()
         {
@@ -23,6 +25,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [Authorize(Policy = "Roles.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<RoleDTO>> GetRoleById(int id)
@@ -36,6 +39,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Name/{roleName}")]
+        [Authorize(Policy = "Roles.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<RoleDTO>> GetRoleByName(string roleName)
@@ -49,18 +53,18 @@ namespace School.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "Roles.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<ActionResult<int>> AddRole(RoleDTO role)
         {
             int roleId = await _roleService.AddRoleAsync(role);
 
             return CreatedAtAction(
-                nameof(GetRoleById),
-                new { id = roleId },
-                roleId);
+                nameof(GetRoleById), new { id = roleId }, roleId);
         }
 
         [HttpPut]
+        [Authorize(Policy = "Roles.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateRole(RoleDTO role)
         {
@@ -70,6 +74,7 @@ namespace School.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Policy = "Roles.Delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> DeleteRole(int id)
         {

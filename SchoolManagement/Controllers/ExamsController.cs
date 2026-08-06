@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
 using School.DTO.ExamDTOs;
 
@@ -16,6 +17,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Exams.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<ExamDetailsDTO>>> GetAllExams()
         {
@@ -23,6 +25,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [Authorize(Policy = "Exams.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ExamDetailsDTO>> GetExamById(int id)
@@ -36,6 +39,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Class/{classId:int}")]
+        [Authorize(Policy = "Exams.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<ExamDetailsDTO>>> GetExamsByClassId(int classId)
         {
@@ -48,6 +52,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Teacher/{teacherId:int}")]
+        [Authorize(Policy = "Exams.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<ExamDetailsDTO>>> GetExamsByTeacherId(int teacherId)
         {
@@ -60,6 +65,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Subject/{subjectId:int}")]
+        [Authorize(Policy = "Exams.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<ExamDetailsDTO>>> GetExamsBySubjectId(int subjectId)
         {
@@ -72,6 +78,7 @@ namespace School.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "Exams.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<ActionResult<int>> AddExam(ExamDTO exam)
         {
@@ -84,6 +91,7 @@ namespace School.API.Controllers
         }
 
         [HttpPut]
+        [Authorize(Policy = "Exams.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateExam(ExamDTO exam)
         {
@@ -93,6 +101,7 @@ namespace School.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Policy = "Exams.Delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> DeleteExam(int id)
         {

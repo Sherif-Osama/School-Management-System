@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
 using School.DTO.ScheduleDTOs;
 
@@ -16,6 +17,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Classes.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<ScheduleDetailsDTO>>> GetAllSchedules()
         {
@@ -23,6 +25,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [Authorize(Policy = "Classes.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ScheduleDetailsDTO>> GetScheduleById(int id)
@@ -37,6 +40,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Class/{classId:int}")]
+        [Authorize(Policy = "Classes.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<ScheduleDetailsDTO>>> GetSchedulesByClassId(int classId)
         {
@@ -44,6 +48,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Teacher/{teacherId:int}")]
+        [Authorize(Policy = "Classes.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<ScheduleDetailsDTO>>> GetSchedulesByTeacherId(int teacherId)
         {
@@ -51,6 +56,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Classroom/{classroomId:int}")]
+        [Authorize(Policy = "Classes.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<ScheduleDetailsDTO>>> GetSchedulesByClassroomId(int classroomId)
         {
@@ -58,6 +64,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("ClassSubject/{classSubjectId:int}")]
+        [Authorize(Policy = "Classes.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<ScheduleDetailsDTO>>> GetSchedulesByClassSubjectId(int classSubjectId)
         {
@@ -65,6 +72,7 @@ namespace School.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "Classes.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -79,6 +87,7 @@ namespace School.API.Controllers
         }
 
         [HttpPut]
+        [Authorize(Policy = "Classes.Update")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -89,6 +98,7 @@ namespace School.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Policy = "Classes.Delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]

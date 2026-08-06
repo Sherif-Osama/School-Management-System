@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
 using School.DTO.AssociationsDTOs.StudentParentDTOs;
 
@@ -16,6 +17,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Parents.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<StudentParentDetailsDTO>>> GetAll()
         {
@@ -23,6 +25,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Student/{studentId:int}")]
+        [Authorize(Policy = "Parents.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<StudentParentDetailsDTO>>> GetParentsByStudentId(int studentId)
         {
@@ -30,6 +33,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Parent/{parentId:int}")]
+        [Authorize(Policy = "Parents.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<StudentParentDetailsDTO>>> GetStudentsByParentId(int parentId)
         {
@@ -37,6 +41,7 @@ namespace School.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "Parents.Create")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Add(StudentParentDTO relation)
         {
@@ -46,6 +51,7 @@ namespace School.API.Controllers
         }
 
         [HttpDelete]
+        [Authorize(Policy = "Parents.Delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> Delete(StudentParentDTO relation)
         {

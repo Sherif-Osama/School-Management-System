@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
 using School.DTO.AssociationsDTOs.UserRoleDTOs;
 
@@ -16,6 +17,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Roles.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<UserRoleDetailsDTO>>> GetAllUserRoles()
         {
@@ -23,6 +25,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("{userId:int}/{roleId:int}")]
+        [Authorize(Policy = "Roles.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<UserRoleDetailsDTO>> GetUserRole(int userId, int roleId)
@@ -37,6 +40,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("User/{userId:int}")]
+        [Authorize(Policy = "Roles.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<List<UserRoleDetailsDTO>>> GetRolesByUserId(int userId)
@@ -51,6 +55,7 @@ namespace School.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "Roles.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> AddUserRole(UserRoleDTO userRole)
         {
@@ -60,6 +65,7 @@ namespace School.API.Controllers
         }
 
         [HttpDelete("{userId:int}/{roleId:int}")]
+        [Authorize(Policy = "Roles.Update")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> DeleteUserRole(int userId, int roleId)
         {

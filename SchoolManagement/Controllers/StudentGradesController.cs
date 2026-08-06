@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
 using School.DTO.StudentGradeDetailsDTOs;
 using School.DTO.StudentGradeDTOs;
@@ -17,6 +18,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Grades.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<StudentGradeDetailsDTO>>> GetAllStudentGrades()
         {
@@ -24,6 +26,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [Authorize(Policy = "Grades.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<StudentGradeDetailsDTO>> GetStudentGradeById(int id)
@@ -37,6 +40,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Student/{studentId:int}")]
+        [Authorize(Policy = "Grades.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<StudentGradeDetailsDTO>>> GetStudentGradesByStudentId(int studentId)
         {
@@ -44,6 +48,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Exam/{examId:int}")]
+        [Authorize(Policy = "Grades.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<StudentGradeDetailsDTO>>> GetStudentGradesByExamId(int examId)
         {
@@ -51,6 +56,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Class/{classId:int}")]
+        [Authorize(Policy = "Grades.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<StudentGradeDetailsDTO>>> GetStudentGradesByClassId(int classId)
         {
@@ -58,6 +64,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Subject/{subjectId:int}")]
+        [Authorize(Policy = "Grades.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<StudentGradeDetailsDTO>>> GetStudentGradesBySubjectId(int subjectId)
         {
@@ -65,6 +72,7 @@ namespace School.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "Grades.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<ActionResult<int>> AddStudentGrade(StudentGradeDTO studentGradeDTO)
         {
@@ -77,6 +85,7 @@ namespace School.API.Controllers
         }
 
         [HttpPut]
+        [Authorize(Policy = "Grades.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> UpdateStudentGrade(StudentGradeDTO studentGradeDTO)
         {
@@ -86,6 +95,7 @@ namespace School.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Policy = "Grades.Delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> DeleteStudentGrade(int id)
         {
