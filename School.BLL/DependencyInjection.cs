@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using School.BLL.Authentication;
 using School.BLL.Interfaces;
 using School.DAL;
 namespace School.BLL
@@ -33,8 +34,9 @@ namespace School.BLL
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<IPermissionService, PermissionService>();
             services.AddScoped<IRolePermissionService, RolePermissionService>();
-
             services.AddScoped<IUserRoleService, UserRoleService>();
+            services.AddSingleton<IJwtService, JwtService>();
+            services.AddScoped<IAuthService, AuthService>();
             return services;
         }
     }

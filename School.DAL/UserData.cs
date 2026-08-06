@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
 using School.DAL.Interfaces;
+using School.DTO.AuthDTOs;
 using School.DTO.UserDTOs;
 using System.Data;
 
@@ -32,6 +33,20 @@ namespace School.DAL
                 ImagePath = reader.IsDBNull(reader.GetOrdinal("ImagePath")) ? null : reader.GetString(reader.GetOrdinal("ImagePath")),
                 CityID = reader.GetInt32(reader.GetOrdinal("CityID")),
                 Username = reader.GetString(reader.GetOrdinal("Username")),
+                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
+            };
+        }
+
+        //For user authentication and authorization
+        // This method maps the data from the SqlDataReader to a UserAuthDTO object.
+        private static UserAuthDTO MapUserAuth(SqlDataReader reader)
+        {
+            return new UserAuthDTO
+            {
+                UserID = reader.GetInt32(reader.GetOrdinal("UserID")),
+                PersonID = reader.GetInt32(reader.GetOrdinal("PersonID")),
+                Username = reader.GetString(reader.GetOrdinal("Username")),
+                PasswordHash = reader.GetString(reader.GetOrdinal("PasswordHash")),
                 IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
             };
         }
@@ -91,6 +106,12 @@ namespace School.DAL
                     cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
                     cmd.Parameters.Add("@PasswordHash", SqlDbType.NVarChar).Value = passwordHash;
                 });
+
+        public Task<UserAuthDTO?> GetUserForAuthenticationAsync(string username) =>
+        QuerySingleAsync("SP_GetUserForAuthentication", cmd =>
+        {
+            cmd.Parameters.Add("@Username", SqlDbType.NVarChar).Value = username.Trim();
+        }, MapUserAuth);
 
         public Task<bool> DeleteUserAsync(int userId) =>
             ExecuteNonQueryAsync("SP_DeleteUser", cmd => cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = userId);

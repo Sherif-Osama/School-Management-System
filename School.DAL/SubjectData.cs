@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
 using School.DAL.Interfaces;
-using School.DTO.SubjectDTO;
+using School.DTO.SubjectDTOs;
 using System.Data;
 
 namespace School.DAL

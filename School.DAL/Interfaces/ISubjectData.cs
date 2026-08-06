@@ -1,4 +1,4 @@
-﻿using School.DTO.SubjectDTO;
+﻿using School.DTO.SubjectDTOs;
 
 namespace School.DAL.Interfaces
 {

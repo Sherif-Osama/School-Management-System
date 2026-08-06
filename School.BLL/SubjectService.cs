@@ -1,6 +1,6 @@
 ﻿using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.SubjectDTO;
+using School.DTO.SubjectDTOs;
 
 namespace School.BLL
 {

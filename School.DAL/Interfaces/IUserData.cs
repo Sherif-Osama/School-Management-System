@@ -1,4 +1,5 @@
-﻿using School.DTO.UserDTOs;
+﻿using School.DTO.AuthDTOs;
+using School.DTO.UserDTOs;
 
 namespace School.DAL.Interfaces
 {
@@ -13,6 +14,7 @@ namespace School.DAL.Interfaces
         Task<UserDetailsDTO?> GetUserByUsernameAsync(string username);
         Task<bool> IsUserExistAsync(int userId);
         Task<bool> UpdatePasswordAsync(int userId, string passwordHash);
+        Task<UserAuthDTO?> GetUserForAuthenticationAsync(string username);
         Task<bool> UpdateUserAsync(UpdateUserDTO user);
     }
 }
