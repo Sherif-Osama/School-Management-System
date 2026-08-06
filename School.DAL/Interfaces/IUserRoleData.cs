@@ -15,5 +15,7 @@ namespace School.DAL.Interfaces
         Task<bool> DeleteUserRoleAsync(int userId, int roleId);
 
         Task<bool> IsUserRoleExistAsync(int userId, int roleId);
+
+        Task<List<string>> GetRoleNamesByUserIdAsync(int userId);
     }
 }

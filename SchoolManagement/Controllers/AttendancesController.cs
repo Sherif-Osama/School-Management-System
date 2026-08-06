@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
 using School.DTO.AttendanceDTOs;
 
@@ -15,6 +16,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Students.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<AttendanceDetailsDTO>>> GetAllAttendances()
         {

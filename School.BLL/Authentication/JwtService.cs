@@ -16,12 +16,37 @@ namespace School.BLL.Authentication
             _jwtSettings = jwtSettings;
         }
 
+
+        #region Helpers
+        private static void AddPermissionClaims(UserAuthDTO user, List<Claim> claims)
+        {
+            foreach (string permission in user.Permissions)
+            {
+                claims.Add(new Claim(CustomClaimTypes.Permission, permission));
+            }
+        }
+
+        private static void AddRoleClaims(UserAuthDTO user, List<Claim> claims)
+        {
+            foreach (string role in user.Roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+        }
+        #endregion
+
+        #region Public Methods
         public LoginResponseDTO GenerateToken(UserAuthDTO user)
         {
-            Claim[] claims = [
+            List<Claim> claims =
+            [
                 new(ClaimTypes.NameIdentifier, user.UserID.ToString()),
                 new(ClaimTypes.Name, user.Username),
-                new("PersonID", user.PersonID.ToString())];
+                new(CustomClaimTypes.PersonId, user.PersonID.ToString())
+            ];
+
+            AddPermissionClaims(user, claims);
+            AddRoleClaims(user, claims);
 
             var tokenHandler = new JwtSecurityTokenHandler();
 
@@ -43,5 +68,6 @@ namespace School.BLL.Authentication
                 ExpiresAt = securityToken.ValidTo
             };
         }
+        #endregion
     }
 }

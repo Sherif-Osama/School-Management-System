@@ -27,6 +27,11 @@ namespace School.DAL
             };
         }
 
+        private static string MapRoleName(SqlDataReader reader)
+        {
+            return reader.GetString(reader.GetOrdinal("RoleName"));
+        }
+
         private static void AddParameters(SqlCommand command, UserRoleDTO userRole)
         {
             command.Parameters.Add("@UserID", SqlDbType.Int).Value = userRole.UserID;
@@ -55,6 +60,15 @@ namespace School.DAL
                 {
                     cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
                 }, MapUserRole);
+
+        // This method retrieves the names of roles associated with a specific user ID.
+        //For authentication and authorization purposes, it can be used to check what roles a user has.
+        public Task<List<string>> GetRoleNamesByUserIdAsync(int userId) =>
+            QueryListAsync("SP_GetUserRoleNames",
+        cmd =>
+        {
+            cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
+        }, MapRoleName);
 
         public Task<bool> AddUserRoleAsync(UserRoleDTO userRole) =>
             ExecuteNonQueryAsync("SP_AddUserRole", cmd => AddParameters(cmd, userRole));

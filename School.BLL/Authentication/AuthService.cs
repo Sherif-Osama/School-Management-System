@@ -9,11 +9,15 @@ namespace School.BLL.Authentication
     {
         private readonly IUserData _userData;
         private readonly IJwtService _jwtService;
+        private readonly IUserRoleData _userRoleData;
+        private readonly IRolePermissionData _rolePermissionData;
 
-        public AuthService(IUserData userData, IJwtService jwtService)
+        public AuthService(IUserData userData, IJwtService jwtService, IUserRoleData userRoleData, IRolePermissionData rolePermissionData)
         {
             _userData = userData;
             _jwtService = jwtService;
+            _userRoleData = userRoleData;
+            _rolePermissionData = rolePermissionData;
         }
         #region Helper Methods
         private static void ValidateLoginRequest(LoginRequestDTO request)
@@ -45,6 +49,10 @@ namespace School.BLL.Authentication
 
             if (!PasswordHasher.Verify(request.Password, user.PasswordHash))
                 throw new UnauthorizedAccessException("Invalid username or password.");
+
+            user.Roles = await _userRoleData.GetRoleNamesByUserIdAsync(user.UserID);
+
+            user.Permissions = await _rolePermissionData.GetPermissionNamesByUserIdAsync(user.UserID);
 
             return _jwtService.GenerateToken(user);
         }

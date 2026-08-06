@@ -15,5 +15,7 @@ namespace School.DAL.Interfaces
         Task<bool> DeleteRolePermissionAsync(int roleId, int permissionId);
 
         Task<bool> IsRolePermissionExistAsync(int roleId, int permissionId);
+
+        Task<List<string>> GetPermissionNamesByUserIdAsync(int userId);
     }
 }
