@@ -25,7 +25,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("{id:int}")]
-        [Authorize(Policy = "Students.View.All")]
+        [Authorize(Policy = "Students.View.Own")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<StudentDetailsDTO>> GetStudentById(int id)
@@ -39,7 +39,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Person/{personId:int}")]
-        [Authorize(Policy = "Students.View.All")]
+        [Authorize(Policy = "Students.View.Own")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<StudentDetailsDTO>> GetStudentByPersonId(int personId)

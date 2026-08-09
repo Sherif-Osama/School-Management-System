@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.ExamTypeDTOs;
 
@@ -7,7 +8,8 @@ namespace School.BLL
     public class ExamTypeService : IExamTypeService
     {
         private readonly IExamTypeData _examTypeData;
-
+        private static int minExamNameLength => 3;
+        private static int maxExamNameLength => 50;
         public ExamTypeService(IExamTypeData examTypeData)
         {
             _examTypeData = examTypeData;
@@ -19,27 +21,7 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(examType);
 
-            examType.ExamName = ValidateExamTypeName(examType.ExamName);
-        }
-
-        private static void ValidateExamTypeId(int examTypeId)
-        {
-            if (examTypeId <= 0)
-                throw new ArgumentException("ExamTypeID must be a positive number.", nameof(examTypeId));
-
-        }
-
-        private static string ValidateExamTypeName(string examName)
-        {
-            if (string.IsNullOrWhiteSpace(examName))
-                throw new ArgumentException("Exam name is required.", nameof(examName));
-
-            examName = examName.Trim();
-
-            if (examName.Length < 3 || examName.Length > 50)
-                throw new ArgumentOutOfRangeException(nameof(examName), "Exam name must be between 3 and 50 characters.");
-
-            return examName;
+            examType.ExamName = ValidationHelper.ValidateString(examType.ExamName, nameof(examType.ExamName), minExamNameLength, maxExamNameLength);
         }
         #endregion
 
@@ -73,7 +55,7 @@ namespace School.BLL
 
         public async Task<ExamTypeDTO?> GetExamTypeByIdAsync(int examTypeId)
         {
-            ValidateExamTypeId(examTypeId);
+            ValidationHelper.ValidateId(examTypeId);
 
             ExamTypeDTO? examTypeDTO = await _examTypeData.GetExamTypeByIdAsync(examTypeId);
 
@@ -85,7 +67,7 @@ namespace School.BLL
 
         public async Task<ExamTypeDTO?> GetExamTypeByNameAsync(string examName)
         {
-            examName = ValidateExamTypeName(examName);
+            examName = ValidationHelper.ValidateString(examName, nameof(examName), minExamNameLength, maxExamNameLength);
 
             ExamTypeDTO? examTypeDTO = await _examTypeData.GetExamTypeByNameAsync(examName);
 
@@ -112,7 +94,7 @@ namespace School.BLL
         public async Task<bool> UpdateExamTypeAsync(ExamTypeDTO examType)
         {
             ValidateExamType(examType);
-            ValidateExamTypeId(examType.ExamTypeID);
+            ValidationHelper.ValidateId(examType.ExamTypeID);
 
             await EnsureExamTypeExistsAsync(examType.ExamTypeID);
             await EnsureExamTypeNameUniqueAsync(examType.ExamName, examType.ExamTypeID);
@@ -127,7 +109,7 @@ namespace School.BLL
 
         public async Task<bool> DeleteExamTypeAsync(int examTypeId)
         {
-            ValidateExamTypeId(examTypeId);
+            ValidationHelper.ValidateId(examTypeId);
 
             await EnsureExamTypeExistsAsync(examTypeId);
             bool isDeleted = await _examTypeData.DeleteExamTypeAsync(examTypeId);

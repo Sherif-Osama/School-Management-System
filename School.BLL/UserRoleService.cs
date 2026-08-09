@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.AssociationsDTOs.UserRoleDTOs;
 
@@ -22,20 +23,8 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(userRole);
 
-            ValidateUserId(userRole.UserID);
-            ValidateRoleId(userRole.RoleID);
-        }
-
-        private static void ValidateUserId(int userId)
-        {
-            if (userId <= 0)
-                throw new ArgumentException("UserID must be a positive number.", nameof(userId));
-        }
-
-        private static void ValidateRoleId(int roleId)
-        {
-            if (roleId <= 0)
-                throw new ArgumentException("RoleID must be a positive number.", nameof(roleId));
+            ValidationHelper.ValidateId(userRole.UserID);
+            ValidationHelper.ValidateId(userRole.RoleID);
         }
         #endregion
 
@@ -70,8 +59,8 @@ namespace School.BLL
 
         public async Task<UserRoleDetailsDTO?> GetUserRoleAsync(int userId, int roleId)
         {
-            ValidateUserId(userId);
-            ValidateRoleId(roleId);
+            ValidationHelper.ValidateId(userId);
+            ValidationHelper.ValidateId(roleId);
 
             UserRoleDetailsDTO? userRole =
                 await _userRoleData.GetUserRoleAsync(userId, roleId);
@@ -84,7 +73,7 @@ namespace School.BLL
 
         public async Task<List<UserRoleDetailsDTO>> GetRolesByUserIdAsync(int userId)
         {
-            ValidateUserId(userId);
+            ValidationHelper.ValidateId(userId);
 
             await EnsureUserExistsAsync(userId);
 
@@ -107,8 +96,8 @@ namespace School.BLL
 
         public async Task<bool> DeleteUserRoleAsync(int userId, int roleId)
         {
-            ValidateUserId(userId);
-            ValidateRoleId(roleId);
+            ValidationHelper.ValidateId(userId);
+            ValidationHelper.ValidateId(roleId);
 
             await EnsureUserRoleExistsAsync(userId, roleId);
 

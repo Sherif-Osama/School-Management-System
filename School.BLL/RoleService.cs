@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.RoleDTOs;
 
@@ -7,41 +8,23 @@ namespace School.BLL
     public class RoleService : IRoleService
     {
         private readonly IRoleData _roleData;
+        private static int minRoleNameLenght => 3;
+        private static int maxRoleNameLenght => 20;
 
         public RoleService(IRoleData roleData)
         {
             _roleData = roleData;
         }
-
         #region Validation
 
         private static void ValidateRole(RoleDTO role)
         {
             ArgumentNullException.ThrowIfNull(role);
 
-            role.RoleName = ValidateRoleName(role.RoleName);
+            role.RoleName = ValidationHelper.ValidateString(role.RoleName, nameof(role.RoleName), minRoleNameLenght, maxRoleNameLenght);
 
             if (role.Description?.Length > 255)
                 throw new ArgumentException("Description cannot exceed 255 characters.", nameof(role.Description));
-        }
-
-        private static void ValidateRoleId(int roleId)
-        {
-            if (roleId <= 0)
-                throw new ArgumentException("RoleID must be a positive number.", nameof(roleId));
-        }
-
-        private static string ValidateRoleName(string roleName)
-        {
-            if (string.IsNullOrWhiteSpace(roleName))
-                throw new ArgumentException("RoleName is required.", nameof(roleName));
-
-            roleName = roleName.Trim();
-
-            if (roleName.Length > 50)
-                throw new ArgumentException("RoleName cannot exceed 50 characters.", nameof(roleName));
-
-            return roleName;
         }
 
         #endregion
@@ -60,8 +43,7 @@ namespace School.BLL
 
             if (existingRole != null && (roleId == null || existingRole.RoleID != roleId))
             {
-                throw new InvalidOperationException(
-                    $"Role '{roleName}' already exists.");
+                throw new InvalidOperationException($"Role '{roleName}' already exists.");
             }
         }
 
@@ -76,7 +58,7 @@ namespace School.BLL
 
         public async Task<RoleDTO?> GetRoleByIdAsync(int roleId)
         {
-            ValidateRoleId(roleId);
+            ValidationHelper.ValidateId(roleId);
 
             RoleDTO? role = await _roleData.GetRoleByIdAsync(roleId);
 
@@ -88,7 +70,7 @@ namespace School.BLL
 
         public async Task<RoleDTO?> GetRoleByNameAsync(string roleName)
         {
-            roleName = ValidateRoleName(roleName);
+            roleName = ValidationHelper.ValidateString(roleName, nameof(roleName), minRoleNameLenght, maxRoleNameLenght);
 
             RoleDTO? role = await _roleData.GetRoleByNameAsync(roleName);
 
@@ -115,7 +97,7 @@ namespace School.BLL
         public async Task<bool> UpdateRoleAsync(RoleDTO role)
         {
             ValidateRole(role);
-            ValidateRoleId(role.RoleID);
+            ValidationHelper.ValidateId(role.RoleID);
 
             await EnsureRoleExistsAsync(role.RoleID);
             await EnsureRoleNameUniqueAsync(role.RoleName, role.RoleID);
@@ -130,7 +112,7 @@ namespace School.BLL
 
         public async Task<bool> DeleteRoleAsync(int roleId)
         {
-            ValidateRoleId(roleId);
+            ValidationHelper.ValidateId(roleId);
 
             await EnsureRoleExistsAsync(roleId);
 

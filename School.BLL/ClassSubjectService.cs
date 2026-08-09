@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.AssociationsDTOs.ClassSubjectDTOs;
 using School.DTO.AssociationsDTOs.TeacherSubjectDTOs;
@@ -28,33 +29,9 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(classSubject);
 
-            ValidateClassId(classSubject.ClassID);
-            ValidateTeacherId(classSubject.TeacherID);
-            ValidateSubjectId(classSubject.SubjectID);
-        }
-
-        private static void ValidateClassSubjectId(int classSubjectId)
-        {
-            if (classSubjectId <= 0)
-                throw new ArgumentException("ClassSubject ID must be greater than zero.", nameof(classSubjectId));
-        }
-
-        private static void ValidateClassId(int classId)
-        {
-            if (classId <= 0)
-                throw new ArgumentException("Class ID must be greater than zero.", nameof(classId));
-        }
-
-        private static void ValidateTeacherId(int teacherId)
-        {
-            if (teacherId <= 0)
-                throw new ArgumentException("Teacher ID must be greater than zero.", nameof(teacherId));
-        }
-
-        private static void ValidateSubjectId(int subjectId)
-        {
-            if (subjectId <= 0)
-                throw new ArgumentException("Subject ID must be greater than zero.", nameof(subjectId));
+            ValidationHelper.ValidateId(classSubject.ClassID);
+            ValidationHelper.ValidateId(classSubject.TeacherID);
+            ValidationHelper.ValidateId(classSubject.SubjectID);
         }
 
         private async Task EnsureClassExistsAsync(int classId)
@@ -120,7 +97,7 @@ namespace School.BLL
 
         public async Task<ClassSubjectDetailsDTO?> GetClassSubjectByIdAsync(int classSubjectId)
         {
-            ValidateClassSubjectId(classSubjectId);
+            ValidationHelper.ValidateId(classSubjectId);
 
             ClassSubjectDetailsDTO? classSubject = await _classSubjectData.GetClassSubjectByIdAsync(classSubjectId);
 
@@ -132,7 +109,7 @@ namespace School.BLL
 
         public async Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsByClassIdAsync(int classId)
         {
-            ValidateClassId(classId);
+            ValidationHelper.ValidateId(classId);
 
             await EnsureClassExistsAsync(classId);
 
@@ -141,7 +118,7 @@ namespace School.BLL
 
         public async Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsByTeacherIdAsync(int teacherId)
         {
-            ValidateTeacherId(teacherId);
+            ValidationHelper.ValidateId(teacherId);
 
             await EnsureTeacherExistsAsync(teacherId);
 
@@ -150,7 +127,7 @@ namespace School.BLL
 
         public async Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsBySubjectIdAsync(int subjectId)
         {
-            ValidateSubjectId(subjectId);
+            ValidationHelper.ValidateId(subjectId);
 
             await EnsureSubjectExistsAsync(subjectId);
 
@@ -179,7 +156,7 @@ namespace School.BLL
         {
             ValidateClassSubject(classSubject);
 
-            ValidateClassSubjectId(classSubject.ClassSubjectID);
+            ValidationHelper.ValidateId(classSubject.ClassSubjectID);
 
             await EnsureClassSubjectExistsAsync(classSubject.ClassSubjectID);
 
@@ -201,7 +178,7 @@ namespace School.BLL
 
         public async Task<bool> DeleteClassSubjectAsync(int classSubjectId)
         {
-            ValidateClassSubjectId(classSubjectId);
+            ValidationHelper.ValidateId(classSubjectId);
 
             await EnsureClassSubjectExistsAsync(classSubjectId);
 
@@ -215,7 +192,7 @@ namespace School.BLL
 
         public async Task<bool> IsClassSubjectExistAsync(int classSubjectId)
         {
-            ValidateClassSubjectId(classSubjectId);
+            ValidationHelper.ValidateId(classSubjectId);
 
             return await _classSubjectData.IsClassSubjectExistAsync(classSubjectId);
         }

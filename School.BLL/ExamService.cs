@@ -1,4 +1,5 @@
-﻿using School.BLL.Helpers;
+﻿using School.BLL.Common;
+using School.BLL.Helpers;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.AssociationsDTOs.ClassSubjectDTOs;
@@ -13,10 +14,10 @@ namespace School.BLL
         private readonly IExamTypeData _examTypeData;
         private readonly IClassData _classData;
 
-        private const decimal MinTotalMarks = 1;
-        private const decimal MaxTotalMarks = 1000;
+        private const decimal minTotalMarks = 1;
+        private const decimal maxTotalMarks = 1000;
 
-        private static readonly DateOnly MinExamDate = new(2000, 1, 1);
+        private static readonly DateOnly minExamDate = new(2000, 1, 1);
 
         public ExamService(IExamData examData, IClassSubjectData classSubjectData, IExamTypeData examTypeData, IClassData classData)
         {
@@ -31,28 +32,10 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(exam);
 
-            ValidateClassSubjectId(exam.ClassSubjectID);
-            ValidateExamTypeId(exam.ExamTypeID);
+            ValidationHelper.ValidateId(exam.ClassSubjectID);
+            ValidationHelper.ValidateId(exam.ExamTypeID);
             ValidateExamDate(exam.ExamDate);
             ValidateTotalMarks(exam.TotalMarks);
-        }
-
-        private static void ValidateExamId(int examId)
-        {
-            if (examId <= 0)
-                throw new ArgumentException("ExamID must be a positive number.", nameof(examId));
-        }
-
-        private static void ValidateClassSubjectId(int classSubjectId)
-        {
-            if (classSubjectId <= 0)
-                throw new ArgumentException("ClassSubjectID must be a positive number.", nameof(classSubjectId));
-        }
-
-        private static void ValidateExamTypeId(int examTypeId)
-        {
-            if (examTypeId <= 0)
-                throw new ArgumentException("ExamTypeID must be a positive number.", nameof(examTypeId));
         }
 
         private static DateOnly ValidateExamDate(DateOnly examDate)
@@ -60,8 +43,8 @@ namespace School.BLL
             if (examDate == default)
                 throw new ArgumentException("ExamDate must be a valid date.", nameof(examDate));
 
-            if (examDate < MinExamDate)
-                throw new ArgumentException($"ExamDate cannot be earlier than {MinExamDate:yyyy-MM-dd}.", nameof(examDate));
+            if (examDate < minExamDate)
+                throw new ArgumentException($"ExamDate cannot be earlier than {minExamDate:yyyy-MM-dd}.", nameof(examDate));
 
             DateOnly maxExamDate = DateOnly.FromDateTime(DateTime.Today).AddYears(2);
 
@@ -73,11 +56,11 @@ namespace School.BLL
 
         private static decimal ValidateTotalMarks(decimal totalMarks)
         {
-            if (totalMarks < MinTotalMarks)
-                throw new ArgumentOutOfRangeException(nameof(totalMarks), totalMarks, $"TotalMarks must be at least {MinTotalMarks}.");
+            if (totalMarks < minTotalMarks)
+                throw new ArgumentOutOfRangeException(nameof(totalMarks), totalMarks, $"TotalMarks must be at least {minTotalMarks}.");
 
-            if (totalMarks > MaxTotalMarks)
-                throw new ArgumentOutOfRangeException(nameof(totalMarks), totalMarks, $"TotalMarks cannot exceed {MaxTotalMarks}.");
+            if (totalMarks > maxTotalMarks)
+                throw new ArgumentOutOfRangeException(nameof(totalMarks), totalMarks, $"TotalMarks cannot exceed {maxTotalMarks}.");
 
             if (decimal.Round(totalMarks, 2) != totalMarks)
                 throw new ArgumentOutOfRangeException(nameof(totalMarks), totalMarks, "TotalMarks cannot have more than 2 decimal places.");
@@ -139,7 +122,7 @@ namespace School.BLL
 
         public async Task<ExamDetailsDTO?> GetExamByIdAsync(int examId)
         {
-            ValidateExamId(examId);
+            ValidationHelper.ValidateId(examId);
 
             ExamDetailsDTO? exam = await _examData.GetExamByIdAsync(examId);
 
@@ -151,24 +134,19 @@ namespace School.BLL
 
         public async Task<List<ExamDetailsDTO>> GetExamsByClassIdAsync(int classId)
         {
-            if (classId <= 0)
-                throw new ArgumentException("ClassID must be a positive number.", nameof(classId));
+            ValidationHelper.ValidateId(classId);
             return await _examData.GetExamsByClassIdAsync(classId);
         }
 
         public async Task<List<ExamDetailsDTO>> GetExamsByTeacherIdAsync(int teacherId)
         {
-            if (teacherId <= 0)
-                throw new ArgumentException("TeacherID must be a positive number.", nameof(teacherId));
-
+            ValidationHelper.ValidateId(teacherId);
             return await _examData.GetExamsByTeacherIdAsync(teacherId);
         }
 
         public async Task<List<ExamDetailsDTO>> GetExamsBySubjectIdAsync(int subjectId)
         {
-            if (subjectId <= 0)
-                throw new ArgumentException("SubjectID must be a positive number.", nameof(subjectId));
-
+            ValidationHelper.ValidateId(subjectId);
             return await _examData.GetExamsBySubjectIdAsync(subjectId);
         }
 
@@ -192,7 +170,7 @@ namespace School.BLL
         public async Task<bool> UpdateExamAsync(ExamDTO exam)
         {
             ValidateExam(exam);
-            ValidateExamId(exam.ExamID);
+            ValidationHelper.ValidateId(exam.ExamID);
 
             await EnsureExamExistsAsync(exam.ExamID);
             var classSubject = await GetValidatedClassSubjectAsync(exam.ClassSubjectID);
@@ -210,7 +188,7 @@ namespace School.BLL
 
         public async Task<bool> DeleteExamAsync(int examId)
         {
-            ValidateExamId(examId);
+            ValidationHelper.ValidateId(examId);
 
             await EnsureExamExistsAsync(examId);
 

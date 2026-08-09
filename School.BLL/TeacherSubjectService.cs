@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.AssociationsDTOs.TeacherSubjectDTOs;
 
@@ -26,20 +27,8 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(relation);
 
-            ValidateTeacherId(relation.TeacherID);
-            ValidateSubjectId(relation.SubjectID);
-        }
-
-        private static void ValidateTeacherId(int teacherId)
-        {
-            if (teacherId <= 0)
-                throw new ArgumentException("Teacher ID must be greater than zero.", nameof(teacherId));
-        }
-
-        private static void ValidateSubjectId(int subjectId)
-        {
-            if (subjectId <= 0)
-                throw new ArgumentException("Subject ID must be greater than zero.", nameof(subjectId));
+            ValidationHelper.ValidateId(relation.TeacherID);
+            ValidationHelper.ValidateId(relation.SubjectID);
         }
         #endregion
 
@@ -79,7 +68,7 @@ namespace School.BLL
 
         public async Task<List<TeacherSubjectDetailsDTO>> GetSubjectsByTeacherIdAsync(int teacherId)
         {
-            ValidateTeacherId(teacherId);
+            ValidationHelper.ValidateId(teacherId);
 
             await EnsureTeacherExistsAsync(teacherId);
 
@@ -88,7 +77,7 @@ namespace School.BLL
 
         public async Task<List<TeacherSubjectDetailsDTO>> GetTeachersBySubjectIdAsync(int subjectId)
         {
-            ValidateSubjectId(subjectId);
+            ValidationHelper.ValidateId(subjectId);
 
             await EnsureSubjectExistsAsync(subjectId);
 

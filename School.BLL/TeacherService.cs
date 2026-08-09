@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.TeachersDTOs;
 
@@ -9,6 +10,8 @@ namespace School.BLL
         private readonly ITeacherData _teacherData;
         private readonly IPersonData _personData;
         private readonly IStudentData _studentData;
+        private static int MinnationalIdLength => 14;
+        private static int MaxnationalIdLength => 20;
         public TeacherService(ITeacherData teacherData, IPersonData personData, IStudentData studentData)
         {
             _studentData = studentData;
@@ -22,26 +25,13 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(teacher);
 
-            if (teacher.PersonID <= 0)
-                throw new ArgumentException("A valid Person ID is required.", nameof(teacher.PersonID));
+            ValidationHelper.ValidateId(teacher.PersonID);
 
             if (teacher.HireDate == default || teacher.HireDate > DateTime.Today)
                 throw new ArgumentException("Hire date is invalid.", nameof(teacher.HireDate));
 
             if (teacher.Salary <= 0)
                 throw new ArgumentException("Salary must be greater than zero.", nameof(teacher.Salary));
-        }
-
-        private static void ValidateTeacherId(int teacherId)
-        {
-            if (teacherId <= 0)
-                throw new ArgumentException("Teacher ID must be greater than zero.", nameof(teacherId));
-        }
-
-        private static void ValidatePersonId(int personId)
-        {
-            if (personId <= 0)
-                throw new ArgumentException("Person ID must be greater than zero.", nameof(personId));
         }
 
         private async Task EnsureTeacherExistsAsync(int teacherId)
@@ -67,8 +57,7 @@ namespace School.BLL
                 teacher.TeacherID == currentTeacherId.Value)
                 return;
 
-            throw new InvalidOperationException(
-                $"Person ID {personId} is already linked to another teacher.");
+            throw new InvalidOperationException($"Person ID {personId} is already linked to another teacher.");
         }
 
         private async Task EnsurePersonIsNotStudentAsync(int personId)
@@ -87,7 +76,7 @@ namespace School.BLL
 
         public async Task<TeacherDetailsDTO?> GetTeacherByIdAsync(int teacherId)
         {
-            ValidateTeacherId(teacherId);
+            ValidationHelper.ValidateId(teacherId);
 
             TeacherDetailsDTO? teacher = await _teacherData.GetTeacherByIdAsync(teacherId);
 
@@ -99,7 +88,7 @@ namespace School.BLL
 
         public async Task<TeacherDetailsDTO?> GetTeacherByPersonIdAsync(int personId)
         {
-            ValidatePersonId(personId);
+            ValidationHelper.ValidateId(personId);
 
             TeacherDetailsDTO? teacher = await _teacherData.GetTeacherByPersonIdAsync(personId);
 
@@ -111,10 +100,7 @@ namespace School.BLL
 
         public async Task<TeacherDetailsDTO?> GetTeacherByNationalIdAsync(string nationalId)
         {
-            if (string.IsNullOrWhiteSpace(nationalId))
-                throw new ArgumentException("National ID is required.", nameof(nationalId));
-
-            nationalId = nationalId.Trim();
+            nationalId = ValidationHelper.ValidateString(nationalId, nameof(nationalId), MinnationalIdLength, MaxnationalIdLength);
 
             TeacherDetailsDTO? teacher = await _teacherData.GetTeacherByNationalIdAsync(nationalId);
 
@@ -143,7 +129,7 @@ namespace School.BLL
         public async Task<bool> UpdateTeacherAsync(TeacherDTO teacher)
         {
             ValidateTeacher(teacher);
-            ValidateTeacherId(teacher.TeacherID);
+            ValidationHelper.ValidateId(teacher.TeacherID);
 
             await EnsureTeacherExistsAsync(teacher.TeacherID);
             await EnsurePersonExistsAsync(teacher.PersonID);
@@ -160,7 +146,7 @@ namespace School.BLL
 
         public async Task<bool> DeleteTeacherAsync(int teacherId)
         {
-            ValidateTeacherId(teacherId);
+            ValidationHelper.ValidateId(teacherId);
 
             await EnsureTeacherExistsAsync(teacherId);
 
@@ -174,11 +160,10 @@ namespace School.BLL
 
         public async Task<bool> IsTeacherExistAsync(int teacherId)
         {
-            ValidateTeacherId(teacherId);
+            ValidationHelper.ValidateId(teacherId);
 
             return await _teacherData.IsTeacherExistAsync(teacherId);
         }
-
         #endregion
     }
 }

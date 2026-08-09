@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.GradesDTOs;
 
@@ -7,7 +8,8 @@ namespace School.BLL
     public class GradeService : IGradeService
     {
         private readonly IGradeData _gradeData;
-
+        private static int minGradeNameLength => 2;
+        private static int maxGradeNameLength => 50;
         public GradeService(IGradeData gradeData)
         {
             _gradeData = gradeData;
@@ -18,26 +20,7 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(grade);
 
-            grade.GradeName = ValidateGradeName(grade.GradeName);
-        }
-
-        private static void ValidateGradeId(byte gradeId)
-        {
-            if (gradeId <= 0)
-                throw new ArgumentException("Grade ID must be greater than zero.", nameof(gradeId));
-        }
-
-        private static string ValidateGradeName(string gradeName)
-        {
-            if (string.IsNullOrWhiteSpace(gradeName))
-                throw new ArgumentException("Grade name is required.", nameof(gradeName));
-
-            gradeName = gradeName.Trim();
-
-            if (gradeName.Length > 50)
-                throw new ArgumentOutOfRangeException(nameof(gradeName), "Grade name cannot exceed 50 characters.");
-
-            return gradeName;
+            grade.GradeName = ValidationHelper.ValidateString(grade.GradeName, nameof(grade.GradeName), minGradeNameLength, maxGradeNameLength);
         }
 
         private async Task EnsureGradeExistsAsync(byte gradeId)
@@ -68,7 +51,7 @@ namespace School.BLL
 
         public async Task<GradeDTO?> GetGradeByIdAsync(byte gradeId)
         {
-            ValidateGradeId(gradeId);
+            ValidationHelper.ValidateId(gradeId);
 
             GradeDTO? grade = await _gradeData.GetGradeByIdAsync(gradeId);
 
@@ -80,7 +63,7 @@ namespace School.BLL
 
         public async Task<GradeDTO?> GetGradeByNameAsync(string gradeName)
         {
-            gradeName = ValidateGradeName(gradeName);
+            gradeName = ValidationHelper.ValidateString(gradeName, nameof(gradeName), minGradeNameLength, maxGradeNameLength);
 
             GradeDTO? gradeDTO = await _gradeData.GetGradeByNameAsync(gradeName);
 
@@ -107,7 +90,7 @@ namespace School.BLL
         {
             ValidateGrade(grade);
 
-            ValidateGradeId(grade.GradeID);
+            ValidationHelper.ValidateId(grade.GradeID);
 
             await EnsureGradeExistsAsync(grade.GradeID);
 
@@ -123,7 +106,7 @@ namespace School.BLL
 
         public async Task<bool> DeleteGradeAsync(byte gradeId)
         {
-            ValidateGradeId(gradeId);
+            ValidationHelper.ValidateId(gradeId);
 
             await EnsureGradeExistsAsync(gradeId);
 
@@ -136,7 +119,7 @@ namespace School.BLL
 
         public async Task<bool> IsGradeExistAsync(byte gradeId)
         {
-            ValidateGradeId(gradeId);
+            ValidationHelper.ValidateId(gradeId);
 
             return await _gradeData.IsGradeExistAsync(gradeId);
         }

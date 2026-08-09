@@ -1,4 +1,5 @@
-﻿using School.BLL.Helpers;
+﻿using School.BLL.Common;
+using School.BLL.Helpers;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.AttendanceDTOs;
@@ -26,27 +27,9 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(attendance);
 
-            ValidateStudentId(attendance.StudentID);
-            ValidateStatusId(attendance.StatusID);
+            ValidationHelper.ValidateId(attendance.StudentID);
+            ValidationHelper.ValidateId(attendance.StatusID);
             ValidateAttendanceDate(attendance.AttendanceDate);
-        }
-
-        private static void ValidateAttendanceId(int attendanceId)
-        {
-            if (attendanceId <= 0)
-                throw new ArgumentException("AttendanceID must be a positive number.", nameof(attendanceId));
-        }
-
-        private static void ValidateStudentId(int studentId)
-        {
-            if (studentId <= 0)
-                throw new ArgumentException("StudentID must be a positive number.", nameof(studentId));
-        }
-
-        private static void ValidateStatusId(int statusId)
-        {
-            if (statusId <= 0)
-                throw new ArgumentException("StatusID must be a positive number.", nameof(statusId));
         }
 
         private static DateOnly ValidateAttendanceDate(DateOnly attendanceDate)
@@ -133,7 +116,7 @@ namespace School.BLL
 
         public async Task<AttendanceDetailsDTO?> GetAttendanceByIdAsync(int attendanceId)
         {
-            ValidateAttendanceId(attendanceId);
+            ValidationHelper.ValidateId(attendanceId);
 
             AttendanceDetailsDTO? attendance = await _attendanceData.GetAttendanceByIdAsync(attendanceId);
 
@@ -145,15 +128,14 @@ namespace School.BLL
 
         public async Task<List<AttendanceDetailsDTO>> GetAttendancesByStudentIdAsync(int studentId)
         {
-            ValidateStudentId(studentId);
+            ValidationHelper.ValidateId(studentId);
 
             return await _attendanceData.GetAttendancesByStudentIdAsync(studentId);
         }
 
         public async Task<List<AttendanceDetailsDTO>> GetAttendancesByClassIdAsync(int classId)
         {
-            if (classId <= 0)
-                throw new ArgumentException("ClassID must be a positive number.", nameof(classId));
+            ValidationHelper.ValidateId(classId);
 
             return await _attendanceData.GetAttendancesByClassIdAsync(classId);
         }
@@ -167,7 +149,7 @@ namespace School.BLL
 
         public async Task<List<AttendanceDetailsDTO>> GetAttendancesByStatusIdAsync(int statusId)
         {
-            ValidateStatusId(statusId);
+            ValidationHelper.ValidateId(statusId);
 
             return await _attendanceData.GetAttendancesByStatusIdAsync(statusId);
         }
@@ -195,7 +177,7 @@ namespace School.BLL
         public async Task<bool> UpdateAttendanceAsync(AttendanceDTO attendance)
         {
             ValidateAttendance(attendance);
-            ValidateAttendanceId(attendance.AttendanceID);
+            ValidationHelper.ValidateId(attendance.AttendanceID);
 
             await EnsureAttendanceExistsAsync(attendance.AttendanceID);
 
@@ -217,7 +199,7 @@ namespace School.BLL
 
         public async Task<bool> DeleteAttendanceAsync(int attendanceId)
         {
-            ValidateAttendanceId(attendanceId);
+            ValidationHelper.ValidateId(attendanceId);
 
             await EnsureAttendanceExistsAsync(attendanceId);
 

@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.SubjectDTOs;
 
@@ -7,7 +8,8 @@ namespace School.BLL
     public class SubjectService : ISubjectService
     {
         private readonly ISubjectData _subjectData;
-
+        private static int MaxSubjectNameLength => 100;
+        private static int MinSubjectNameLength => 3;
         public SubjectService(ISubjectData subjectData)
         {
             _subjectData = subjectData;
@@ -19,28 +21,8 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(subject);
 
-            subject.SubjectName = ValidateSubjectName(subject.SubjectName);
+            subject.SubjectName = ValidationHelper.ValidateString(subject.SubjectName, nameof(subject.SubjectName), MinSubjectNameLength, MaxSubjectNameLength);
         }
-
-        private static void ValidateSubjectId(int subjectId)
-        {
-            if (subjectId <= 0)
-                throw new ArgumentOutOfRangeException(nameof(subjectId), "Subject ID must be greater than zero.");
-        }
-
-        private static string ValidateSubjectName(string subjectName)
-        {
-            if (string.IsNullOrWhiteSpace(subjectName))
-                throw new ArgumentException("Subject name is required.", nameof(subjectName));
-
-            subjectName = subjectName.Trim();
-
-            if (subjectName.Length > 100)
-                throw new ArgumentException("Subject name cannot exceed 100 characters.", nameof(subjectName));
-
-            return subjectName;
-        }
-
         #endregion
 
         #region Ensure
@@ -75,7 +57,7 @@ namespace School.BLL
 
         public async Task<SubjectDTO?> GetSubjectByIdAsync(int subjectId)
         {
-            ValidateSubjectId(subjectId);
+            ValidationHelper.ValidateId(subjectId);
 
             SubjectDTO? subject = await _subjectData.GetSubjectByIdAsync(subjectId);
 
@@ -87,7 +69,7 @@ namespace School.BLL
 
         public async Task<SubjectDTO?> GetSubjectByNameAsync(string subjectName)
         {
-            subjectName = ValidateSubjectName(subjectName);
+            subjectName = ValidationHelper.ValidateString(subjectName, nameof(subjectName), MinSubjectNameLength, MaxSubjectNameLength);
 
             SubjectDTO? subject = await _subjectData.GetSubjectByNameAsync(subjectName);
 
@@ -114,7 +96,7 @@ namespace School.BLL
         public async Task<bool> UpdateSubjectAsync(SubjectDTO subject)
         {
             ValidateSubject(subject);
-            ValidateSubjectId(subject.SubjectID);
+            ValidationHelper.ValidateId(subject.SubjectID);
 
             await EnsureSubjectExistsAsync(subject.SubjectID);
             await EnsureSubjectNameUniqueAsync(subject.SubjectName, subject.SubjectID);
@@ -129,7 +111,7 @@ namespace School.BLL
 
         public async Task<bool> DeleteSubjectAsync(int subjectId)
         {
-            ValidateSubjectId(subjectId);
+            ValidationHelper.ValidateId(subjectId);
 
             await EnsureSubjectExistsAsync(subjectId);
 
@@ -143,7 +125,7 @@ namespace School.BLL
 
         public async Task<bool> IsSubjectExistAsync(int subjectId)
         {
-            ValidateSubjectId(subjectId);
+            ValidationHelper.ValidateId(subjectId);
 
             return await _subjectData.IsSubjectExistAsync(subjectId);
         }

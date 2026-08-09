@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.AttendanceStatusDTOs;
 
@@ -7,7 +8,8 @@ namespace School.BLL
     public class AttendanceStatusService : IAttendanceStatusService
     {
         private readonly IAttendanceStatusData _attendanceStatusData;
-
+        private static int minStatusNameLength => 2;
+        private static int maxStatusNameLength => 50;
         public AttendanceStatusService(IAttendanceStatusData attendanceStatusData)
         {
             _attendanceStatusData = attendanceStatusData;
@@ -18,26 +20,7 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(status);
 
-            status.StatusName = ValidateStatusName(status.StatusName);
-        }
-
-        private static void ValidateStatusId(int statusId)
-        {
-            if (statusId <= 0)
-                throw new ArgumentException("StatusID must be greater than zero.", nameof(statusId));
-        }
-
-        private static string ValidateStatusName(string statusName)
-        {
-            if (string.IsNullOrWhiteSpace(statusName))
-                throw new ArgumentException("StatusName is required.", nameof(statusName));
-
-            statusName = statusName.Trim();
-
-            if (statusName.Length > 50)
-                throw new ArgumentException("StatusName cannot exceed 50 characters.", nameof(statusName));
-
-            return statusName;
+            status.StatusName = ValidationHelper.ValidateString(status.StatusName, nameof(status.StatusName), minStatusNameLength, maxStatusNameLength);
         }
         #endregion
 
@@ -65,7 +48,7 @@ namespace School.BLL
 
         public async Task<AttendanceStatusDTO?> GetAttendanceStatusByIdAsync(int statusId)
         {
-            ValidateStatusId(statusId);
+            ValidationHelper.ValidateId(statusId);
 
             AttendanceStatusDTO? attendance = await _attendanceStatusData.GetAttendanceStatusByIdAsync(statusId);
 
@@ -77,7 +60,7 @@ namespace School.BLL
 
         public async Task<AttendanceStatusDTO?> GetAttendanceStatusByNameAsync(string statusName)
         {
-            statusName = ValidateStatusName(statusName);
+            statusName = ValidationHelper.ValidateString(statusName, nameof(statusName), minStatusNameLength, maxStatusNameLength);
 
             AttendanceStatusDTO? attendance = await _attendanceStatusData.GetAttendanceStatusByNameAsync(statusName);
 
@@ -104,7 +87,7 @@ namespace School.BLL
         public async Task<bool> UpdateAttendanceStatusAsync(AttendanceStatusDTO status)
         {
             ValidateStatus(status);
-            ValidateStatusId(status.StatusID);
+            ValidationHelper.ValidateId(status.StatusID);
 
             await EnsureStatusExistsAsync(status.StatusID);
             await EnsureStatusNameUniqueAsync(status.StatusName, status.StatusID);
@@ -119,7 +102,7 @@ namespace School.BLL
 
         public async Task<bool> DeleteAttendanceStatusAsync(int statusId)
         {
-            ValidateStatusId(statusId);
+            ValidationHelper.ValidateId(statusId);
 
             await EnsureStatusExistsAsync(statusId);
 

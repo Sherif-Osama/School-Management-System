@@ -1,4 +1,5 @@
-﻿using School.BLL.Helpers;
+﻿using School.BLL.Common;
+using School.BLL.Helpers;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.ClassesDTOs;
@@ -9,52 +10,40 @@ namespace School.BLL
     {
         private readonly IClassData _classData;
         private readonly IGradeData _gradeData;
-
+        private static int minClassNameLength => 2;
+        private static int maxClassNameLength => 20;
         public ClassService(IClassData classData, IGradeData gradeData)
         {
             _classData = classData;
             _gradeData = gradeData;
         }
-
         #region Private Helpers
 
         private static void ValidateClass(ClassDTO schoolClass)
         {
             ArgumentNullException.ThrowIfNull(schoolClass);
 
-            ValidateGradeId(schoolClass.GradeID);
+            ValidationHelper.ValidateId(schoolClass.GradeID);
 
-            schoolClass.ClassName = ValidateClassName(schoolClass.ClassName);
+            schoolClass.ClassName = ValidationHelper.ValidateString(schoolClass.ClassName, nameof(schoolClass.ClassName), minClassNameLength, maxClassNameLength);
 
             schoolClass.AcademicYear = AcademicYearHelper.ValidateAcademicYear(schoolClass.AcademicYear);
 
             ValidateCapacity(schoolClass.Capacity);
         }
 
-        private static void ValidateClassId(int classId)
-        {
-            if (classId <= 0)
-                throw new ArgumentException("Class ID must be greater than zero.", nameof(classId));
-        }
+        //private static string ValidateClassName(string className)
+        //{
+        //    if (string.IsNullOrWhiteSpace(className))
+        //        throw new ArgumentException("Class name is required.", nameof(className));
 
-        private static void ValidateGradeId(byte gradeId)
-        {
-            if (gradeId <= 0)
-                throw new ArgumentException("Grade ID must be greater than zero.", nameof(gradeId));
-        }
+        //    className = className.Trim();
 
-        private static string ValidateClassName(string className)
-        {
-            if (string.IsNullOrWhiteSpace(className))
-                throw new ArgumentException("Class name is required.", nameof(className));
+        //    if (className.Length > 10)
+        //        throw new ArgumentException("Class name cannot exceed 10 characters.", nameof(className));
 
-            className = className.Trim();
-
-            if (className.Length > 10)
-                throw new ArgumentException("Class name cannot exceed 10 characters.", nameof(className));
-
-            return className;
-        }
+        //    return className;
+        //}
 
         private static void ValidateCapacity(int capacity)
         {
@@ -97,7 +86,7 @@ namespace School.BLL
 
         public async Task<ClassDetailsDTO?> GetClassByIdAsync(int classId)
         {
-            ValidateClassId(classId);
+            ValidationHelper.ValidateId(classId);
 
             ClassDetailsDTO? schoolClass = await _classData.GetClassByIdAsync(classId);
 
@@ -109,9 +98,9 @@ namespace School.BLL
 
         public async Task<ClassDetailsDTO?> GetClassByDetailsAsync(byte gradeId, string className, string academicYear)
         {
-            ValidateGradeId(gradeId);
+            ValidationHelper.ValidateId(gradeId);
 
-            className = ValidateClassName(className);
+            className = ValidationHelper.ValidateString(className, nameof(className), minClassNameLength, maxClassNameLength);
             academicYear = AcademicYearHelper.ValidateAcademicYear(academicYear);
 
             ClassDetailsDTO? classDetailsDTO = await _classData.GetClassByDetailsAsync(gradeId, className, academicYear);
@@ -142,7 +131,7 @@ namespace School.BLL
         {
             ValidateClass(schoolClass);
 
-            ValidateClassId(schoolClass.ClassID);
+            ValidationHelper.ValidateId(schoolClass.ClassID);
 
             await EnsureClassExistsAsync(schoolClass.ClassID);
 
@@ -161,7 +150,7 @@ namespace School.BLL
 
         public async Task<bool> DeleteClassAsync(int classId)
         {
-            ValidateClassId(classId);
+            ValidationHelper.ValidateId(classId);
 
             await EnsureClassExistsAsync(classId);
 
@@ -175,7 +164,7 @@ namespace School.BLL
 
         public async Task<bool> IsClassExistAsync(int classId)
         {
-            ValidateClassId(classId);
+            ValidationHelper.ValidateId(classId);
 
             return await _classData.IsClassExistAsync(classId);
         }

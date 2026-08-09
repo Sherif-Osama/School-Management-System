@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.ClassroomDTOs;
 
@@ -7,7 +8,8 @@ namespace School.BLL
     public class ClassroomService : IClassroomService
     {
         private readonly IClassroomData _classroomData;
-
+        private static int minRoomNameLength => 2;
+        private static int maxRoomNameLength => 20;
         public ClassroomService(IClassroomData classroomData)
         {
             _classroomData = classroomData;
@@ -18,30 +20,9 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(classroom);
 
-            classroom.RoomName = ValidateRoomNumber(classroom.RoomName);
+            classroom.RoomName = ValidationHelper.ValidateString(classroom.RoomName, nameof(classroom.RoomName), minRoomNameLength, maxRoomNameLength);
 
             ValidateCapacity(classroom.Capacity);
-        }
-
-        private static void ValidateClassroomId(int classroomId)
-        {
-            if (classroomId <= 0)
-                throw new ArgumentOutOfRangeException(
-                    nameof(classroomId),
-                    "Classroom ID must be greater than zero.");
-        }
-
-        private static string ValidateRoomNumber(string roomName)
-        {
-            if (string.IsNullOrWhiteSpace(roomName))
-                throw new ArgumentException("Room name is required.", nameof(roomName));
-
-            roomName = roomName.Trim();
-
-            if (roomName.Length > 20)
-                throw new ArgumentException("Room name cannot exceed 20 characters.", nameof(roomName));
-
-            return roomName;
         }
 
         private static void ValidateCapacity(int capacity)
@@ -89,7 +70,7 @@ namespace School.BLL
 
         public async Task<ClassroomDTO?> GetClassroomByIdAsync(int classroomId)
         {
-            ValidateClassroomId(classroomId);
+            ValidationHelper.ValidateId(classroomId);
 
             ClassroomDTO? classroom = await _classroomData.GetClassroomByIdAsync(classroomId);
 
@@ -101,7 +82,7 @@ namespace School.BLL
 
         public async Task<ClassroomDTO?> GetClassroomByRoomNameAsync(string roomName)
         {
-            roomName = ValidateRoomNumber(roomName);
+            roomName = ValidationHelper.ValidateString(roomName, nameof(roomName), minRoomNameLength, maxRoomNameLength);
 
             ClassroomDTO? classroom = await _classroomData.GetClassroomByRoomNameAsync(roomName);
 
@@ -129,7 +110,7 @@ namespace School.BLL
         {
             ValidateClassroom(classroom);
 
-            ValidateClassroomId(classroom.ClassroomID);
+            ValidationHelper.ValidateId(classroom.ClassroomID);
 
             await EnsureClassroomExistsAsync(classroom.ClassroomID);
 
@@ -145,7 +126,7 @@ namespace School.BLL
 
         public async Task<bool> DeleteClassroomAsync(int classroomId)
         {
-            ValidateClassroomId(classroomId);
+            ValidationHelper.ValidateId(classroomId);
 
             await EnsureClassroomExistsAsync(classroomId);
 
@@ -159,7 +140,7 @@ namespace School.BLL
 
         public async Task<bool> IsClassroomExistAsync(int classroomId)
         {
-            ValidateClassroomId(classroomId);
+            ValidationHelper.ValidateId(classroomId);
 
             return await _classroomData.IsClassroomExistAsync(classroomId);
         }

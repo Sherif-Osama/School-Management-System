@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.AssociationsDTOs.RolePermissionDTOs;
 
@@ -23,20 +24,8 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(rolePermission);
 
-            ValidateRoleId(rolePermission.RoleID);
-            ValidatePermissionId(rolePermission.PermissionID);
-        }
-
-        private static void ValidateRoleId(int roleId)
-        {
-            if (roleId <= 0)
-                throw new ArgumentException("RoleID must be a positive number.", nameof(roleId));
-        }
-
-        private static void ValidatePermissionId(int permissionId)
-        {
-            if (permissionId <= 0)
-                throw new ArgumentException("PermissionID must be a positive number.", nameof(permissionId));
+            ValidationHelper.ValidateId(rolePermission.RoleID);
+            ValidationHelper.ValidateId(rolePermission.PermissionID);
         }
 
         #endregion
@@ -75,8 +64,8 @@ namespace School.BLL
 
         public async Task<RolePermissionDetailsDTO?> GetRolePermissionAsync(int roleId, int permissionId)
         {
-            ValidateRoleId(roleId);
-            ValidatePermissionId(permissionId);
+            ValidationHelper.ValidateId(roleId);
+            ValidationHelper.ValidateId(permissionId);
 
             RolePermissionDetailsDTO? rolePermission = await _rolePermissionData.GetRolePermissionAsync(roleId, permissionId);
 
@@ -88,7 +77,7 @@ namespace School.BLL
 
         public async Task<List<RolePermissionDetailsDTO>> GetPermissionsByRoleIdAsync(int roleId)
         {
-            ValidateRoleId(roleId);
+            ValidationHelper.ValidateId(roleId);
 
             await EnsureRoleExistsAsync(roleId);
 
@@ -113,8 +102,8 @@ namespace School.BLL
 
         public async Task<bool> DeleteRolePermissionAsync(int roleId, int permissionId)
         {
-            ValidateRoleId(roleId);
-            ValidatePermissionId(permissionId);
+            ValidationHelper.ValidateId(roleId);
+            ValidationHelper.ValidateId(permissionId);
 
             await EnsureRolePermissionExistsAsync(roleId, permissionId);
 

@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.StudentsDTOs;
 
@@ -27,23 +28,12 @@ namespace School.BLL
             if (student == null)
                 throw new ArgumentNullException(nameof(student));
 
-            if (student.PersonID <= 0)
-                throw new ArgumentException("A valid Person ID is required.", nameof(student.PersonID));
-
-            if (student.ClassID <= 0)
-                throw new ArgumentException("A valid Class ID is required.", nameof(student.ClassID));
-
-            if (student.StatusID <= 0)
-                throw new ArgumentException("A valid Status ID is required.", nameof(student.StatusID));
+            ValidationHelper.ValidateId(student.PersonID);
+            ValidationHelper.ValidateId(student.ClassID);
+            ValidationHelper.ValidateId(student.StatusID);
 
             if (student.EnrollmentDate == default || student.EnrollmentDate > DateTime.Now)
                 throw new ArgumentException("Enrollment date is invalid.", nameof(student.EnrollmentDate));
-        }
-
-        private static void ValidateStudentId(int studentId)
-        {
-            if (studentId <= 0)
-                throw new ArgumentException("Student ID must be greater than zero.", nameof(studentId));
         }
 
         private async Task EnsurePersonExistsAsync(int personId)
@@ -107,7 +97,7 @@ namespace School.BLL
 
         public async Task<StudentDetailsDTO?> GetStudentByIdAsync(int studentId)
         {
-            ValidateStudentId(studentId);
+            ValidationHelper.ValidateId(studentId);
 
             StudentDetailsDTO? studentDetailsDTO = await _studentData.GetStudentByIdAsync(studentId);
 
@@ -119,8 +109,7 @@ namespace School.BLL
 
         public async Task<StudentDetailsDTO?> GetStudentByPersonIdAsync(int personId)
         {
-            if (personId <= 0)
-                throw new ArgumentException("Person ID must be greater than zero.", nameof(personId));
+            ValidationHelper.ValidateId(personId);
 
             StudentDetailsDTO? studentDetailsDTO = await _studentData.GetStudentByPersonIdAsync(personId);
 
@@ -158,7 +147,7 @@ namespace School.BLL
         {
             ValidateStudent(student);
 
-            ValidateStudentId(student.StudentID);
+            ValidationHelper.ValidateId(student.StudentID);
 
             await EnsureStudentExistsAsync(student.StudentID);
 
@@ -184,7 +173,7 @@ namespace School.BLL
 
         public async Task<bool> DeleteStudentAsync(int studentId)
         {
-            ValidateStudentId(studentId);
+            ValidationHelper.ValidateId(studentId);
 
             await EnsureStudentExistsAsync(studentId);
 

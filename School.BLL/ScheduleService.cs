@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.AssociationsDTOs.ClassSubjectDTOs;
 using School.DTO.ScheduleDTOs;
@@ -25,29 +26,10 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(schedule);
 
-            ValidateClassSubjectId(schedule.ClassSubjectID);
-            ValidateClassroomId(schedule.ClassroomID);
+            ValidationHelper.ValidateId(schedule.ClassSubjectID);
+            ValidationHelper.ValidateId(schedule.ClassroomID);
             ValidateDayOfWeek(schedule.DayOfWeek);
             ValidateTime(schedule.StartTime, schedule.EndTime);
-        }
-
-        private static void ValidateScheduleId(int scheduleId)
-        {
-            if (scheduleId <= 0)
-                throw new ArgumentException("ScheduleID must be a positive number.", nameof(scheduleId));
-        }
-
-
-        private static void ValidateClassSubjectId(int classSubjectId)
-        {
-            if (classSubjectId <= 0)
-                throw new ArgumentException("ClassSubjectID must be a positive number.", nameof(classSubjectId));
-        }
-
-        private static void ValidateClassroomId(int classroomId)
-        {
-            if (classroomId <= 0)
-                throw new ArgumentException("ClassroomID must be a positive number.", nameof(classroomId));
         }
 
         private static void ValidateDayOfWeek(byte dayOfWeek)
@@ -124,7 +106,7 @@ namespace School.BLL
 
         public async Task<ScheduleDetailsDTO?> GetScheduleByIdAsync(int scheduleId)
         {
-            ValidateScheduleId(scheduleId);
+            ValidationHelper.ValidateId(scheduleId);
             ScheduleDetailsDTO? scheduleDetails = await _scheduleData.GetScheduleByIdAsync(scheduleId);
 
             if (scheduleDetails == null)
@@ -135,16 +117,14 @@ namespace School.BLL
 
         public Task<List<ScheduleDetailsDTO>> GetSchedulesByClassIdAsync(int classId)
         {
-            if (classId <= 0)
-                throw new ArgumentException("ClassID must be a positive number.", nameof(classId));
+            ValidationHelper.ValidateId(classId);
 
             return _scheduleData.GetSchedulesByClassIdAsync(classId);
         }
 
         public async Task<List<ScheduleDetailsDTO>> GetSchedulesByTeacherIdAsync(int teacherId)
         {
-            if (teacherId <= 0)
-                throw new ArgumentException("TeacherID must be a positive number.", nameof(teacherId));
+            ValidationHelper.ValidateId(teacherId);
 
             await EnsureTeacherExistsAsync(teacherId);
 
@@ -153,7 +133,7 @@ namespace School.BLL
 
         public async Task<List<ScheduleDetailsDTO>> GetSchedulesByClassroomIdAsync(int classroomId)
         {
-            ValidateClassroomId(classroomId);
+            ValidationHelper.ValidateId(classroomId);
 
             await EnsureClassroomExistsAsync(classroomId);
 
@@ -162,7 +142,7 @@ namespace School.BLL
 
         public Task<List<ScheduleDetailsDTO>> GetSchedulesByClassSubjectIdAsync(int classSubjectId)
         {
-            ValidateClassSubjectId(classSubjectId);
+            ValidationHelper.ValidateId(classSubjectId);
 
             return _scheduleData.GetSchedulesByClassSubjectIdAsync(classSubjectId);
         }
@@ -192,7 +172,7 @@ namespace School.BLL
         public async Task<bool> UpdateScheduleAsync(ScheduleDTO schedule)
         {
             ValidateSchedule(schedule);
-            ValidateScheduleId(schedule.ScheduleID);
+            ValidationHelper.ValidateId(schedule.ScheduleID);
 
             await EnsureScheduleExistsAsync(schedule.ScheduleID);
             ClassSubjectDetailsDTO classSubject = await GetValidatedClassSubjectAsync(schedule.ClassSubjectID);
@@ -211,7 +191,7 @@ namespace School.BLL
 
         public async Task<bool> DeleteScheduleAsync(int scheduleId)
         {
-            ValidateScheduleId(scheduleId);
+            ValidationHelper.ValidateId(scheduleId);
 
             await EnsureScheduleExistsAsync(scheduleId);
 

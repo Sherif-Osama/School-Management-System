@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.StudentStatusDTOs;
 
@@ -7,7 +8,8 @@ namespace School.BLL
     public class StudentStatusService : IStudentStatusService
     {
         private readonly IStudentStatusData _studentStatusData;
-
+        private static int MaxStatusNameLength => 20;
+        private static int MinStatusNameLength => 3;
         public StudentStatusService(IStudentStatusData studentStatusData)
         {
             _studentStatusData = studentStatusData;
@@ -19,26 +21,7 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(status);
 
-            ValidateStatusName(status.StatusName);
-        }
-
-        private static void ValidateStatusId(int statusId)
-        {
-            if (statusId <= 0)
-                throw new ArgumentException("StatusID must be greater than zero.", nameof(statusId));
-        }
-
-        private static string ValidateStatusName(string statusName)
-        {
-            if (string.IsNullOrWhiteSpace(statusName))
-                throw new ArgumentException("StatusName is required.", nameof(statusName));
-
-            statusName = statusName.Trim();
-
-            if (statusName.Length > 20)
-                throw new ArgumentException("StatusName cannot exceed 20 characters.", nameof(statusName));
-
-            return statusName;
+            status.StatusName = ValidationHelper.ValidateString(status.StatusName, nameof(status.StatusName), MinStatusNameLength, MaxStatusNameLength);
         }
 
         #endregion
@@ -75,7 +58,7 @@ namespace School.BLL
 
         public async Task<StudentStatusDTO?> GetStudentStatusByIdAsync(int statusId)
         {
-            ValidateStatusId(statusId);
+            ValidationHelper.ValidateId(statusId);
 
             StudentStatusDTO? status = await _studentStatusData.GetStudentStatusByIdAsync(statusId);
 
@@ -87,7 +70,7 @@ namespace School.BLL
 
         public async Task<StudentStatusDTO?> GetStudentStatusByNameAsync(string statusName)
         {
-            statusName = ValidateStatusName(statusName);
+            statusName = ValidationHelper.ValidateString(statusName, nameof(statusName), MinStatusNameLength, MaxStatusNameLength);
 
             StudentStatusDTO? status = await _studentStatusData.GetStudentStatusByNameAsync(statusName);
 
@@ -114,7 +97,7 @@ namespace School.BLL
         public async Task<bool> UpdateStudentStatusAsync(StudentStatusDTO status)
         {
             ValidateStatus(status);
-            ValidateStatusId(status.StatusID);
+            ValidationHelper.ValidateId(status.StatusID);
 
             await EnsureStatusExistsAsync(status.StatusID);
             await EnsureStatusNameUniqueAsync(status.StatusName, status.StatusID);
@@ -129,7 +112,7 @@ namespace School.BLL
 
         public async Task<bool> DeleteStudentStatusAsync(int statusId)
         {
-            ValidateStatusId(statusId);
+            ValidationHelper.ValidateId(statusId);
 
             await EnsureStatusExistsAsync(statusId);
 

@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.PersonDTOs;
 
@@ -12,6 +13,8 @@ namespace School.BLL
         {
             _personData = personData;
         }
+        private static int minNationalIdLength => 14;
+        private static int maxNationalIdLength => 20;
 
         #region Private Helpers
 
@@ -19,38 +22,22 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(person);
 
-            if (string.IsNullOrWhiteSpace(person.NationalID))
-                throw new ArgumentException("National ID is required.", nameof(person.NationalID));
+            person.NationalID = ValidationHelper.ValidateString(person.NationalID, nameof(person.NationalID), minNationalIdLength, maxNationalIdLength);
 
-            if (person.NationalID.Length != 14)
-                throw new ArgumentException("National ID must contain 14 digits.", nameof(person.NationalID));
+            person.FirstName = ValidationHelper.ValidateString(person.FirstName, nameof(person.FirstName));
 
-            if (string.IsNullOrWhiteSpace(person.FirstName))
-                throw new ArgumentException("First name is required.", nameof(person.FirstName));
+            person.SecondName = ValidationHelper.ValidateString(person.SecondName, nameof(person.SecondName));
+            person.ThirdName = ValidationHelper.ValidateString(person.ThirdName, nameof(person.ThirdName));
 
-            if (string.IsNullOrWhiteSpace(person.SecondName))
-                throw new ArgumentException("Second name is required.", nameof(person.SecondName));
+            person.Phone = ValidationHelper.ValidateString(person.Phone, nameof(person.Phone));
 
-            if (string.IsNullOrWhiteSpace(person.ThirdName))
-                throw new ArgumentException("Third name is required.", nameof(person.ThirdName));
-
-            if (string.IsNullOrWhiteSpace(person.Phone))
-                throw new ArgumentException("Phone is required.", nameof(person.Phone));
+            ValidationHelper.ValidateId(person.CityID);
 
             if (person.DateOfBirth == default || person.DateOfBirth > DateTime.Today)
                 throw new ArgumentException("Date of birth is invalid.", nameof(person.DateOfBirth));
 
-            if (person.CityID <= 0)
-                throw new ArgumentException("A valid city must be selected.", nameof(person.CityID));
-
             if (!string.IsNullOrWhiteSpace(person.Email) && !person.Email.Contains('@'))
                 throw new ArgumentException("Email format is invalid.", nameof(person.Email));
-        }
-
-        private static void ValidatePersonId(int personId)
-        {
-            if (personId <= 0)
-                throw new ArgumentOutOfRangeException(nameof(personId), "Person ID must be greater than zero.");
         }
 
         private async Task EnsurePersonExistsAsync(int personId)
@@ -83,7 +70,7 @@ namespace School.BLL
 
         public async Task<PersonDTO?> GetPersonByIdAsync(int personId)
         {
-            ValidatePersonId(personId);
+            ValidationHelper.ValidateId(personId);
 
             PersonDTO? personDTO = await _personData.GetPersonByIdAsync(personId);
 
@@ -95,10 +82,7 @@ namespace School.BLL
 
         public async Task<PersonDTO?> GetPersonByNationalIDAsync(string nationalId)
         {
-            if (string.IsNullOrWhiteSpace(nationalId))
-                throw new ArgumentException("National ID is required.", nameof(nationalId));
-
-            nationalId = nationalId.Trim();
+            nationalId = ValidationHelper.ValidateString(nationalId, nameof(nationalId), minNationalIdLength, maxNationalIdLength);
 
             PersonDTO? person = await _personData.GetPersonByNationalIDAsync(nationalId);
 
@@ -111,8 +95,6 @@ namespace School.BLL
         public async Task<int> AddPersonAsync(PersonDTO person)
         {
             ValidatePerson(person);
-
-            person.NationalID = person.NationalID.Trim();
 
             await EnsureNationalIdIsUniqueAsync(person.NationalID);
 
@@ -128,7 +110,7 @@ namespace School.BLL
         {
             ValidatePerson(person);
 
-            ValidatePersonId(person.PersonID);
+            ValidationHelper.ValidateId(person.PersonID);
 
             await EnsurePersonExistsAsync(person.PersonID);
 
@@ -144,7 +126,7 @@ namespace School.BLL
 
         public async Task<bool> DeletePersonAsync(int personId)
         {
-            ValidatePersonId(personId);
+            ValidationHelper.ValidateId(personId);
 
             await EnsurePersonExistsAsync(personId);
 
@@ -158,7 +140,7 @@ namespace School.BLL
 
         public async Task<bool> IsPersonExistAsync(int personId)
         {
-            ValidatePersonId(personId);
+            ValidationHelper.ValidateId(personId);
 
             return await _personData.IsPersonExistAsync(personId);
         }

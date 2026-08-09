@@ -9,70 +9,35 @@ namespace School.BLL
     {
         private readonly IUserData _userData;
         private readonly IPersonData _personData;
-
+        private static int MinPasswordLength => 8;
+        private static int MaxPasswordLength => 500;
+        private static int MinUsernameLength => 6;
+        private static int MaxUsernameLength => 100;
         public UserService(IUserData userData, IPersonData personData)
         {
             _userData = userData;
             _personData = personData;
         }
-
         #region Validation
         private static void ValidateUser(UserDTO user)
         {
             ArgumentNullException.ThrowIfNull(user);
 
-            ValidatePersonId(user.PersonID);
+            ValidationHelper.ValidateId(user.PersonID);
 
-            user.Username = ValidateUsername(user.Username);
-            user.Password = ValidatePassword(user.Password);
-        }
-
-        private static void ValidateUserId(int userId)
-        {
-            if (userId <= 0)
-                throw new ArgumentException("User ID must be greater than zero.", nameof(userId));
-        }
-
-        private static void ValidatePersonId(int personId)
-        {
-            if (personId <= 0)
-                throw new ArgumentException("Person ID must be greater than zero.", nameof(personId));
-        }
-
-        private static string ValidateUsername(string username)
-        {
-            if (string.IsNullOrWhiteSpace(username))
-                throw new ArgumentException("Username is required.", nameof(username));
-
-            username = username.Trim();
-
-            if (username.Length < 3 || username.Length > 50)
-                throw new ArgumentException("Username must be between 3 and 50 characters.", nameof(username));
-
-            return username;
-        }
-
-        private static string ValidatePassword(string password)
-        {
-            if (string.IsNullOrWhiteSpace(password))
-                throw new ArgumentException("Password is required.", nameof(password));
-
-            password = password.Trim();
-
-            if (password.Length < 8)
-                throw new ArgumentException("Password must contain at least 8 characters.", nameof(password));
-
-            return password;
+            user.Username = ValidationHelper.ValidateString(user.Username, nameof(user.Username), MinUsernameLength, MaxUsernameLength);
+            user.Password = ValidationHelper.ValidateString(user.Password, nameof(user.Password), MinPasswordLength, MaxPasswordLength);
         }
 
         private static void ValidateUpdatePassword(UpdatePasswordDTO dto)
         {
             ArgumentNullException.ThrowIfNull(dto);
 
-            ValidateUserId(dto.UserID);
+            ValidationHelper.ValidateId(dto.UserID);
 
-            dto.CurrentPassword = ValidatePassword(dto.CurrentPassword);
-            dto.NewPassword = ValidatePassword(dto.NewPassword);
+            dto.CurrentPassword = ValidationHelper.ValidateString(dto.CurrentPassword, nameof(dto.CurrentPassword), MinPasswordLength, MaxPasswordLength);
+            dto.NewPassword = ValidationHelper.ValidateString(dto.NewPassword, nameof(dto.NewPassword), MinPasswordLength, MaxPasswordLength);
+            dto.ConfirmPassword = ValidationHelper.ValidateString(dto.ConfirmPassword, nameof(dto.ConfirmPassword), MinPasswordLength, MaxPasswordLength);
 
             if (dto.CurrentPassword == dto.NewPassword)
                 throw new ArgumentException("New password must be different from current password.", nameof(dto.NewPassword));
@@ -131,7 +96,7 @@ namespace School.BLL
 
         public async Task<UserDetailsDTO?> GetUserByIdAsync(int userId)
         {
-            ValidateUserId(userId);
+            ValidationHelper.ValidateId(userId);
 
             UserDetailsDTO? user = await _userData.GetUserByIdAsync(userId);
 
@@ -143,7 +108,7 @@ namespace School.BLL
 
         public async Task<UserDetailsDTO?> GetUserByUsernameAsync(string username)
         {
-            username = ValidateUsername(username);
+            username = ValidationHelper.ValidateString(username, nameof(username), MinUsernameLength, MaxUsernameLength);
 
             UserDetailsDTO? user = await _userData.GetUserByUsernameAsync(username);
 
@@ -155,7 +120,7 @@ namespace School.BLL
 
         public async Task<UserDetailsDTO?> GetUserByPersonIdAsync(int personId)
         {
-            ValidatePersonId(personId);
+            ValidationHelper.ValidateId(personId);
 
             await EnsurePersonExistsAsync(personId);
 
@@ -189,10 +154,10 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(user);
 
-            ValidateUserId(user.UserID);
-            ValidatePersonId(user.PersonID);
+            ValidationHelper.ValidateId(user.UserID);
+            ValidationHelper.ValidateId(user.PersonID);
 
-            user.Username = ValidateUsername(user.Username);
+            user.Username = ValidationHelper.ValidateString(user.Username, nameof(user.Username), MinUsernameLength, MaxUsernameLength);
 
             await EnsureUserExistsAsync(user.UserID);
             await EnsurePersonExistsAsync(user.PersonID);
@@ -233,7 +198,7 @@ namespace School.BLL
 
         public async Task<bool> DeleteUserAsync(int userId)
         {
-            ValidateUserId(userId);
+            ValidationHelper.ValidateId(userId);
 
             await EnsureUserExistsAsync(userId);
 

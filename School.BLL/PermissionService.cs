@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.PermissionDTOs;
 
@@ -7,7 +8,8 @@ namespace School.BLL
     public class PermissionService : IPermissionService
     {
         private readonly IPermissionData _permissionData;
-
+        private static int minPermissionNameLength => 2;
+        private static int maxPermissionNameLength => 100;
         public PermissionService(IPermissionData permissionData)
         {
             _permissionData = permissionData;
@@ -18,29 +20,10 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(permission);
 
-            permission.PermissionName = ValidatePermissionName(permission.PermissionName);
+            permission.PermissionName = ValidationHelper.ValidateString(permission.PermissionName, nameof(permission.PermissionName), minPermissionNameLength, maxPermissionNameLength);
 
             if (permission.Description?.Length > 255)
                 throw new ArgumentException("Description cannot exceed 255 characters.", nameof(permission.Description));
-        }
-
-        private static void ValidatePermissionId(int permissionId)
-        {
-            if (permissionId <= 0)
-                throw new ArgumentException("PermissionID must be a positive number.", nameof(permissionId));
-        }
-
-        private static string ValidatePermissionName(string permissionName)
-        {
-            if (string.IsNullOrWhiteSpace(permissionName))
-                throw new ArgumentException("PermissionName is required.", nameof(permissionName));
-
-            permissionName = permissionName.Trim();
-
-            if (permissionName.Length > 100)
-                throw new ArgumentException("PermissionName cannot exceed 100 characters.", nameof(permissionName));
-
-            return permissionName;
         }
         #endregion
 
@@ -72,7 +55,7 @@ namespace School.BLL
 
         public async Task<PermissionDTO?> GetPermissionByIdAsync(int permissionId)
         {
-            ValidatePermissionId(permissionId);
+            ValidationHelper.ValidateId(permissionId);
 
             PermissionDTO? permission = await _permissionData.GetPermissionByIdAsync(permissionId);
 
@@ -84,7 +67,7 @@ namespace School.BLL
 
         public async Task<PermissionDTO?> GetPermissionByNameAsync(string permissionName)
         {
-            permissionName = ValidatePermissionName(permissionName);
+            permissionName = ValidationHelper.ValidateString(permissionName, nameof(permissionName), minPermissionNameLength, maxPermissionNameLength);
 
             PermissionDTO? permission = await _permissionData.GetPermissionByNameAsync(permissionName);
 
@@ -110,7 +93,7 @@ namespace School.BLL
 
         public async Task<bool> UpdatePermissionAsync(PermissionDTO permission)
         {
-            ValidatePermissionId(permission.PermissionID);
+            ValidationHelper.ValidateId(permission.PermissionID);
             ValidatePermission(permission);
 
             await EnsurePermissionExistsAsync(permission.PermissionID);
@@ -126,7 +109,7 @@ namespace School.BLL
 
         public async Task<bool> DeletePermissionAsync(int permissionId)
         {
-            ValidatePermissionId(permissionId);
+            ValidationHelper.ValidateId(permissionId);
 
             await EnsurePermissionExistsAsync(permissionId);
 

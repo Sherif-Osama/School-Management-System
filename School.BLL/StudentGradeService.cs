@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.ExamDTOs;
 using School.DTO.StudentGradeDetailsDTOs;
@@ -25,28 +26,9 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(studentGrade);
 
-            ValidateStudentId(studentGrade.StudentID);
-            ValidateExamId(studentGrade.ExamID);
+            ValidationHelper.ValidateId(studentGrade.StudentID);
+            ValidationHelper.ValidateId(studentGrade.ExamID);
             ValidateGrade(studentGrade.Grade);
-        }
-
-        private static void ValidateStudentGradeId(int studentGradeId)
-        {
-            if (studentGradeId <= 0)
-                throw new ArgumentException("StudentGradeID must be a positive number.", nameof(studentGradeId));
-        }
-
-
-        private static void ValidateStudentId(int studentId)
-        {
-            if (studentId <= 0)
-                throw new ArgumentException("StudentID must be a positive number.", nameof(studentId));
-        }
-
-        private static void ValidateExamId(int examId)
-        {
-            if (examId <= 0)
-                throw new ArgumentException("ExamID must be a positive number.", nameof(examId));
         }
 
         private static void ValidateGrade(decimal grade)
@@ -128,7 +110,7 @@ namespace School.BLL
 
         public async Task<StudentGradeDetailsDTO?> GetStudentGradeByIdAsync(int studentGradeId)
         {
-            ValidateStudentGradeId(studentGradeId);
+            ValidationHelper.ValidateId(studentGradeId);
 
             StudentGradeDetailsDTO? studentGradeDetails = await _studentGradeData.GetStudentGradeByIdAsync(studentGradeId);
 
@@ -140,30 +122,28 @@ namespace School.BLL
 
         public Task<List<StudentGradeDetailsDTO>> GetStudentGradesByStudentIdAsync(int studentId)
         {
-            ValidateStudentId(studentId);
+            ValidationHelper.ValidateId(studentId);
 
             return _studentGradeData.GetStudentGradesByStudentIdAsync(studentId);
         }
 
         public Task<List<StudentGradeDetailsDTO>> GetStudentGradesByExamIdAsync(int examId)
         {
-            ValidateExamId(examId);
+            ValidationHelper.ValidateId(examId);
 
             return _studentGradeData.GetStudentGradesByExamIdAsync(examId);
         }
 
         public Task<List<StudentGradeDetailsDTO>> GetStudentGradesByClassIdAsync(int classId)
         {
-            if (classId <= 0)
-                throw new ArgumentException("ClassID must be a positive number.", nameof(classId));
+            ValidationHelper.ValidateId(classId);
 
             return _studentGradeData.GetStudentGradesByClassIdAsync(classId);
         }
 
         public Task<List<StudentGradeDetailsDTO>> GetStudentGradesBySubjectIdAsync(int subjectId)
         {
-            if (subjectId <= 0)
-                throw new ArgumentException("SubjectID must be a positive number.", nameof(subjectId));
+            ValidationHelper.ValidateId(subjectId);
 
             return _studentGradeData.GetStudentGradesBySubjectIdAsync(subjectId);
         }
@@ -192,7 +172,7 @@ namespace School.BLL
         public async Task<bool> UpdateStudentGradeAsync(StudentGradeDTO studentGrade)
         {
             ValidateStudentGrade(studentGrade);
-            ValidateStudentGradeId(studentGrade.StudentGradeID);
+            ValidationHelper.ValidateId(studentGrade.StudentGradeID);
 
             await EnsureStudentGradeExistsAsync(studentGrade.StudentGradeID);
 
@@ -215,7 +195,7 @@ namespace School.BLL
 
         public async Task<bool> DeleteStudentGradeAsync(int studentGradeId)
         {
-            ValidateStudentGradeId(studentGradeId);
+            ValidationHelper.ValidateId(studentGradeId);
 
             await EnsureStudentGradeExistsAsync(studentGradeId);
 

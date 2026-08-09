@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.AssociationsDTOs.StudentParentDTOs;
 
@@ -22,11 +23,8 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(relation);
 
-            if (relation.StudentID <= 0)
-                throw new ArgumentException("Student ID must be greater than zero.", nameof(relation.StudentID));
-
-            if (relation.ParentID <= 0)
-                throw new ArgumentException("Parent ID must be greater than zero.", nameof(relation.ParentID));
+            ValidationHelper.ValidateId(relation.StudentID);
+            ValidationHelper.ValidateId(relation.ParentID);
         }
 
         private async Task EnsureStudentExistsAsync(int studentId)
@@ -64,8 +62,7 @@ namespace School.BLL
 
         public async Task<List<StudentParentDetailsDTO>> GetParentsByStudentIdAsync(int studentId)
         {
-            if (studentId <= 0)
-                throw new ArgumentException("student ID must be greater than zero.", nameof(studentId));
+            ValidationHelper.ValidateId(studentId);
 
             await EnsureStudentExistsAsync(studentId);
 
@@ -75,11 +72,8 @@ namespace School.BLL
 
         public async Task<List<StudentParentDetailsDTO>> GetStudentsByParentIdAsync(int parentId)
         {
-            if (parentId <= 0)
-                throw new ArgumentException("parent ID must be greater than zero.", nameof(parentId));
-
+            ValidationHelper.ValidateId(parentId);
             await EnsureParentExistsAsync(parentId);
-
             return await _studentParentData.GetStudentsByParentIdAsync(parentId);
         }
 

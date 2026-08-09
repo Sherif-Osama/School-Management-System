@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.CountriesDTOs;
 
@@ -7,35 +8,12 @@ namespace School.BLL
     public class CountryService : ICountryService
     {
         private readonly ICountryData _countryData;
-
+        private static int minCountryNameLength => 2;
+        private static int maxCountryNameLength => 100;
         public CountryService(ICountryData countryData)
         {
             _countryData = countryData;
         }
-
-        #region Validation
-
-        private static void ValidateCountryId(int countryId)
-        {
-            if (countryId <= 0)
-                throw new ArgumentException("Country ID must be greater than zero.", nameof(countryId));
-        }
-
-        private static string ValidateCountryName(string countryName)
-        {
-            if (string.IsNullOrWhiteSpace(countryName))
-                throw new ArgumentException("Country name is required.", nameof(countryName));
-
-            countryName = countryName.Trim();
-
-            if (countryName.Length > 100)
-                throw new ArgumentException("Country name cannot exceed 100 characters.", nameof(countryName));
-
-            return countryName;
-        }
-
-        #endregion
-
         #region Public
 
         public Task<List<CountryDTO>> GetAllCountriesAsync()
@@ -45,7 +23,7 @@ namespace School.BLL
 
         public async Task<CountryDTO?> GetCountryByIdAsync(int countryId)
         {
-            ValidateCountryId(countryId);
+            ValidationHelper.ValidateId(countryId);
 
             CountryDTO? country = await _countryData.GetCountryByIdAsync(countryId);
 
@@ -57,7 +35,7 @@ namespace School.BLL
 
         public async Task<CountryDTO?> GetCountryByNameAsync(string countryName)
         {
-            countryName = ValidateCountryName(countryName);
+            countryName = ValidationHelper.ValidateString(countryName, nameof(countryName), minCountryNameLength, maxCountryNameLength);
 
             CountryDTO? country = await _countryData.GetCountryByNameAsync(countryName);
 

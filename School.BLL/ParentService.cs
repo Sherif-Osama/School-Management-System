@@ -1,4 +1,5 @@
-﻿using School.BLL.Interfaces;
+﻿using School.BLL.Common;
+using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.ParentsDTOs;
 
@@ -9,7 +10,8 @@ namespace School.BLL
         private readonly IParentData _parentData;
         private readonly IPersonData _personData;
         private readonly IStudentData _studentData;
-
+        private static int minNationalIdLength => 14;
+        private static int maxNationalIdLength => 20;
         public ParentService(IParentData parentData, IPersonData personData, IStudentData studentData)
         {
             _parentData = parentData;
@@ -23,19 +25,7 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(parent);
 
-            ValidatePersonId(parent.PersonID);
-        }
-
-        private static void ValidateParentId(int parentId)
-        {
-            if (parentId <= 0)
-                throw new ArgumentException("Parent ID must be greater than zero.", nameof(parentId));
-        }
-
-        private static void ValidatePersonId(int personId)
-        {
-            if (personId <= 0)
-                throw new ArgumentException("Person ID must be greater than zero.", nameof(personId));
+            ValidationHelper.ValidateId(parent.PersonID);
         }
 
         private async Task EnsureParentExistsAsync(int parentId)
@@ -82,7 +72,7 @@ namespace School.BLL
 
         public async Task<ParentDetailsDTO?> GetParentByIdAsync(int parentId)
         {
-            ValidateParentId(parentId);
+            ValidationHelper.ValidateId(parentId);
             ParentDetailsDTO? parentDetails = await _parentData.GetParentByIdAsync(parentId);
 
             if (parentDetails == null)
@@ -93,7 +83,7 @@ namespace School.BLL
 
         public async Task<ParentDetailsDTO?> GetParentByPersonIdAsync(int personId)
         {
-            ValidatePersonId(personId);
+            ValidationHelper.ValidateId(personId);
 
             ParentDetailsDTO? parentDetails = await _parentData.GetParentByPersonIdAsync(personId);
 
@@ -105,10 +95,7 @@ namespace School.BLL
 
         public async Task<ParentDetailsDTO?> GetParentByNationalIdAsync(string nationalId)
         {
-            if (string.IsNullOrWhiteSpace(nationalId))
-                throw new ArgumentException("National ID is required.", nameof(nationalId));
-
-            nationalId = nationalId.Trim();
+            nationalId = ValidationHelper.ValidateString(nationalId, nameof(nationalId), minNationalIdLength, maxNationalIdLength);
 
             ParentDetailsDTO? parentDetails = await _parentData.GetParentByNationalIdAsync(nationalId);
 
@@ -140,7 +127,7 @@ namespace School.BLL
         {
             ValidateParent(parent);
 
-            ValidateParentId(parent.ParentID);
+            ValidationHelper.ValidateId(parent.ParentID);
 
             await EnsureParentExistsAsync(parent.ParentID);
 
@@ -160,7 +147,7 @@ namespace School.BLL
 
         public async Task<bool> DeleteParentAsync(int parentId)
         {
-            ValidateParentId(parentId);
+            ValidationHelper.ValidateId(parentId);
 
             await EnsureParentExistsAsync(parentId);
             bool isDeleted = await _parentData.DeleteParentAsync(parentId);
@@ -173,7 +160,7 @@ namespace School.BLL
 
         public async Task<bool> IsParentExistAsync(int parentId)
         {
-            ValidateParentId(parentId);
+            ValidationHelper.ValidateId(parentId);
 
             return await _parentData.IsParentExistAsync(parentId);
         }
