@@ -17,7 +17,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "Classes.View")]
+        [Authorize(Policy = "Grades.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<GradeDTO>>> GetAllGrades()
         {
@@ -25,7 +25,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("{id:int}")]
-        [Authorize(Policy = "Classes.View")]
+        [Authorize(Policy = "Grades.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<GradeDTO>> GetGradeById(byte id)
@@ -39,7 +39,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Name/{name}")]
-        [Authorize(Policy = "Classes.View")]
+        [Authorize(Policy = "Grades.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<GradeDTO>> GetGradeByName(string name)
@@ -53,7 +53,7 @@ namespace School.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "Classes.Create")]
+        [Authorize(Policy = "Grades.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<ActionResult<int>> AddGrade(GradeDTO gradeDTO)
         {
@@ -66,7 +66,7 @@ namespace School.API.Controllers
         }
 
         [HttpPut]
-        [Authorize(Policy = "Classes.Update")]
+        [Authorize(Policy = "Grades.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateGrade(GradeDTO gradeDTO)
         {
@@ -76,7 +76,7 @@ namespace School.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        [Authorize(Policy = "Classes.Delete")]
+        [Authorize(Policy = "Grades.Delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> DeleteGrade(byte id)
         {

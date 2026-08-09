@@ -25,7 +25,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("{id:int}")]
-        [Authorize(Policy = "Parents.View.All")]
+        [Authorize(Policy = "Parents.View.Own")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ParentDetailsDTO>> GetParentById(int id)
@@ -39,7 +39,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Person/{personId:int}")]
-        [Authorize(Policy = "Parents.View.All")]
+        [Authorize(Policy = "Parents.View.Own")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ParentDetailsDTO>> GetParentByPersonId(int personId)
@@ -53,7 +53,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("NationalID/{nationalId}")]
-        [Authorize(Policy = "Parents.View.All")]
+        [Authorize(Policy = "Parents.View.Own")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ParentDetailsDTO>> GetParentByNationalId(string nationalId)

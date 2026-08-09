@@ -9,18 +9,21 @@ namespace SchoolManagement
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Add rate limiting services to the container using the extension method
+            builder.Services.AddApiRateLimiting();
+
             // Add services to the container.
             builder.Services.AddBLL();
             //Extension  method to add JWT authentication
             builder.Services.AddJwtAuthentication(builder.Configuration);
             builder.Services.AddPermissionAuthorization();
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             //this extension method is used to add swagger documentation with JWT authentication support
             builder.Services.AddSwaggerDocumentation();
             var app = builder.Build();
             app.UseMiddleware<ExceptionHandlingMiddleware>();
+            app.UseRateLimiter();
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {

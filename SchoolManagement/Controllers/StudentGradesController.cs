@@ -48,7 +48,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Exam/{examId:int}")]
-        [Authorize(Policy = "Grades.View.Own")]
+        [Authorize(Policy = "Grades.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<StudentGradeDetailsDTO>>> GetStudentGradesByExamId(int examId)
         {
