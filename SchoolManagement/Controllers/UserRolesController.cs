@@ -55,7 +55,7 @@ namespace School.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "Roles.Update")]
+        [Authorize(Policy = "UserRoles.Assign")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> AddUserRole(UserRoleDTO userRole)
         {
@@ -65,7 +65,7 @@ namespace School.API.Controllers
         }
 
         [HttpDelete("{userId:int}/{roleId:int}")]
-        [Authorize(Policy = "Roles.Update")]
+        [Authorize(Policy = "UserRoles.Assign")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> DeleteUserRole(int userId, int roleId)
         {

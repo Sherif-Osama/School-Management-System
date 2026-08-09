@@ -17,7 +17,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "Parents.View")]
+        [Authorize(Policy = "Parents.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<StudentParentDetailsDTO>>> GetAll()
         {
@@ -25,7 +25,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Student/{studentId:int}")]
-        [Authorize(Policy = "Parents.View")]
+        [Authorize(Policy = "Parents.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<StudentParentDetailsDTO>>> GetParentsByStudentId(int studentId)
         {
@@ -33,7 +33,7 @@ namespace School.API.Controllers
         }
 
         [HttpGet("Parent/{parentId:int}")]
-        [Authorize(Policy = "Parents.View")]
+        [Authorize(Policy = "Parents.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<List<StudentParentDetailsDTO>>> GetStudentsByParentId(int parentId)
         {
