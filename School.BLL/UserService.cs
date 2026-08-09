@@ -47,48 +47,7 @@ namespace School.BLL
         }
         #endregion
 
-        #region Ensure
-        private async Task EnsureUserExistsAsync(int userId)
-        {
-            if (!await _userData.IsUserExistAsync(userId))
-                throw new KeyNotFoundException($"User with ID {userId} does not exist.");
-        }
-
-        private async Task EnsurePersonExistsAsync(int personId)
-        {
-            if (!await _personData.IsPersonExistAsync(personId))
-                throw new KeyNotFoundException($"Person with ID {personId} does not exist.");
-        }
-
-        private async Task EnsurePersonHasNoUserAsync(int personId, int? currentUserId = null)
-        {
-            UserDetailsDTO? user = await _userData.GetUserByPersonIdAsync(personId);
-
-            if (user == null)
-                return;
-
-            if (currentUserId.HasValue && user.UserID == currentUserId)
-                return;
-
-            throw new InvalidOperationException("This person already has a user account.");
-        }
-
-        private async Task EnsureUsernameUniqueAsync(string username, int? currentUserId = null)
-        {
-            UserDetailsDTO? user = await _userData.GetUserByUsernameAsync(username);
-
-            if (user == null)
-                return;
-
-            if (currentUserId.HasValue && user.UserID == currentUserId)
-                return;
-
-            throw new InvalidOperationException("Username already exists.");
-        }
-        #endregion
-
         #region Public
-
         public Task<List<UserDetailsDTO>> GetAllUsersAsync()
         {
             return _userData.GetAllUsersAsync();
@@ -122,7 +81,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(personId);
 
-            await EnsurePersonExistsAsync(personId);
+            await EnsureHelper.EnsureExistsAsync(_personData.IsPersonExistAsync, personId, "Person");
 
             UserDetailsDTO? user = await _userData.GetUserByPersonIdAsync(personId);
 
@@ -136,9 +95,9 @@ namespace School.BLL
         {
             ValidateUser(user);
 
-            await EnsurePersonExistsAsync(user.PersonID);
-            await EnsurePersonHasNoUserAsync(user.PersonID);
-            await EnsureUsernameUniqueAsync(user.Username);
+            await EnsureHelper.EnsureExistsAsync(_personData.IsPersonExistAsync, user.PersonID, "Person");
+            await EnsureHelper.EnsureUniqueAsync(_userData.GetUserByPersonIdAsync, user.PersonID);
+            await EnsureHelper.EnsureUniqueAsync(_userData.GetUserByUsernameAsync, user.Username);
 
             user.Password = PasswordHasher.Hash(user.Password);
 
@@ -159,10 +118,10 @@ namespace School.BLL
 
             user.Username = ValidationHelper.ValidateString(user.Username, nameof(user.Username), MinUsernameLength, MaxUsernameLength);
 
-            await EnsureUserExistsAsync(user.UserID);
-            await EnsurePersonExistsAsync(user.PersonID);
-            await EnsurePersonHasNoUserAsync(user.PersonID, user.UserID);
-            await EnsureUsernameUniqueAsync(user.Username, user.UserID);
+            await EnsureHelper.EnsureExistsAsync(_userData.IsUserExistAsync, user.UserID, "User");
+            await EnsureHelper.EnsureExistsAsync(_personData.IsPersonExistAsync, user.PersonID, "Person");
+            await EnsureHelper.EnsureUniqueAsync(_userData.GetUserByUsernameAsync, user.Username, u => u.UserID, user.UserID);
+            await EnsureHelper.EnsureUniqueAsync(_userData.GetUserByPersonIdAsync, user.PersonID, u => u.UserID, user.UserID);
 
             bool isUpdated = await _userData.UpdateUserAsync(user);
 
@@ -176,7 +135,7 @@ namespace School.BLL
         {
             ValidateUpdatePassword(dto);
 
-            await EnsureUserExistsAsync(dto.UserID);
+            await EnsureHelper.EnsureExistsAsync(_userData.IsUserExistAsync, dto.UserID, "User");
 
             string? hash = await _userData.GetPasswordHashByUserIdAsync(dto.UserID);
 
@@ -200,7 +159,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(userId);
 
-            await EnsureUserExistsAsync(userId);
+            await EnsureHelper.EnsureExistsAsync(_userData.IsUserExistAsync, userId, "User");
 
             bool isDeleted = await _userData.DeleteUserAsync(userId);
 

@@ -25,31 +25,7 @@ namespace School.BLL
         }
         #endregion
 
-        #region Ensure
-
-        private async Task EnsureSubjectExistsAsync(int subjectId)
-        {
-            if (!await _subjectData.IsSubjectExistAsync(subjectId))
-                throw new KeyNotFoundException($"Subject with ID {subjectId} does not exist.");
-        }
-
-        private async Task EnsureSubjectNameUniqueAsync(string subjectName, int? currentSubjectId = null)
-        {
-            SubjectDTO? subject = await _subjectData.GetSubjectByNameAsync(subjectName);
-
-            if (subject == null)
-                return;
-
-            if (currentSubjectId.HasValue && subject.SubjectID == currentSubjectId.Value)
-                return;
-
-            throw new InvalidOperationException($"Subject '{subjectName}' already exists.");
-        }
-
-        #endregion
-
         #region Public
-
         public async Task<List<SubjectDTO>> GetAllSubjectsAsync()
         {
             return await _subjectData.GetAllSubjectsAsync();
@@ -83,7 +59,7 @@ namespace School.BLL
         {
             ValidateSubject(subject);
 
-            await EnsureSubjectNameUniqueAsync(subject.SubjectName);
+            await EnsureHelper.EnsureUniqueAsync(_subjectData.GetSubjectByNameAsync, subject.SubjectName);
 
             int newSubjectId = await _subjectData.AddSubjectAsync(subject);
 
@@ -98,8 +74,8 @@ namespace School.BLL
             ValidateSubject(subject);
             ValidationHelper.ValidateId(subject.SubjectID);
 
-            await EnsureSubjectExistsAsync(subject.SubjectID);
-            await EnsureSubjectNameUniqueAsync(subject.SubjectName, subject.SubjectID);
+            await EnsureHelper.EnsureExistsAsync(_subjectData.IsSubjectExistAsync, subject.SubjectID, "Subject");
+            await EnsureHelper.EnsureUniqueAsync(_subjectData.GetSubjectByNameAsync, subject.SubjectName, s => s.SubjectID, subject.SubjectID);
 
             bool isUpdated = await _subjectData.UpdateSubjectAsync(subject);
 
@@ -113,7 +89,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(subjectId);
 
-            await EnsureSubjectExistsAsync(subjectId);
+            await EnsureHelper.EnsureExistsAsync(_subjectData.IsSubjectExistAsync, subjectId, "Subject");
 
             bool isDeleted = await _subjectData.DeleteSubjectAsync(subjectId);
 

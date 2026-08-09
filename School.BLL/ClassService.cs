@@ -1,5 +1,4 @@
 ﻿using School.BLL.Common;
-using School.BLL.Helpers;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.ClassesDTOs;
@@ -32,37 +31,17 @@ namespace School.BLL
             ValidateCapacity(schoolClass.Capacity);
         }
 
-        //private static string ValidateClassName(string className)
-        //{
-        //    if (string.IsNullOrWhiteSpace(className))
-        //        throw new ArgumentException("Class name is required.", nameof(className));
-
-        //    className = className.Trim();
-
-        //    if (className.Length > 10)
-        //        throw new ArgumentException("Class name cannot exceed 10 characters.", nameof(className));
-
-        //    return className;
-        //}
-
         private static void ValidateCapacity(int capacity)
         {
             if (capacity is < 1 or > 100)
                 throw new ArgumentOutOfRangeException(nameof(capacity), "Capacity must be between 1 and 100.");
         }
-
-        private async Task EnsureClassExistsAsync(int classId)
-        {
-            if (!await _classData.IsClassExistAsync(classId))
-                throw new KeyNotFoundException($"Class with ID {classId} does not exist.");
-        }
-
-        private async Task EnsureGradeExistsAsync(byte gradeId)
-        {
-            if (!await _gradeData.IsGradeExistAsync(gradeId))
-                throw new KeyNotFoundException($"Grade with ID {gradeId} does not exist.");
-        }
-
+        // This uniqueness check is intentionally kept separate from EnsureHelper
+        // because Class uniqueness is based on a composite key
+        // (GradeID, ClassName, AcademicYear), while EnsureHelper currently handles
+        // single-key lookups.
+        // Future improvement: update EnsureHelper to support lookup delegates
+        // that accept multiple parameters. for (ClassService,ClassSubjectService)
         private async Task EnsureUniqueClassAsync(byte gradeId, string className, string academicYear, int? currentClassId = null)
         {
             ClassDetailsDTO? schoolClass = await _classData.GetClassByDetailsAsync(gradeId, className, academicYear);
@@ -115,7 +94,7 @@ namespace School.BLL
         {
             ValidateClass(schoolClass);
 
-            await EnsureGradeExistsAsync(schoolClass.GradeID);
+            await EnsureHelper.EnsureExistsAsync(_gradeData.IsGradeExistAsync, schoolClass.GradeID, "Grade");
 
             await EnsureUniqueClassAsync(schoolClass.GradeID, schoolClass.ClassName, schoolClass.AcademicYear);
 
@@ -133,9 +112,9 @@ namespace School.BLL
 
             ValidationHelper.ValidateId(schoolClass.ClassID);
 
-            await EnsureClassExistsAsync(schoolClass.ClassID);
+            await EnsureHelper.EnsureExistsAsync(_classData.IsClassExistAsync, schoolClass.ClassID, "Class");
 
-            await EnsureGradeExistsAsync(schoolClass.GradeID);
+            await EnsureHelper.EnsureExistsAsync(_gradeData.IsGradeExistAsync, schoolClass.GradeID, "Grade");
 
             await EnsureUniqueClassAsync(schoolClass.GradeID, schoolClass.ClassName, schoolClass.AcademicYear, schoolClass.ClassID);
 
@@ -152,7 +131,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(classId);
 
-            await EnsureClassExistsAsync(classId);
+            await EnsureHelper.EnsureExistsAsync(_classData.IsClassExistAsync, classId, "Class");
 
             bool isDeleted = await _classData.DeleteClassAsync(classId);
 

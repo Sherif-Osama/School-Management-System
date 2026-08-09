@@ -8,8 +8,8 @@ namespace School.BLL
     public class PermissionService : IPermissionService
     {
         private readonly IPermissionData _permissionData;
-        private static int minPermissionNameLength => 2;
-        private static int maxPermissionNameLength => 100;
+        private static int MinPermissionNameLength => 2;
+        private static int MaxPermissionNameLength => 100;
         public PermissionService(IPermissionData permissionData)
         {
             _permissionData = permissionData;
@@ -20,30 +20,10 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(permission);
 
-            permission.PermissionName = ValidationHelper.ValidateString(permission.PermissionName, nameof(permission.PermissionName), minPermissionNameLength, maxPermissionNameLength);
+            permission.PermissionName = ValidationHelper.ValidateString(permission.PermissionName, nameof(permission.PermissionName), MinPermissionNameLength, MaxPermissionNameLength);
 
             if (permission.Description?.Length > 255)
                 throw new ArgumentException("Description cannot exceed 255 characters.", nameof(permission.Description));
-        }
-        #endregion
-
-        #region Ensure
-        private async Task EnsurePermissionExistsAsync(int permissionId)
-        {
-            if (!await _permissionData.IsPermissionExistAsync(permissionId))
-                throw new KeyNotFoundException($"Permission with ID {permissionId} does not exist.");
-        }
-
-        private async Task EnsurePermissionNameUniqueAsync(string permissionName, int? permissionId = null)
-        {
-            PermissionDTO? existingPermission = await _permissionData.GetPermissionByNameAsync(permissionName);
-
-            if (existingPermission != null &&
-                (permissionId == null || existingPermission.PermissionID != permissionId))
-            {
-                throw new InvalidOperationException(
-                    $"Permission '{permissionName}' already exists.");
-            }
         }
         #endregion
 
@@ -67,7 +47,7 @@ namespace School.BLL
 
         public async Task<PermissionDTO?> GetPermissionByNameAsync(string permissionName)
         {
-            permissionName = ValidationHelper.ValidateString(permissionName, nameof(permissionName), minPermissionNameLength, maxPermissionNameLength);
+            permissionName = ValidationHelper.ValidateString(permissionName, nameof(permissionName), MinPermissionNameLength, MaxPermissionNameLength);
 
             PermissionDTO? permission = await _permissionData.GetPermissionByNameAsync(permissionName);
 
@@ -81,7 +61,7 @@ namespace School.BLL
         {
             ValidatePermission(permission);
 
-            await EnsurePermissionNameUniqueAsync(permission.PermissionName);
+            await EnsureHelper.EnsureUniqueAsync(_permissionData.GetPermissionByNameAsync, permission.PermissionName);
 
             int permissionId = await _permissionData.AddPermissionAsync(permission);
 
@@ -93,11 +73,11 @@ namespace School.BLL
 
         public async Task<bool> UpdatePermissionAsync(PermissionDTO permission)
         {
-            ValidationHelper.ValidateId(permission.PermissionID);
             ValidatePermission(permission);
+            ValidationHelper.ValidateId(permission.PermissionID);
 
-            await EnsurePermissionExistsAsync(permission.PermissionID);
-            await EnsurePermissionNameUniqueAsync(permission.PermissionName, permission.PermissionID);
+            await EnsureHelper.EnsureExistsAsync(_permissionData.IsPermissionExistAsync, permission.PermissionID, "Permission");
+            await EnsureHelper.EnsureUniqueAsync(_permissionData.GetPermissionByNameAsync, permission.PermissionName, p => p.PermissionID, permission.PermissionID);
 
             bool isUpdated = await _permissionData.UpdatePermissionAsync(permission);
 
@@ -111,7 +91,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(permissionId);
 
-            await EnsurePermissionExistsAsync(permissionId);
+            await EnsureHelper.EnsureExistsAsync(_permissionData.IsPermissionExistAsync, permissionId, "Permission");
 
             bool isDeleted = await _permissionData.DeletePermissionAsync(permissionId);
 

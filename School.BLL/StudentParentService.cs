@@ -27,17 +27,17 @@ namespace School.BLL
             ValidationHelper.ValidateId(relation.ParentID);
         }
 
-        private async Task EnsureStudentExistsAsync(int studentId)
-        {
-            if (!await _studentData.IsStudentExistAsync(studentId))
-                throw new KeyNotFoundException($"Student with ID {studentId} does not exist.");
-        }
+        //private async Task EnsureStudentExistsAsync(int studentId)
+        //{
+        //    if (!await _studentData.IsStudentExistAsync(studentId))
+        //        throw new KeyNotFoundException($"Student with ID {studentId} does not exist.");
+        //}
 
-        private async Task EnsureParentExistsAsync(int parentId)
-        {
-            if (!await _parentData.IsParentExistAsync(parentId))
-                throw new KeyNotFoundException($"Parent with ID {parentId} does not exist.");
-        }
+        //private async Task EnsureParentExistsAsync(int parentId)
+        //{
+        //    if (!await _parentData.IsParentExistAsync(parentId))
+        //        throw new KeyNotFoundException($"Parent with ID {parentId} does not exist.");
+        //}
 
         private async Task EnsureRelationDoesNotExistAsync(StudentParentDTO relation)
         {
@@ -64,8 +64,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(studentId);
 
-            await EnsureStudentExistsAsync(studentId);
-
+            await EnsureHelper.EnsureExistsAsync(_studentData.IsStudentExistAsync, studentId, "student");
 
             return await _studentParentData.GetParentsByStudentIdAsync(studentId);
         }
@@ -73,7 +72,9 @@ namespace School.BLL
         public async Task<List<StudentParentDetailsDTO>> GetStudentsByParentIdAsync(int parentId)
         {
             ValidationHelper.ValidateId(parentId);
-            await EnsureParentExistsAsync(parentId);
+
+            await EnsureHelper.EnsureExistsAsync(_parentData.IsParentExistAsync, parentId, "parent");
+
             return await _studentParentData.GetStudentsByParentIdAsync(parentId);
         }
 
@@ -81,9 +82,9 @@ namespace School.BLL
         {
             ValidateRelation(relation);
 
-            await EnsureStudentExistsAsync(relation.StudentID);
+            await EnsureHelper.EnsureExistsAsync(_studentData.IsStudentExistAsync, relation.StudentID, "student");
 
-            await EnsureParentExistsAsync(relation.ParentID);
+            await EnsureHelper.EnsureExistsAsync(_parentData.IsParentExistAsync, relation.ParentID, "parent");
 
             await EnsureRelationDoesNotExistAsync(relation);
 
@@ -98,8 +99,8 @@ namespace School.BLL
         public async Task<bool> DeleteStudentParentAsync(StudentParentDTO relation)
         {
             ValidateRelation(relation);
-            await EnsureStudentExistsAsync(relation.StudentID);
-            await EnsureParentExistsAsync(relation.ParentID);
+            await EnsureHelper.EnsureExistsAsync(_studentData.IsStudentExistAsync, relation.StudentID, "Student");
+            await EnsureHelper.EnsureExistsAsync(_parentData.IsParentExistAsync, relation.ParentID, "Parent");
             await EnsureRelationExistsAsync(relation);
 
             bool isDeleted = await _studentParentData.DeleteStudentParentAsync(relation);

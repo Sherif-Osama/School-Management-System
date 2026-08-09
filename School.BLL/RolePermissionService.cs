@@ -31,19 +31,6 @@ namespace School.BLL
         #endregion
 
         #region Ensure
-
-        private async Task EnsureRoleExistsAsync(int roleId)
-        {
-            if (!await _roleData.IsRoleExistAsync(roleId))
-                throw new KeyNotFoundException($"Role with ID {roleId} does not exist.");
-        }
-
-        private async Task EnsurePermissionExistsAsync(int permissionId)
-        {
-            if (!await _permissionData.IsPermissionExistAsync(permissionId))
-                throw new KeyNotFoundException($"Permission with ID {permissionId} does not exist.");
-        }
-
         private async Task EnsureRolePermissionExistsAsync(int roleId, int permissionId)
         {
             if (!await _rolePermissionData.IsRolePermissionExistAsync(roleId, permissionId))
@@ -79,7 +66,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(roleId);
 
-            await EnsureRoleExistsAsync(roleId);
+            await EnsureHelper.EnsureExistsAsync(_roleData.IsRoleExistAsync, roleId, "Role");
 
             return await _rolePermissionData.GetPermissionsByRoleIdAsync(roleId);
         }
@@ -88,8 +75,8 @@ namespace School.BLL
         {
             ValidateRolePermission(rolePermission);
 
-            await EnsureRoleExistsAsync(rolePermission.RoleID);
-            await EnsurePermissionExistsAsync(rolePermission.PermissionID);
+            await EnsureHelper.EnsureExistsAsync(_roleData.IsRoleExistAsync, rolePermission.RoleID, "Role");
+            await EnsureHelper.EnsureExistsAsync(_permissionData.IsPermissionExistAsync, rolePermission.PermissionID, "Permission");
             await EnsureRolePermissionUniqueAsync(rolePermission.RoleID, rolePermission.PermissionID);
 
             bool isAdded = await _rolePermissionData.AddRolePermissionAsync(rolePermission);

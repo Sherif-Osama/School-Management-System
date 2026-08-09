@@ -1,5 +1,4 @@
 ﻿using School.BLL.Common;
-using School.BLL.Helpers;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.AssociationsDTOs.ClassSubjectDTOs;
@@ -14,10 +13,10 @@ namespace School.BLL
         private readonly IExamTypeData _examTypeData;
         private readonly IClassData _classData;
 
-        private const decimal minTotalMarks = 1;
-        private const decimal maxTotalMarks = 1000;
+        private const decimal MinTotalMarks = 1;
+        private const decimal MaxTotalMarks = 1000;
 
-        private static readonly DateOnly minExamDate = new(2000, 1, 1);
+        private static readonly DateOnly MinExamDate = new(2000, 1, 1);
 
         public ExamService(IExamData examData, IClassSubjectData classSubjectData, IExamTypeData examTypeData, IClassData classData)
         {
@@ -43,8 +42,8 @@ namespace School.BLL
             if (examDate == default)
                 throw new ArgumentException("ExamDate must be a valid date.", nameof(examDate));
 
-            if (examDate < minExamDate)
-                throw new ArgumentException($"ExamDate cannot be earlier than {minExamDate:yyyy-MM-dd}.", nameof(examDate));
+            if (examDate < MinExamDate)
+                throw new ArgumentException($"ExamDate cannot be earlier than {MinExamDate:yyyy-MM-dd}.", nameof(examDate));
 
             DateOnly maxExamDate = DateOnly.FromDateTime(DateTime.Today).AddYears(2);
 
@@ -56,11 +55,11 @@ namespace School.BLL
 
         private static decimal ValidateTotalMarks(decimal totalMarks)
         {
-            if (totalMarks < minTotalMarks)
-                throw new ArgumentOutOfRangeException(nameof(totalMarks), totalMarks, $"TotalMarks must be at least {minTotalMarks}.");
+            if (totalMarks < MinTotalMarks)
+                throw new ArgumentOutOfRangeException(nameof(totalMarks), totalMarks, $"TotalMarks must be at least {MinTotalMarks}.");
 
-            if (totalMarks > maxTotalMarks)
-                throw new ArgumentOutOfRangeException(nameof(totalMarks), totalMarks, $"TotalMarks cannot exceed {maxTotalMarks}.");
+            if (totalMarks > MaxTotalMarks)
+                throw new ArgumentOutOfRangeException(nameof(totalMarks), totalMarks, $"TotalMarks cannot exceed {MaxTotalMarks}.");
 
             if (decimal.Round(totalMarks, 2) != totalMarks)
                 throw new ArgumentOutOfRangeException(nameof(totalMarks), totalMarks, "TotalMarks cannot have more than 2 decimal places.");
@@ -70,24 +69,12 @@ namespace School.BLL
         #endregion
 
         #region Ensure
-        private async Task EnsureExamExistsAsync(int examId)
-        {
-            if (!await _examData.IsExamExistAsync(examId))
-                throw new KeyNotFoundException($"Exam with ID {examId} does not exist.");
-        }
-
         private async Task<ClassSubjectDetailsDTO> GetValidatedClassSubjectAsync(int classSubjectId)
         {
             var classSubject = await _classSubjectData.GetClassSubjectByIdAsync(classSubjectId);
 
             return classSubject
                 ?? throw new KeyNotFoundException($"ClassSubject with ID {classSubjectId} does not exist.");
-        }
-
-        private async Task EnsureExamTypeExistsAsync(int examTypeId)
-        {
-            if (!await _examTypeData.IsExamTypeExistAsync(examTypeId))
-                throw new KeyNotFoundException($"ExamType with ID {examTypeId} does not exist.");
         }
 
         private async Task EnsureExamUniqueAsync(int classSubjectId, int examTypeId, int? examId = null)
@@ -155,7 +142,7 @@ namespace School.BLL
             ValidateExam(exam);
 
             var classSubject = await GetValidatedClassSubjectAsync(exam.ClassSubjectID);
-            await EnsureExamTypeExistsAsync(exam.ExamTypeID);
+            await EnsureHelper.EnsureExistsAsync(_examTypeData.IsExamTypeExistAsync, exam.ExamTypeID, "Exam Type");
             await EnsureExamUniqueAsync(exam.ClassSubjectID, exam.ExamTypeID);
             await EnsureExamDateWithinAcademicYearAsync(classSubject, exam.ExamDate);
 
@@ -172,9 +159,9 @@ namespace School.BLL
             ValidateExam(exam);
             ValidationHelper.ValidateId(exam.ExamID);
 
-            await EnsureExamExistsAsync(exam.ExamID);
+            await EnsureHelper.EnsureExistsAsync(_examData.IsExamExistAsync, exam.ExamID, "Exam");
             var classSubject = await GetValidatedClassSubjectAsync(exam.ClassSubjectID);
-            await EnsureExamTypeExistsAsync(exam.ExamTypeID);
+            await EnsureHelper.EnsureExistsAsync(_examTypeData.IsExamTypeExistAsync, exam.ExamTypeID, "Exam Type");
             await EnsureExamUniqueAsync(exam.ClassSubjectID, exam.ExamTypeID, exam.ExamID);
             await EnsureExamDateWithinAcademicYearAsync(classSubject, exam.ExamDate);
 
@@ -190,7 +177,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(examId);
 
-            await EnsureExamExistsAsync(examId);
+            await EnsureHelper.EnsureExistsAsync(_examData.IsExamExistAsync, examId, "Exam");
 
             bool isDeleted = await _examData.DeleteExamAsync(examId);
 

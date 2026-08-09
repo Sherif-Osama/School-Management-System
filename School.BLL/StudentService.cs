@@ -25,40 +25,13 @@ namespace School.BLL
         #region Helpers Methods
         private static void ValidateStudent(StudentDTO student)
         {
-            if (student == null)
-                throw new ArgumentNullException(nameof(student));
-
+            ArgumentNullException.ThrowIfNull(student);
             ValidationHelper.ValidateId(student.PersonID);
             ValidationHelper.ValidateId(student.ClassID);
             ValidationHelper.ValidateId(student.StatusID);
 
             if (student.EnrollmentDate == default || student.EnrollmentDate > DateTime.Now)
                 throw new ArgumentException("Enrollment date is invalid.", nameof(student.EnrollmentDate));
-        }
-
-        private async Task EnsurePersonExistsAsync(int personId)
-        {
-            if (!await _personData.IsPersonExistAsync(personId))
-                throw new KeyNotFoundException($"Person with ID {personId} does not exist.");
-        }
-
-        private async Task EnsureClassExistsAsync(int classId)
-        {
-            if (!await _classData.IsClassExistAsync(classId))
-                throw new KeyNotFoundException($"Class with ID {classId} does not exist.");
-        }
-
-        private async Task EnsurePersonIsNotStudentAsync(int personId, int? currentStudentId = null)
-        {
-            StudentDetailsDTO? student = await _studentData.GetStudentByPersonIdAsync(personId);
-
-            if (student == null)
-                return;
-
-            if (currentStudentId.HasValue && student.StudentID == currentStudentId.Value)
-                return;
-
-            throw new InvalidOperationException($"Person ID {personId} is already linked to another student.");
         }
 
         // A person who is already a Teacher cannot also be registered as a Student.
@@ -75,10 +48,14 @@ namespace School.BLL
                 throw new InvalidOperationException($"Person ID {personId} is already registered as a parent.");
         }
 
-        private async Task EnsureStudentExistsAsync(int studentId)
+        private async Task<StudentDetailsDTO> EnsureStudentExistsAsync(int studentId)
         {
-            if (!await _studentData.IsStudentExistAsync(studentId))
+            var student = await _studentData.GetStudentByIdAsync(studentId);
+
+            if (student == null)
                 throw new KeyNotFoundException($"Student with ID {studentId} does not exist.");
+
+            return student;
         }
 
         private async Task EnsureClassHasAvailableCapacityAsync(int classID)
@@ -123,11 +100,11 @@ namespace School.BLL
         {
             ValidateStudent(student);
 
-            await EnsurePersonExistsAsync(student.PersonID);
+            await EnsureHelper.EnsureExistsAsync(_personData.IsPersonExistAsync, student.PersonID, "Person");
 
-            await EnsureClassExistsAsync(student.ClassID);
+            await EnsureHelper.EnsureExistsAsync(_classData.IsClassExistAsync, student.ClassID, "Class");
 
-            await EnsurePersonIsNotStudentAsync(student.PersonID);
+            await EnsureHelper.EnsureUniqueAsync(_studentData.GetStudentByPersonIdAsync, student.PersonID);
 
             await EnsurePersonIsNotTeacherAsync(student.PersonID);
 
@@ -149,15 +126,18 @@ namespace School.BLL
 
             ValidationHelper.ValidateId(student.StudentID);
 
-            await EnsureStudentExistsAsync(student.StudentID);
+            var currentStudent = await EnsureStudentExistsAsync(student.StudentID);
 
-            await EnsurePersonExistsAsync(student.PersonID);
+            await EnsureHelper.EnsureExistsAsync(_personData.IsPersonExistAsync, student.PersonID, "Person");
 
-            await EnsureClassExistsAsync(student.ClassID);
+            await EnsureHelper.EnsureExistsAsync(_classData.IsClassExistAsync, student.ClassID, "Class");
 
-            await EnsureClassHasAvailableCapacityAsync(student.ClassID);
+            if (student.ClassID != currentStudent.ClassID)
+            {
+                await EnsureClassHasAvailableCapacityAsync(student.ClassID);
+            }
 
-            await EnsurePersonIsNotStudentAsync(student.PersonID, student.StudentID);
+            await EnsureHelper.EnsureUniqueAsync(_studentData.GetStudentByPersonIdAsync, student.PersonID, s => s.StudentID, student.StudentID);
 
             await EnsurePersonIsNotTeacherAsync(student.PersonID);
 

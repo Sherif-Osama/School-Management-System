@@ -34,24 +34,6 @@ namespace School.BLL
             ValidationHelper.ValidateId(classSubject.SubjectID);
         }
 
-        private async Task EnsureClassExistsAsync(int classId)
-        {
-            if (!await _classData.IsClassExistAsync(classId))
-                throw new KeyNotFoundException($"Class with ID {classId} does not exist.");
-        }
-
-        private async Task EnsureTeacherExistsAsync(int teacherId)
-        {
-            if (!await _teacherData.IsTeacherExistAsync(teacherId))
-                throw new KeyNotFoundException($"Teacher with ID {teacherId} does not exist.");
-        }
-
-        private async Task EnsureSubjectExistsAsync(int subjectId)
-        {
-            if (!await _subjectData.IsSubjectExistAsync(subjectId))
-                throw new KeyNotFoundException($"Subject with ID {subjectId} does not exist.");
-        }
-
         private async Task EnsureTeacherCanTeachSubjectAsync(int teacherId, int subjectId)
         {
             bool exists =
@@ -66,12 +48,12 @@ namespace School.BLL
                 throw new KeyNotFoundException("This teacher is not assigned to teach this subject.");
         }
 
-        private async Task EnsureClassSubjectExistsAsync(int classSubjectId)
-        {
-            if (!await _classSubjectData.IsClassSubjectExistAsync(classSubjectId))
-                throw new KeyNotFoundException($"ClassSubject with ID {classSubjectId} does not exist.");
-        }
-
+        // This uniqueness check is intentionally kept separate from EnsureHelper
+        // because ClassSubject uniqueness is based on a composite key
+        // (ClassID, TeacherID, SubjectID), while EnsureHelper currently handles
+        // single-key lookups.
+        // Future improvement: update EnsureHelper to support lookup delegates
+        // that accept multiple parameters!!!
         private async Task EnsureUniqueClassSubjectAsync(ClassSubjectDTO classSubject, int? currentClassSubjectId = null)
         {
             ClassSubjectDetailsDTO? relation = await _classSubjectData.GetClassSubjectByDetailsAsync(classSubject.ClassID, classSubject.TeacherID, classSubject.SubjectID);
@@ -89,11 +71,7 @@ namespace School.BLL
         #endregion
 
         #region Public Methods
-
-        public async Task<List<ClassSubjectDetailsDTO>> GetAllClassSubjectsAsync()
-        {
-            return await _classSubjectData.GetAllClassSubjectsAsync();
-        }
+        public Task<List<ClassSubjectDetailsDTO>> GetAllClassSubjectsAsync() => _classSubjectData.GetAllClassSubjectsAsync();
 
         public async Task<ClassSubjectDetailsDTO?> GetClassSubjectByIdAsync(int classSubjectId)
         {
@@ -111,7 +89,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(classId);
 
-            await EnsureClassExistsAsync(classId);
+            await EnsureHelper.EnsureExistsAsync(_classData.IsClassExistAsync, classId, "Class");
 
             return await _classSubjectData.GetClassSubjectsByClassIdAsync(classId);
         }
@@ -120,7 +98,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(teacherId);
 
-            await EnsureTeacherExistsAsync(teacherId);
+            await EnsureHelper.EnsureExistsAsync(_teacherData.IsTeacherExistAsync, teacherId, "Teacher");
 
             return await _classSubjectData.GetClassSubjectsByTeacherIdAsync(teacherId);
         }
@@ -129,7 +107,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(subjectId);
 
-            await EnsureSubjectExistsAsync(subjectId);
+            await EnsureHelper.EnsureExistsAsync(_subjectData.IsSubjectExistAsync, subjectId, "Subject");
 
             return await _classSubjectData.GetClassSubjectsBySubjectIdAsync(subjectId);
         }
@@ -138,9 +116,9 @@ namespace School.BLL
         {
             ValidateClassSubject(classSubject);
 
-            await EnsureClassExistsAsync(classSubject.ClassID);
-            await EnsureTeacherExistsAsync(classSubject.TeacherID);
-            await EnsureSubjectExistsAsync(classSubject.SubjectID);
+            await EnsureHelper.EnsureExistsAsync(_classData.IsClassExistAsync, classSubject.ClassID, "Class");
+            await EnsureHelper.EnsureExistsAsync(_teacherData.IsTeacherExistAsync, classSubject.TeacherID, "Teacher");
+            await EnsureHelper.EnsureExistsAsync(_subjectData.IsSubjectExistAsync, classSubject.SubjectID, "Subject");
             await EnsureTeacherCanTeachSubjectAsync(classSubject.TeacherID, classSubject.SubjectID);
             await EnsureUniqueClassSubjectAsync(classSubject);
 
@@ -158,11 +136,11 @@ namespace School.BLL
 
             ValidationHelper.ValidateId(classSubject.ClassSubjectID);
 
-            await EnsureClassSubjectExistsAsync(classSubject.ClassSubjectID);
+            await EnsureHelper.EnsureExistsAsync(_classSubjectData.IsClassSubjectExistAsync, classSubject.ClassSubjectID, "Class Subject");
 
-            await EnsureClassExistsAsync(classSubject.ClassID);
-            await EnsureTeacherExistsAsync(classSubject.TeacherID);
-            await EnsureSubjectExistsAsync(classSubject.SubjectID);
+            await EnsureHelper.EnsureExistsAsync(_classData.IsClassExistAsync, classSubject.ClassID, "Class");
+            await EnsureHelper.EnsureExistsAsync(_teacherData.IsTeacherExistAsync, classSubject.TeacherID, "Teacher");
+            await EnsureHelper.EnsureExistsAsync(_subjectData.IsSubjectExistAsync, classSubject.SubjectID, "Subject");
 
             await EnsureTeacherCanTeachSubjectAsync(classSubject.TeacherID, classSubject.SubjectID);
 
@@ -180,7 +158,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(classSubjectId);
 
-            await EnsureClassSubjectExistsAsync(classSubjectId);
+            await EnsureHelper.EnsureExistsAsync(_classSubjectData.IsClassSubjectExistAsync, classSubjectId, "Class Subject");
 
             bool isDeleted = await _classSubjectData.DeleteClassSubjectAsync(classSubjectId);
 

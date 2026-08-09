@@ -1,5 +1,4 @@
 ﻿using School.BLL.Common;
-using School.BLL.Helpers;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.AttendanceDTOs;
@@ -52,18 +51,6 @@ namespace School.BLL
                 ?? throw new KeyNotFoundException($"Student with ID {studentId} does not exist.");
         }
 
-        private async Task EnsureAttendanceExistsAsync(int attendanceId)
-        {
-            if (!await _attendanceData.IsAttendanceExistAsync(attendanceId))
-                throw new KeyNotFoundException($"Attendance with ID {attendanceId} does not exist.");
-        }
-
-        private async Task EnsureAttendanceStatusExistsAsync(int statusId)
-        {
-            if (!await _attendanceStatusData.IsAttendanceStatusExistAsync(statusId))
-                throw new KeyNotFoundException($"AttendanceStatus with ID {statusId} does not exist.");
-        }
-
         private static void EnsureStudentIsActive(StudentDetailsDTO student)
         {
             if (student.StatusID != 1) // Assuming 1 represents the "Active" status
@@ -102,8 +89,7 @@ namespace School.BLL
 
             if (exists)
             {
-                throw new InvalidOperationException(
-                    $"Student {studentId} already has an attendance record for {attendanceDate:yyyy-MM-dd}.");
+                throw new InvalidOperationException($"Student {studentId} already has an attendance record for {attendanceDate:yyyy-MM-dd}.");
             }
         }
         #endregion
@@ -159,7 +145,7 @@ namespace School.BLL
             ValidateAttendance(attendance);
 
             StudentDetailsDTO student = await GetStudentOrThrowAsync(attendance.StudentID);
-            await EnsureAttendanceStatusExistsAsync(attendance.StatusID);
+            await EnsureHelper.EnsureExistsAsync(_attendanceStatusData.IsAttendanceStatusExistAsync, attendance.StatusID, "Attendance Status");
 
             EnsureStudentIsActive(student);
             await EnsureAttendanceDateWithinAcademicYearAsync(student, attendance.AttendanceDate);
@@ -179,10 +165,10 @@ namespace School.BLL
             ValidateAttendance(attendance);
             ValidationHelper.ValidateId(attendance.AttendanceID);
 
-            await EnsureAttendanceExistsAsync(attendance.AttendanceID);
+            await EnsureHelper.EnsureExistsAsync(_attendanceData.IsAttendanceExistAsync, attendance.AttendanceID, "Attendance");
 
             StudentDetailsDTO student = await GetStudentOrThrowAsync(attendance.StudentID);
-            await EnsureAttendanceStatusExistsAsync(attendance.StatusID);
+            await EnsureHelper.EnsureExistsAsync(_attendanceStatusData.IsAttendanceStatusExistAsync, attendance.StatusID, "Attendance Status");
 
             EnsureStudentIsActive(student);
             await EnsureAttendanceDateWithinAcademicYearAsync(student, attendance.AttendanceDate);
@@ -201,7 +187,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(attendanceId);
 
-            await EnsureAttendanceExistsAsync(attendanceId);
+            await EnsureHelper.EnsureExistsAsync(_attendanceData.IsAttendanceExistAsync, attendanceId, "Attendance");
 
             bool isDeleted = await _attendanceData.DeleteAttendanceAsync(attendanceId);
 

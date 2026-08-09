@@ -8,8 +8,8 @@ namespace School.BLL
     public class CountryService : ICountryService
     {
         private readonly ICountryData _countryData;
-        private static int minCountryNameLength => 2;
-        private static int maxCountryNameLength => 100;
+        private static int MinCountryNameLength => 2;
+        private static int MaxCountryNameLength => 100;
         public CountryService(ICountryData countryData)
         {
             _countryData = countryData;
@@ -35,7 +35,7 @@ namespace School.BLL
 
         public async Task<CountryDTO?> GetCountryByNameAsync(string countryName)
         {
-            countryName = ValidationHelper.ValidateString(countryName, nameof(countryName), minCountryNameLength, maxCountryNameLength);
+            countryName = ValidationHelper.ValidateString(countryName, nameof(countryName), MinCountryNameLength, MaxCountryNameLength);
 
             CountryDTO? country = await _countryData.GetCountryByNameAsync(countryName);
 

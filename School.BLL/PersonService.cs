@@ -13,8 +13,8 @@ namespace School.BLL
         {
             _personData = personData;
         }
-        private static int minNationalIdLength => 14;
-        private static int maxNationalIdLength => 20;
+        private static int MinNationalIdLength => 14;
+        private static int MaxNationalIdLength => 20;
 
         #region Private Helpers
 
@@ -22,7 +22,7 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(person);
 
-            person.NationalID = ValidationHelper.ValidateString(person.NationalID, nameof(person.NationalID), minNationalIdLength, maxNationalIdLength);
+            person.NationalID = ValidationHelper.ValidateString(person.NationalID, nameof(person.NationalID), MinNationalIdLength, MaxNationalIdLength);
 
             person.FirstName = ValidationHelper.ValidateString(person.FirstName, nameof(person.FirstName));
 
@@ -39,26 +39,6 @@ namespace School.BLL
             if (!string.IsNullOrWhiteSpace(person.Email) && !person.Email.Contains('@'))
                 throw new ArgumentException("Email format is invalid.", nameof(person.Email));
         }
-
-        private async Task EnsurePersonExistsAsync(int personId)
-        {
-            if (!await _personData.IsPersonExistAsync(personId))
-                throw new KeyNotFoundException($"Person with ID {personId} does not exist.");
-        }
-
-        private async Task EnsureNationalIdIsUniqueAsync(string nationalId, int? currentPersonId = null)
-        {
-            PersonDTO? person = await _personData.GetPersonByNationalIDAsync(nationalId);
-
-            if (person == null)
-                return;
-
-            if (currentPersonId.HasValue && person.PersonID == currentPersonId.Value)
-                return;
-
-            throw new InvalidOperationException($"National ID '{nationalId}' is already used.");
-        }
-
         #endregion
 
         #region Public Methods
@@ -82,7 +62,7 @@ namespace School.BLL
 
         public async Task<PersonDTO?> GetPersonByNationalIDAsync(string nationalId)
         {
-            nationalId = ValidationHelper.ValidateString(nationalId, nameof(nationalId), minNationalIdLength, maxNationalIdLength);
+            nationalId = ValidationHelper.ValidateString(nationalId, nameof(nationalId), MinNationalIdLength, MaxNationalIdLength);
 
             PersonDTO? person = await _personData.GetPersonByNationalIDAsync(nationalId);
 
@@ -96,7 +76,7 @@ namespace School.BLL
         {
             ValidatePerson(person);
 
-            await EnsureNationalIdIsUniqueAsync(person.NationalID);
+            await EnsureHelper.EnsureUniqueAsync(_personData.GetPersonByNationalIDAsync, person.NationalID);
 
             int newPersonId = await _personData.AddPersonAsync(person);
 
@@ -112,9 +92,9 @@ namespace School.BLL
 
             ValidationHelper.ValidateId(person.PersonID);
 
-            await EnsurePersonExistsAsync(person.PersonID);
+            await EnsureHelper.EnsureExistsAsync(_personData.IsPersonExistAsync, person.PersonID, "Person");
 
-            await EnsureNationalIdIsUniqueAsync(person.NationalID, person.PersonID);
+            await EnsureHelper.EnsureUniqueAsync(_personData.GetPersonByNationalIDAsync, person.NationalID, p => p.PersonID, person.PersonID);
 
             bool isUpdated = await _personData.UpdatePersonAsync(person);
 
@@ -128,7 +108,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(personId);
 
-            await EnsurePersonExistsAsync(personId);
+            await EnsureHelper.EnsureExistsAsync(_personData.IsPersonExistAsync, personId, "Person");
 
             bool isDeleted = await _personData.DeletePersonAsync(personId);
 

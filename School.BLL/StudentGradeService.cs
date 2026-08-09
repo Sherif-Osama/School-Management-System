@@ -54,12 +54,6 @@ namespace School.BLL
                 ?? throw new KeyNotFoundException($"Exam with ID {examId} does not exist.");
         }
 
-        private async Task EnsureStudentGradeExistsAsync(int studentGradeId)
-        {
-            if (!await _studentGradeData.IsStudentGradeExistAsync(studentGradeId))
-                throw new KeyNotFoundException($"StudentGrade with ID {studentGradeId} does not exist.");
-        }
-
         private static void EnsureStudentIsActive(StudentDetailsDTO student)
         {
             if (student.StatusID != 1) // Assuming 1 is the ID for active student status
@@ -174,7 +168,7 @@ namespace School.BLL
             ValidateStudentGrade(studentGrade);
             ValidationHelper.ValidateId(studentGrade.StudentGradeID);
 
-            await EnsureStudentGradeExistsAsync(studentGrade.StudentGradeID);
+            await EnsureHelper.EnsureExistsAsync(_studentGradeData.IsStudentGradeExistAsync, studentGrade.StudentGradeID, "Student Grade");
 
             StudentDetailsDTO student = await GetStudentOrThrowAsync(studentGrade.StudentID);
             ExamDetailsDTO exam = await GetExamOrThrowAsync(studentGrade.ExamID);
@@ -197,7 +191,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(studentGradeId);
 
-            await EnsureStudentGradeExistsAsync(studentGradeId);
+            await EnsureHelper.EnsureExistsAsync(_studentGradeData.IsStudentGradeExistAsync, studentGradeId, "Student Grade");
 
             bool isDeleted = await _studentGradeData.DeleteStudentGradeAsync(studentGradeId);
             if (!isDeleted)

@@ -10,8 +10,8 @@ namespace School.BLL
         private readonly ITeacherData _teacherData;
         private readonly IPersonData _personData;
         private readonly IStudentData _studentData;
-        private static int MinnationalIdLength => 14;
-        private static int MaxnationalIdLength => 20;
+        private static int MinNationalIdLength => 14;
+        private static int MaxNationalIdLength => 20;
         public TeacherService(ITeacherData teacherData, IPersonData personData, IStudentData studentData)
         {
             _studentData = studentData;
@@ -32,32 +32,6 @@ namespace School.BLL
 
             if (teacher.Salary <= 0)
                 throw new ArgumentException("Salary must be greater than zero.", nameof(teacher.Salary));
-        }
-
-        private async Task EnsureTeacherExistsAsync(int teacherId)
-        {
-            if (!await _teacherData.IsTeacherExistAsync(teacherId))
-                throw new KeyNotFoundException($"Teacher with ID {teacherId} does not exist.");
-        }
-
-        private async Task EnsurePersonExistsAsync(int personId)
-        {
-            if (!await _personData.IsPersonExistAsync(personId))
-                throw new KeyNotFoundException($"Person with ID {personId} does not exist.");
-        }
-
-        private async Task EnsurePersonIsNotTeacherAsync(int personId, int? currentTeacherId = null)
-        {
-            TeacherDetailsDTO? teacher = await _teacherData.GetTeacherByPersonIdAsync(personId);
-
-            if (teacher == null)
-                return;
-
-            if (currentTeacherId.HasValue &&
-                teacher.TeacherID == currentTeacherId.Value)
-                return;
-
-            throw new InvalidOperationException($"Person ID {personId} is already linked to another teacher.");
         }
 
         private async Task EnsurePersonIsNotStudentAsync(int personId)
@@ -100,7 +74,7 @@ namespace School.BLL
 
         public async Task<TeacherDetailsDTO?> GetTeacherByNationalIdAsync(string nationalId)
         {
-            nationalId = ValidationHelper.ValidateString(nationalId, nameof(nationalId), MinnationalIdLength, MaxnationalIdLength);
+            nationalId = ValidationHelper.ValidateString(nationalId, nameof(nationalId), MinNationalIdLength, MaxNationalIdLength);
 
             TeacherDetailsDTO? teacher = await _teacherData.GetTeacherByNationalIdAsync(nationalId);
 
@@ -114,8 +88,8 @@ namespace School.BLL
         {
             ValidateTeacher(teacher);
 
-            await EnsurePersonExistsAsync(teacher.PersonID);
-            await EnsurePersonIsNotTeacherAsync(teacher.PersonID);
+            await EnsureHelper.EnsureExistsAsync(_personData.IsPersonExistAsync, teacher.PersonID, "Person");
+            await EnsureHelper.EnsureUniqueAsync(_teacherData.GetTeacherByPersonIdAsync, teacher.PersonID);
             await EnsurePersonIsNotStudentAsync(teacher.PersonID);
 
             int newTeacherId = await _teacherData.AddTeacherAsync(teacher);
@@ -131,9 +105,9 @@ namespace School.BLL
             ValidateTeacher(teacher);
             ValidationHelper.ValidateId(teacher.TeacherID);
 
-            await EnsureTeacherExistsAsync(teacher.TeacherID);
-            await EnsurePersonExistsAsync(teacher.PersonID);
-            await EnsurePersonIsNotTeacherAsync(teacher.PersonID, teacher.TeacherID);
+            await EnsureHelper.EnsureExistsAsync(_teacherData.IsTeacherExistAsync, teacher.TeacherID, "Teacher");
+            await EnsureHelper.EnsureExistsAsync(_personData.IsPersonExistAsync, teacher.PersonID, "Person");
+            await EnsureHelper.EnsureUniqueAsync(_teacherData.GetTeacherByPersonIdAsync, teacher.PersonID, t => t.TeacherID, teacher.TeacherID);
             await EnsurePersonIsNotStudentAsync(teacher.PersonID);
 
             bool isUpdated = await _teacherData.UpdateTeacherAsync(teacher);
@@ -148,7 +122,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(teacherId);
 
-            await EnsureTeacherExistsAsync(teacherId);
+            await EnsureHelper.EnsureExistsAsync(_teacherData.IsTeacherExistAsync, teacherId, "Teacher");
 
             bool isDeleted = await _teacherData.DeleteTeacherAsync(teacherId);
 

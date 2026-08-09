@@ -10,8 +10,8 @@ namespace School.BLL
         private readonly IParentData _parentData;
         private readonly IPersonData _personData;
         private readonly IStudentData _studentData;
-        private static int minNationalIdLength => 14;
-        private static int maxNationalIdLength => 20;
+        private static int MinNationalIdLength => 14;
+        private static int MaxNationalIdLength => 20;
         public ParentService(IParentData parentData, IPersonData personData, IStudentData studentData)
         {
             _parentData = parentData;
@@ -26,33 +26,6 @@ namespace School.BLL
             ArgumentNullException.ThrowIfNull(parent);
 
             ValidationHelper.ValidateId(parent.PersonID);
-        }
-
-        private async Task EnsureParentExistsAsync(int parentId)
-        {
-            if (!await _parentData.IsParentExistAsync(parentId))
-                throw new KeyNotFoundException(
-                    $"Parent with ID {parentId} does not exist.");
-        }
-
-        private async Task EnsurePersonExistsAsync(int personId)
-        {
-            if (!await _personData.IsPersonExistAsync(personId))
-                throw new KeyNotFoundException($"Person with ID {personId} does not exist.");
-        }
-
-        private async Task EnsurePersonIsNotParentAsync(int personId, int? currentParentId = null)
-        {
-            ParentDetailsDTO? parent = await _parentData.GetParentByPersonIdAsync(personId);
-
-            if (parent == null)
-                return;
-
-            if (currentParentId.HasValue && parent.ParentID == currentParentId.Value)
-                return;
-
-            throw new InvalidOperationException(
-                $"Person ID {personId} is already linked to another parent.");
         }
 
         private async Task EnsurePersonIsNotStudentAsync(int personId)
@@ -95,7 +68,7 @@ namespace School.BLL
 
         public async Task<ParentDetailsDTO?> GetParentByNationalIdAsync(string nationalId)
         {
-            nationalId = ValidationHelper.ValidateString(nationalId, nameof(nationalId), minNationalIdLength, maxNationalIdLength);
+            nationalId = ValidationHelper.ValidateString(nationalId, nameof(nationalId), MinNationalIdLength, MaxNationalIdLength);
 
             ParentDetailsDTO? parentDetails = await _parentData.GetParentByNationalIdAsync(nationalId);
 
@@ -109,9 +82,9 @@ namespace School.BLL
         {
             ValidateParent(parent);
 
-            await EnsurePersonExistsAsync(parent.PersonID);
+            await EnsureHelper.EnsureExistsAsync(_personData.IsPersonExistAsync, parent.PersonID, "Person");
 
-            await EnsurePersonIsNotParentAsync(parent.PersonID);
+            await EnsureHelper.EnsureUniqueAsync(_parentData.GetParentByPersonIdAsync, parent.PersonID);
 
             await EnsurePersonIsNotStudentAsync(parent.PersonID);
 
@@ -129,11 +102,11 @@ namespace School.BLL
 
             ValidationHelper.ValidateId(parent.ParentID);
 
-            await EnsureParentExistsAsync(parent.ParentID);
+            await EnsureHelper.EnsureExistsAsync(_personData.IsPersonExistAsync, parent.PersonID, "Person");
 
-            await EnsurePersonExistsAsync(parent.PersonID);
+            await EnsureHelper.EnsureExistsAsync(_parentData.IsParentExistAsync, parent.ParentID, "Parent");
 
-            await EnsurePersonIsNotParentAsync(parent.PersonID, parent.ParentID);
+            await EnsureHelper.EnsureUniqueAsync(_parentData.GetParentByPersonIdAsync, parent.PersonID, p => p.ParentID, parent.ParentID);
 
             await EnsurePersonIsNotStudentAsync(parent.PersonID);
 
@@ -149,7 +122,8 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(parentId);
 
-            await EnsureParentExistsAsync(parentId);
+            await EnsureHelper.EnsureExistsAsync(_parentData.IsParentExistAsync, parentId, "Parent");
+
             bool isDeleted = await _parentData.DeleteParentAsync(parentId);
 
             if (!isDeleted)
@@ -164,7 +138,6 @@ namespace School.BLL
 
             return await _parentData.IsParentExistAsync(parentId);
         }
-
         #endregion
     }
 }

@@ -8,8 +8,8 @@ namespace School.BLL
     public class RoleService : IRoleService
     {
         private readonly IRoleData _roleData;
-        private static int minRoleNameLenght => 3;
-        private static int maxRoleNameLenght => 20;
+        private static int MinRoleNameLength => 3;
+        private static int MaxRoleNameLength => 20;
 
         public RoleService(IRoleData roleData)
         {
@@ -21,7 +21,7 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(role);
 
-            role.RoleName = ValidationHelper.ValidateString(role.RoleName, nameof(role.RoleName), minRoleNameLenght, maxRoleNameLenght);
+            role.RoleName = ValidationHelper.ValidateString(role.RoleName, nameof(role.RoleName), MinRoleNameLength, MaxRoleNameLength);
 
             if (role.Description?.Length > 255)
                 throw new ArgumentException("Description cannot exceed 255 characters.", nameof(role.Description));
@@ -29,28 +29,7 @@ namespace School.BLL
 
         #endregion
 
-        #region Ensure
-
-        private async Task EnsureRoleExistsAsync(int roleId)
-        {
-            if (!await _roleData.IsRoleExistAsync(roleId))
-                throw new KeyNotFoundException($"Role with ID {roleId} does not exist.");
-        }
-
-        private async Task EnsureRoleNameUniqueAsync(string roleName, int? roleId = null)
-        {
-            RoleDTO? existingRole = await _roleData.GetRoleByNameAsync(roleName);
-
-            if (existingRole != null && (roleId == null || existingRole.RoleID != roleId))
-            {
-                throw new InvalidOperationException($"Role '{roleName}' already exists.");
-            }
-        }
-
-        #endregion
-
         #region Public
-
         public async Task<List<RoleDTO>> GetAllRolesAsync()
         {
             return await _roleData.GetAllRolesAsync();
@@ -70,7 +49,7 @@ namespace School.BLL
 
         public async Task<RoleDTO?> GetRoleByNameAsync(string roleName)
         {
-            roleName = ValidationHelper.ValidateString(roleName, nameof(roleName), minRoleNameLenght, maxRoleNameLenght);
+            roleName = ValidationHelper.ValidateString(roleName, nameof(roleName), MinRoleNameLength, MaxRoleNameLength);
 
             RoleDTO? role = await _roleData.GetRoleByNameAsync(roleName);
 
@@ -84,7 +63,7 @@ namespace School.BLL
         {
             ValidateRole(role);
 
-            await EnsureRoleNameUniqueAsync(role.RoleName);
+            await EnsureHelper.EnsureUniqueAsync(_roleData.GetRoleByNameAsync, role.RoleName);
 
             int newRoleId = await _roleData.AddRoleAsync(role);
 
@@ -99,8 +78,8 @@ namespace School.BLL
             ValidateRole(role);
             ValidationHelper.ValidateId(role.RoleID);
 
-            await EnsureRoleExistsAsync(role.RoleID);
-            await EnsureRoleNameUniqueAsync(role.RoleName, role.RoleID);
+            await EnsureHelper.EnsureExistsAsync(_roleData.IsRoleExistAsync, role.RoleID, "Role");
+            await EnsureHelper.EnsureUniqueAsync(_roleData.GetRoleByNameAsync, role.RoleName, r => r.RoleID, role.RoleID);
 
             bool isUpdated = await _roleData.UpdateRoleAsync(role);
 
@@ -114,7 +93,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(roleId);
 
-            await EnsureRoleExistsAsync(roleId);
+            await EnsureHelper.EnsureExistsAsync(_roleData.IsRoleExistAsync, roleId, "Role");
 
             bool isDeleted = await _roleData.DeleteRoleAsync(roleId);
 

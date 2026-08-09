@@ -16,41 +16,15 @@ namespace School.BLL
         }
 
         #region Validation
-
         private static void ValidateStatus(StudentStatusDTO status)
         {
             ArgumentNullException.ThrowIfNull(status);
 
             status.StatusName = ValidationHelper.ValidateString(status.StatusName, nameof(status.StatusName), MinStatusNameLength, MaxStatusNameLength);
         }
-
-        #endregion
-
-        #region Ensure
-
-        private async Task EnsureStatusExistsAsync(int statusId)
-        {
-            if (!await _studentStatusData.IsStudentStatusExistAsync(statusId))
-                throw new KeyNotFoundException($"Student status with ID {statusId} does not exist.");
-        }
-
-        private async Task EnsureStatusNameUniqueAsync(string statusName, int? currentStatusId = null)
-        {
-            StudentStatusDTO? existing = await _studentStatusData.GetStudentStatusByNameAsync(statusName);
-
-            if (existing == null)
-                return;
-
-            if (currentStatusId.HasValue && existing.StatusID == currentStatusId.Value)
-                return;
-
-            throw new InvalidOperationException($"Student status '{statusName}' already exists.");
-        }
-
         #endregion
 
         #region Public
-
         public async Task<List<StudentStatusDTO>> GetAllStudentStatusesAsync()
         {
             return await _studentStatusData.GetAllStudentStatusesAsync();
@@ -84,7 +58,7 @@ namespace School.BLL
         {
             ValidateStatus(status);
 
-            await EnsureStatusNameUniqueAsync(status.StatusName);
+            await EnsureHelper.EnsureUniqueAsync(_studentStatusData.GetStudentStatusByNameAsync, status.StatusName);
 
             int newStatusId = await _studentStatusData.AddStudentStatusAsync(status);
 
@@ -99,8 +73,8 @@ namespace School.BLL
             ValidateStatus(status);
             ValidationHelper.ValidateId(status.StatusID);
 
-            await EnsureStatusExistsAsync(status.StatusID);
-            await EnsureStatusNameUniqueAsync(status.StatusName, status.StatusID);
+            await EnsureHelper.EnsureExistsAsync(_studentStatusData.IsStudentStatusExistAsync, status.StatusID, "Student Status");
+            await EnsureHelper.EnsureUniqueAsync(_studentStatusData.GetStudentStatusByNameAsync, status.StatusName, s => s.StatusID, status.StatusID);
 
             bool isUpdated = await _studentStatusData.UpdateStudentStatusAsync(status);
 
@@ -114,7 +88,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(statusId);
 
-            await EnsureStatusExistsAsync(statusId);
+            await EnsureHelper.EnsureExistsAsync(_studentStatusData.IsStudentStatusExistAsync, statusId, "Student Status");
 
             bool isDeleted = await _studentStatusData.DeleteStudentStatusAsync(statusId);
 

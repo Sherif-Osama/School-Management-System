@@ -46,18 +46,6 @@ namespace School.BLL
         #endregion
 
         #region Ensure
-        private async Task EnsureScheduleExistsAsync(int scheduleId)
-        {
-            if (!await _scheduleData.IsScheduleExistAsync(scheduleId))
-                throw new KeyNotFoundException($"Schedule with ID {scheduleId} does not exist.");
-        }
-
-        private async Task EnsureClassroomExistsAsync(int classroomId)
-        {
-            if (!await _classroomData.IsClassroomExistAsync(classroomId))
-                throw new KeyNotFoundException($"Classroom with ID {classroomId} does not exist.");
-        }
-
         private async Task EnsureClassroomAvailableAsync(int classroomId, byte dayOfWeek, TimeOnly startTime, TimeOnly endTime, int? scheduleId = null)
         {
             bool isAvailable = await _scheduleData.IsClassroomAvailableAsync(classroomId, dayOfWeek, startTime, endTime, scheduleId);
@@ -73,12 +61,6 @@ namespace School.BLL
             return classSubject
                 ?? throw new KeyNotFoundException(
                     $"ClassSubject with ID {classSubjectId} does not exist.");
-        }
-
-        private async Task EnsureTeacherExistsAsync(int teacherId)
-        {
-            if (!await _teacherData.IsTeacherExistAsync(teacherId))
-                throw new KeyNotFoundException($"Teacher with ID {teacherId} does not exist.");
         }
 
         private async Task EnsureTeacherAvailableAsync(ClassSubjectDetailsDTO classSubject, byte dayOfWeek, TimeOnly startTime, TimeOnly endTime, int? scheduleId = null)
@@ -126,7 +108,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(teacherId);
 
-            await EnsureTeacherExistsAsync(teacherId);
+            await EnsureHelper.EnsureExistsAsync(_teacherData.IsTeacherExistAsync, teacherId, "Teacher");
 
             return await _scheduleData.GetSchedulesByTeacherIdAsync(teacherId);
         }
@@ -135,7 +117,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(classroomId);
 
-            await EnsureClassroomExistsAsync(classroomId);
+            await EnsureHelper.EnsureExistsAsync(_classroomData.IsClassroomExistAsync, classroomId, "Classroom");
 
             return await _scheduleData.GetSchedulesByClassroomIdAsync(classroomId);
         }
@@ -153,7 +135,7 @@ namespace School.BLL
 
             ClassSubjectDetailsDTO classSubject = await GetValidatedClassSubjectAsync(schedule.ClassSubjectID);
 
-            await EnsureClassroomExistsAsync(schedule.ClassroomID);
+            await EnsureHelper.EnsureExistsAsync(_classroomData.IsClassroomExistAsync, schedule.ClassroomID, "Classroom");
 
             await EnsureClassroomAvailableAsync(schedule.ClassroomID, schedule.DayOfWeek, schedule.StartTime, schedule.EndTime);
 
@@ -174,9 +156,9 @@ namespace School.BLL
             ValidateSchedule(schedule);
             ValidationHelper.ValidateId(schedule.ScheduleID);
 
-            await EnsureScheduleExistsAsync(schedule.ScheduleID);
+            await EnsureHelper.EnsureExistsAsync(_scheduleData.IsScheduleExistAsync, schedule.ScheduleID, "Schedule");
             ClassSubjectDetailsDTO classSubject = await GetValidatedClassSubjectAsync(schedule.ClassSubjectID);
-            await EnsureClassroomExistsAsync(schedule.ClassroomID);
+            await EnsureHelper.EnsureExistsAsync(_classroomData.IsClassroomExistAsync, schedule.ClassroomID, "Classroom");
             await EnsureClassroomAvailableAsync(schedule.ClassroomID, schedule.DayOfWeek, schedule.StartTime, schedule.EndTime, schedule.ScheduleID);
             await EnsureTeacherAvailableAsync(classSubject, schedule.DayOfWeek, schedule.StartTime, schedule.EndTime, schedule.ScheduleID);
             await EnsureClassAvailableAsync(classSubject, schedule.DayOfWeek, schedule.StartTime, schedule.EndTime, schedule.ScheduleID);
@@ -193,7 +175,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(scheduleId);
 
-            await EnsureScheduleExistsAsync(scheduleId);
+            await EnsureHelper.EnsureExistsAsync(_scheduleData.IsScheduleExistAsync, scheduleId, "Schedule");
 
             bool isDeleted = await _scheduleData.DeleteScheduleAsync(scheduleId);
 

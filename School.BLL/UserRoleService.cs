@@ -29,18 +29,6 @@ namespace School.BLL
         #endregion
 
         #region Ensure
-        private async Task EnsureUserExistsAsync(int userId)
-        {
-            if (!await _userData.IsUserExistAsync(userId))
-                throw new KeyNotFoundException($"User with ID {userId} does not exist.");
-        }
-
-        private async Task EnsureRoleExistsAsync(int roleId)
-        {
-            if (!await _roleData.IsRoleExistAsync(roleId))
-                throw new KeyNotFoundException($"Role with ID {roleId} does not exist.");
-        }
-
         private async Task EnsureUserRoleExistsAsync(int userId, int roleId)
         {
             if (!await _userRoleData.IsUserRoleExistAsync(userId, roleId))
@@ -75,7 +63,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(userId);
 
-            await EnsureUserExistsAsync(userId);
+            await EnsureHelper.EnsureExistsAsync(_userData.IsUserExistAsync, userId, "User");
 
             return await _userRoleData.GetRolesByUserIdAsync(userId);
         }
@@ -84,8 +72,8 @@ namespace School.BLL
         {
             ValidateUserRole(userRole);
 
-            await EnsureUserExistsAsync(userRole.UserID);
-            await EnsureRoleExistsAsync(userRole.RoleID);
+            await EnsureHelper.EnsureExistsAsync(_userData.IsUserExistAsync, userRole.UserID, "User");
+            await EnsureHelper.EnsureExistsAsync(_roleData.IsRoleExistAsync, userRole.RoleID, "Role");
             await EnsureUserRoleUniqueAsync(userRole.UserID, userRole.RoleID);
 
             if (!await _userRoleData.AddUserRoleAsync(userRole))

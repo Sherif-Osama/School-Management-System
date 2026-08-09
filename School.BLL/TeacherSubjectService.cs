@@ -33,19 +33,6 @@ namespace School.BLL
         #endregion
 
         #region Ensure
-
-        private async Task EnsureTeacherExistsAsync(int teacherId)
-        {
-            if (!await _teacherData.IsTeacherExistAsync(teacherId))
-                throw new KeyNotFoundException($"Teacher with ID {teacherId} does not exist.");
-        }
-
-        private async Task EnsureSubjectExistsAsync(int subjectId)
-        {
-            if (!await _subjectData.IsSubjectExistAsync(subjectId))
-                throw new KeyNotFoundException($"Subject with ID {subjectId} does not exist.");
-        }
-
         private async Task EnsureRelationExistsAsync(TeacherSubjectDTO relation)
         {
             if (!await _teacherSubjectData.IsTeacherSubjectExistAsync(relation))
@@ -70,7 +57,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(teacherId);
 
-            await EnsureTeacherExistsAsync(teacherId);
+            await EnsureHelper.EnsureExistsAsync(_teacherData.IsTeacherExistAsync, teacherId, "Teacher");
 
             return await _teacherSubjectData.GetSubjectsByTeacherIdAsync(teacherId);
         }
@@ -79,7 +66,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(subjectId);
 
-            await EnsureSubjectExistsAsync(subjectId);
+            await EnsureHelper.EnsureExistsAsync(_subjectData.IsSubjectExistAsync, subjectId, "Subject");
 
             return await _teacherSubjectData.GetTeachersBySubjectIdAsync(subjectId);
         }
@@ -88,8 +75,8 @@ namespace School.BLL
         {
             ValidateRelation(relation);
 
-            await EnsureTeacherExistsAsync(relation.TeacherID);
-            await EnsureSubjectExistsAsync(relation.SubjectID);
+            await EnsureHelper.EnsureExistsAsync(_teacherData.IsTeacherExistAsync, relation.TeacherID, "Teacher");
+            await EnsureHelper.EnsureExistsAsync(_subjectData.IsSubjectExistAsync, relation.SubjectID, "Subject");
             await EnsureRelationDoesNotExistAsync(relation);
 
             bool isAssigned = await _teacherSubjectData.AssignSubjectToTeacherAsync(relation);
@@ -104,8 +91,8 @@ namespace School.BLL
         {
             ValidateRelation(relation);
 
-            await EnsureTeacherExistsAsync(relation.TeacherID);
-            await EnsureSubjectExistsAsync(relation.SubjectID);
+            await EnsureHelper.EnsureExistsAsync(_teacherData.IsTeacherExistAsync, relation.TeacherID, "Teacher");
+            await EnsureHelper.EnsureExistsAsync(_subjectData.IsSubjectExistAsync, relation.SubjectID, "Subject");
             await EnsureRelationExistsAsync(relation);
 
             bool isRemoved = await _teacherSubjectData.RemoveSubjectFromTeacherAsync(relation);

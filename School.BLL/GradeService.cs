@@ -8,8 +8,8 @@ namespace School.BLL
     public class GradeService : IGradeService
     {
         private readonly IGradeData _gradeData;
-        private static int minGradeNameLength => 2;
-        private static int maxGradeNameLength => 50;
+        private static int MinGradeNameLength => 2;
+        private static int MaxGradeNameLength => 50;
         public GradeService(IGradeData gradeData)
         {
             _gradeData = gradeData;
@@ -20,26 +20,7 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(grade);
 
-            grade.GradeName = ValidationHelper.ValidateString(grade.GradeName, nameof(grade.GradeName), minGradeNameLength, maxGradeNameLength);
-        }
-
-        private async Task EnsureGradeExistsAsync(byte gradeId)
-        {
-            if (!await _gradeData.IsGradeExistAsync(gradeId))
-                throw new KeyNotFoundException($"Grade with ID {gradeId} does not exist.");
-        }
-
-        private async Task EnsureGradeNameIsUniqueAsync(string gradeName, byte? currentGradeId = null)
-        {
-            GradeDTO? grade = await _gradeData.GetGradeByNameAsync(gradeName);
-
-            if (grade == null)
-                return;
-
-            if (currentGradeId.HasValue && grade.GradeID == currentGradeId.Value)
-                return;
-
-            throw new InvalidOperationException($"Grade '{gradeName}' already exists.");
+            grade.GradeName = ValidationHelper.ValidateString(grade.GradeName, nameof(grade.GradeName), MinGradeNameLength, MaxGradeNameLength);
         }
         #endregion
 
@@ -63,7 +44,7 @@ namespace School.BLL
 
         public async Task<GradeDTO?> GetGradeByNameAsync(string gradeName)
         {
-            gradeName = ValidationHelper.ValidateString(gradeName, nameof(gradeName), minGradeNameLength, maxGradeNameLength);
+            gradeName = ValidationHelper.ValidateString(gradeName, nameof(gradeName), MinGradeNameLength, MaxGradeNameLength);
 
             GradeDTO? gradeDTO = await _gradeData.GetGradeByNameAsync(gradeName);
 
@@ -77,7 +58,7 @@ namespace School.BLL
         {
             ValidateGrade(grade);
 
-            await EnsureGradeNameIsUniqueAsync(grade.GradeName);
+            await EnsureHelper.EnsureUniqueAsync(_gradeData.GetGradeByNameAsync, grade.GradeName);
             int newGradeId = await _gradeData.AddGradeAsync(grade);
 
             if (newGradeId <= 0)
@@ -92,9 +73,9 @@ namespace School.BLL
 
             ValidationHelper.ValidateId(grade.GradeID);
 
-            await EnsureGradeExistsAsync(grade.GradeID);
+            await EnsureHelper.EnsureExistsAsync(_gradeData.IsGradeExistAsync, grade.GradeID, "Grade");
 
-            await EnsureGradeNameIsUniqueAsync(grade.GradeName, grade.GradeID);
+            await EnsureHelper.EnsureUniqueAsync(_gradeData.GetGradeByNameAsync, grade.GradeName, g => g.GradeID, grade.GradeID);
 
             bool isUpdated = await _gradeData.UpdateGradeAsync(grade);
 
@@ -108,7 +89,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(gradeId);
 
-            await EnsureGradeExistsAsync(gradeId);
+            await EnsureHelper.EnsureExistsAsync(_gradeData.IsGradeExistAsync, gradeId, "Grade");
 
             bool isDeleted = await _gradeData.DeleteGradeAsync(gradeId);
             if (!isDeleted)

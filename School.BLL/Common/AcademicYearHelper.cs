@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace School.BLL.Helpers
+namespace School.BLL.Common
 {
     internal class AcademicYearHelper
     {

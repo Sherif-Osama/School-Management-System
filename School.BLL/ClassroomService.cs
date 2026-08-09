@@ -8,8 +8,8 @@ namespace School.BLL
     public class ClassroomService : IClassroomService
     {
         private readonly IClassroomData _classroomData;
-        private static int minRoomNameLength => 2;
-        private static int maxRoomNameLength => 20;
+        private static int MinRoomNameLength => 2;
+        private static int MaxRoomNameLength => 20;
         public ClassroomService(IClassroomData classroomData)
         {
             _classroomData = classroomData;
@@ -20,7 +20,7 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(classroom);
 
-            classroom.RoomName = ValidationHelper.ValidateString(classroom.RoomName, nameof(classroom.RoomName), minRoomNameLength, maxRoomNameLength);
+            classroom.RoomName = ValidationHelper.ValidateString(classroom.RoomName, nameof(classroom.RoomName), MinRoomNameLength, MaxRoomNameLength);
 
             ValidateCapacity(classroom.Capacity);
         }
@@ -38,31 +38,7 @@ namespace School.BLL
 
         #endregion
 
-        #region Ensure
-        private async Task EnsureClassroomExistsAsync(int classroomId)
-        {
-            if (!await _classroomData.IsClassroomExistAsync(classroomId))
-                throw new KeyNotFoundException(
-                    $"Classroom with ID {classroomId} does not exist.");
-        }
-
-        private async Task EnsureRoomNumberUniqueAsync(string roomName, int? currentClassroomId = null)
-        {
-            ClassroomDTO? classroom = await _classroomData.GetClassroomByRoomNameAsync(roomName);
-
-            if (classroom == null)
-                return;
-
-            if (currentClassroomId.HasValue && classroom.ClassroomID == currentClassroomId.Value)
-                return;
-
-            throw new InvalidOperationException($"Room with name {roomName} already exists.");
-        }
-
-        #endregion
-
         #region Public Methods
-
         public Task<List<ClassroomDTO>> GetAllClassroomsAsync()
         {
             return _classroomData.GetAllClassroomsAsync();
@@ -82,7 +58,7 @@ namespace School.BLL
 
         public async Task<ClassroomDTO?> GetClassroomByRoomNameAsync(string roomName)
         {
-            roomName = ValidationHelper.ValidateString(roomName, nameof(roomName), minRoomNameLength, maxRoomNameLength);
+            roomName = ValidationHelper.ValidateString(roomName, nameof(roomName), MinRoomNameLength, MaxRoomNameLength);
 
             ClassroomDTO? classroom = await _classroomData.GetClassroomByRoomNameAsync(roomName);
 
@@ -96,7 +72,7 @@ namespace School.BLL
         {
             ValidateClassroom(classroom);
 
-            await EnsureRoomNumberUniqueAsync(classroom.RoomName);
+            await EnsureHelper.EnsureUniqueAsync(_classroomData.GetClassroomByRoomNameAsync, classroom.RoomName);
 
             int newClassroomId = await _classroomData.AddClassroomAsync(classroom);
 
@@ -112,9 +88,9 @@ namespace School.BLL
 
             ValidationHelper.ValidateId(classroom.ClassroomID);
 
-            await EnsureClassroomExistsAsync(classroom.ClassroomID);
+            await EnsureHelper.EnsureExistsAsync(_classroomData.IsClassroomExistAsync, classroom.ClassroomID, "Classroom");
 
-            await EnsureRoomNumberUniqueAsync(classroom.RoomName, classroom.ClassroomID);
+            await EnsureHelper.EnsureUniqueAsync(_classroomData.GetClassroomByRoomNameAsync, classroom.RoomName, c => c.ClassroomID, classroom.ClassroomID);
 
             bool isUpdated = await _classroomData.UpdateClassroomAsync(classroom);
 
@@ -128,7 +104,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(classroomId);
 
-            await EnsureClassroomExistsAsync(classroomId);
+            await EnsureHelper.EnsureExistsAsync(_classroomData.IsClassroomExistAsync, classroomId, "Classroom");
 
             bool isDeleted = await _classroomData.DeleteClassroomAsync(classroomId);
 

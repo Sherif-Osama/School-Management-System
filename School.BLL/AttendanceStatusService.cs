@@ -8,8 +8,8 @@ namespace School.BLL
     public class AttendanceStatusService : IAttendanceStatusService
     {
         private readonly IAttendanceStatusData _attendanceStatusData;
-        private static int minStatusNameLength => 2;
-        private static int maxStatusNameLength => 50;
+        private static int MinStatusNameLength => 2;
+        private static int MaxStatusNameLength => 50;
         public AttendanceStatusService(IAttendanceStatusData attendanceStatusData)
         {
             _attendanceStatusData = attendanceStatusData;
@@ -20,23 +20,7 @@ namespace School.BLL
         {
             ArgumentNullException.ThrowIfNull(status);
 
-            status.StatusName = ValidationHelper.ValidateString(status.StatusName, nameof(status.StatusName), minStatusNameLength, maxStatusNameLength);
-        }
-        #endregion
-
-        #region Ensure
-        private async Task EnsureStatusExistsAsync(int statusId)
-        {
-            if (!await _attendanceStatusData.IsAttendanceStatusExistAsync(statusId))
-                throw new KeyNotFoundException($"AttendanceStatus with ID {statusId} does not exist.");
-        }
-
-        private async Task EnsureStatusNameUniqueAsync(string statusName, int? statusId = null)
-        {
-            AttendanceStatusDTO? existing = await _attendanceStatusData.GetAttendanceStatusByNameAsync(statusName);
-
-            if (existing != null && (statusId == null || existing.StatusID != statusId.Value))
-                throw new InvalidOperationException($"An attendance status named '{statusName}' already exists.");
+            status.StatusName = ValidationHelper.ValidateString(status.StatusName, nameof(status.StatusName), MinStatusNameLength, MaxStatusNameLength);
         }
         #endregion
 
@@ -60,7 +44,7 @@ namespace School.BLL
 
         public async Task<AttendanceStatusDTO?> GetAttendanceStatusByNameAsync(string statusName)
         {
-            statusName = ValidationHelper.ValidateString(statusName, nameof(statusName), minStatusNameLength, maxStatusNameLength);
+            statusName = ValidationHelper.ValidateString(statusName, nameof(statusName), MinStatusNameLength, MaxStatusNameLength);
 
             AttendanceStatusDTO? attendance = await _attendanceStatusData.GetAttendanceStatusByNameAsync(statusName);
 
@@ -73,8 +57,7 @@ namespace School.BLL
         public async Task<int> AddAttendanceStatusAsync(AttendanceStatusDTO status)
         {
             ValidateStatus(status);
-
-            await EnsureStatusNameUniqueAsync(status.StatusName);
+            await EnsureHelper.EnsureUniqueAsync(_attendanceStatusData.GetAttendanceStatusByNameAsync, status.StatusName);
 
             int newStatusId = await _attendanceStatusData.AddAttendanceStatusAsync(status);
 
@@ -89,8 +72,8 @@ namespace School.BLL
             ValidateStatus(status);
             ValidationHelper.ValidateId(status.StatusID);
 
-            await EnsureStatusExistsAsync(status.StatusID);
-            await EnsureStatusNameUniqueAsync(status.StatusName, status.StatusID);
+            await EnsureHelper.EnsureExistsAsync(_attendanceStatusData.IsAttendanceStatusExistAsync, status.StatusID, "Attendance Status");
+            await EnsureHelper.EnsureUniqueAsync(_attendanceStatusData.GetAttendanceStatusByNameAsync, status.StatusName, s => s.StatusID, status.StatusID);
 
             bool isUpdated = await _attendanceStatusData.UpdateAttendanceStatusAsync(status);
 
@@ -104,7 +87,7 @@ namespace School.BLL
         {
             ValidationHelper.ValidateId(statusId);
 
-            await EnsureStatusExistsAsync(statusId);
+            await EnsureHelper.EnsureExistsAsync(_attendanceStatusData.IsAttendanceStatusExistAsync, statusId, "Attendance Status");
 
             bool isDeleted = await _attendanceStatusData.DeleteAttendanceStatusAsync(statusId);
 
