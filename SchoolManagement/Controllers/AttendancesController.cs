@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using School.API.Authorization.OwnedResources;
+using School.API.Authorization.Requirements;
+using School.BLL.Authentication;
 using School.BLL.Interfaces;
 using School.DTO.AttendanceDTOs;
 
@@ -10,9 +13,12 @@ namespace School.API.Controllers
     public class AttendancesController : ControllerBase
     {
         private readonly IAttendanceService _attendanceService;
-        public AttendancesController(IAttendanceService attendanceService)
+        private readonly IAuthorizationService _authorizationService;
+
+        public AttendancesController(IAttendanceService attendanceService, IAuthorizationService authorizationService)
         {
             _attendanceService = attendanceService;
+            _authorizationService = authorizationService;
         }
 
         [HttpGet]
@@ -24,9 +30,10 @@ namespace School.API.Controllers
         }
 
         [HttpGet("{id:int}")]
-        [Authorize(Policy = "Attendance.View.All")]
+        [Authorize(Policy = "Attendance.View.Own")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<AttendanceDetailsDTO>> GetAttendanceById(int id)
         {
             AttendanceDetailsDTO? attendance = await _attendanceService.GetAttendanceByIdAsync(id);
@@ -34,14 +41,33 @@ namespace School.API.Controllers
             if (attendance == null)
                 return NotFound();
 
+            if (!User.HasClaim(CustomClaimTypes.Permission, "Attendance.View.All"))
+            {
+                var authResult = await _authorizationService.AuthorizeAsync(
+                    User, new StudentOwnedResource(attendance.StudentID), new OwnershipRequirement());
+
+                if (!authResult.Succeeded)
+                    return Forbid();
+            }
+
             return Ok(attendance);
         }
 
         [HttpGet("Student/{studentId:int}")]
-        [Authorize(Policy = "Attendance.View.All")]
+        [Authorize(Policy = "Attendance.View.Own")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<List<AttendanceDetailsDTO>>> GetAttendancesByStudentId(int studentId)
         {
+            if (!User.HasClaim(CustomClaimTypes.Permission, "Attendance.View.All"))
+            {
+                var authResult = await _authorizationService.AuthorizeAsync(
+                    User, new StudentOwnedResource(studentId), new OwnershipRequirement());
+
+                if (!authResult.Succeeded)
+                    return Forbid();
+            }
+
             return Ok(await _attendanceService.GetAttendancesByStudentIdAsync(studentId));
         }
 

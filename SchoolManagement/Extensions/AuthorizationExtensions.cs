@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using School.API.Authorization;
+using School.API.Authorization.Handlers;
+using School.API.Authorization.Policies;
 
 namespace School.API.Extensions
 {
@@ -7,10 +8,13 @@ namespace School.API.Extensions
     {
         public static IServiceCollection AddPermissionAuthorization(this IServiceCollection services)
         {
+            //this to register the custom authorization policy provider
             services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 
+            services.AddScoped<IAuthorizationHandler, StudentOwnershipHandler>();
+            services.AddScoped<IAuthorizationHandler, ParentOwnershipHandler>();
+            services.AddSingleton<IAuthorizationHandler, PersonOwnershipHandler>();
             services.AddAuthorization();
-
             return services;
         }
     }

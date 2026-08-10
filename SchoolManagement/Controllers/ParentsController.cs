@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using School.API.Authorization.OwnedResources;
+using School.API.Authorization.Requirements;
+using School.BLL.Authentication;
 using School.BLL.Interfaces;
 using School.DTO.ParentsDTOs;
 
@@ -10,10 +13,12 @@ namespace School.API.Controllers
     public class ParentsController : ControllerBase
     {
         private readonly IParentService _parentService;
+        private readonly IAuthorizationService _authorizationService;
 
-        public ParentsController(IParentService parentService)
+        public ParentsController(IParentService parentService, IAuthorizationService authorizationService)
         {
             _parentService = parentService;
+            _authorizationService = authorizationService;
         }
 
         [HttpGet]
@@ -28,12 +33,22 @@ namespace School.API.Controllers
         [Authorize(Policy = "Parents.View.Own")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<ParentDetailsDTO>> GetParentById(int id)
         {
             ParentDetailsDTO? parent = await _parentService.GetParentByIdAsync(id);
 
             if (parent == null)
                 return NotFound();
+
+            if (!User.HasClaim(CustomClaimTypes.Permission, "Parents.View.All"))
+            {
+                var authResult = await _authorizationService.AuthorizeAsync(
+                    User, new ParentOwnedResource(parent.ParentID), new OwnershipRequirement());
+
+                if (!authResult.Succeeded)
+                    return Forbid();
+            }
 
             return Ok(parent);
         }
@@ -42,6 +57,7 @@ namespace School.API.Controllers
         [Authorize(Policy = "Parents.View.Own")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<ParentDetailsDTO>> GetParentByPersonId(int personId)
         {
             ParentDetailsDTO? parent = await _parentService.GetParentByPersonIdAsync(personId);
@@ -49,11 +65,20 @@ namespace School.API.Controllers
             if (parent == null)
                 return NotFound();
 
+            if (!User.HasClaim(CustomClaimTypes.Permission, "Parents.View.All"))
+            {
+                var authResult = await _authorizationService.AuthorizeAsync(
+                    User, new ParentOwnedResource(parent.ParentID), new OwnershipRequirement());
+
+                if (!authResult.Succeeded)
+                    return Forbid();
+            }
+
             return Ok(parent);
         }
 
         [HttpGet("NationalID/{nationalId}")]
-        [Authorize(Policy = "Parents.View.Own")]
+        [Authorize(Policy = "Parents.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ParentDetailsDTO>> GetParentByNationalId(string nationalId)

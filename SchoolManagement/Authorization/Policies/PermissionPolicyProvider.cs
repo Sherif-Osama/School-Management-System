@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using School.BLL.Authentication;
 
-namespace School.API.Authorization
+namespace School.API.Authorization.Policies
 {
     public class PermissionPolicyProvider : IAuthorizationPolicyProvider
     {
@@ -25,10 +25,23 @@ namespace School.API.Authorization
 
         public Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
         {
-            AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
-                .RequireAuthenticatedUser().RequireClaim(CustomClaimTypes.Permission, policyName).Build();
+            var builder = new AuthorizationPolicyBuilder().RequireAuthenticatedUser();
 
-            return Task.FromResult<AuthorizationPolicy?>(policy);
+            if (policyName.EndsWith(".View.Own", StringComparison.OrdinalIgnoreCase))
+            {
+                // "Students.View.Own" -> "Students.View"
+                string basePermission = policyName[..^".Own".Length];
+
+                builder.RequireAssertion(ctx =>
+                    ctx.User.HasClaim(CustomClaimTypes.Permission, $"{basePermission}.All") ||
+                    ctx.User.HasClaim(CustomClaimTypes.Permission, $"{basePermission}.Own"));
+            }
+            else
+            {
+                builder.RequireClaim(CustomClaimTypes.Permission, policyName);
+            }
+
+            return Task.FromResult<AuthorizationPolicy?>(builder.Build());
         }
     }
 }

@@ -37,6 +37,7 @@ namespace School.BLL
             services.AddScoped<IUserRoleService, UserRoleService>();
             services.AddSingleton<IJwtService, JwtService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IOwnershipService, OwnershipService>();
             return services;
         }
     }

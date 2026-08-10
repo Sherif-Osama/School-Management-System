@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using School.API.Authorization.OwnedResources;
+using School.API.Authorization.Requirements;
+using School.BLL.Authentication;
 using School.BLL.Interfaces;
 using School.DTO.StudentGradeDetailsDTOs;
 using School.DTO.StudentGradeDTOs;
@@ -11,10 +14,12 @@ namespace School.API.Controllers
     public class StudentGradesController : ControllerBase
     {
         private readonly IStudentGradeService _studentGradeService;
+        private readonly IAuthorizationService _authorizationService;
 
-        public StudentGradesController(IStudentGradeService studentGradeService)
+        public StudentGradesController(IStudentGradeService studentGradeService, IAuthorizationService authorizationService)
         {
             _studentGradeService = studentGradeService;
+            _authorizationService = authorizationService;
         }
 
         [HttpGet]
@@ -29,6 +34,7 @@ namespace School.API.Controllers
         [Authorize(Policy = "Grades.View.Own")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<StudentGradeDetailsDTO>> GetStudentGradeById(int id)
         {
             StudentGradeDetailsDTO? studentGrade = await _studentGradeService.GetStudentGradeByIdAsync(id);
@@ -36,17 +42,37 @@ namespace School.API.Controllers
             if (studentGrade == null)
                 return NotFound();
 
+            if (!User.HasClaim(CustomClaimTypes.Permission, "Grades.View.All"))
+            {
+                var authResult = await _authorizationService.AuthorizeAsync(
+                    User, new StudentOwnedResource(studentGrade.StudentID), new OwnershipRequirement());
+
+                if (!authResult.Succeeded)
+                    return Forbid();
+            }
+
             return Ok(studentGrade);
         }
 
         [HttpGet("Student/{studentId:int}")]
         [Authorize(Policy = "Grades.View.Own")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<List<StudentGradeDetailsDTO>>> GetStudentGradesByStudentId(int studentId)
         {
+            if (!User.HasClaim(CustomClaimTypes.Permission, "Grades.View.All"))
+            {
+                var authResult = await _authorizationService.AuthorizeAsync(
+                    User, new StudentOwnedResource(studentId), new OwnershipRequirement());
+
+                if (!authResult.Succeeded)
+                    return Forbid();
+            }
+
             return Ok(await _studentGradeService.GetStudentGradesByStudentIdAsync(studentId));
         }
 
+        // إرجاع درجات كل الطلاب في امتحان واحد - مفيش معنى لـ "Own" هنا، فضلت .All بس
         [HttpGet("Exam/{examId:int}")]
         [Authorize(Policy = "Grades.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
