@@ -1,15 +1,16 @@
-﻿using School.DTO.GradesDTOs;
+﻿using School.DTO.GradesDTOs.Requests;
+using School.DTO.GradesDTOs.Responses;
 
 namespace School.DAL.Interfaces
 {
     public interface IGradeData
     {
-        Task<int> AddGradeAsync(GradeDTO grade);
+        Task<int> AddGradeAsync(CreateGradeRequest grade);
         Task<bool> DeleteGradeAsync(byte gradeId);
-        Task<List<GradeDTO>> GetAllGradesAsync();
-        Task<GradeDTO?> GetGradeByIdAsync(byte gradeId);
-        Task<GradeDTO?> GetGradeByNameAsync(string gradeName);
+        Task<List<GradeResponse>> GetAllGradesAsync();
+        Task<GradeResponse?> GetGradeByIdAsync(byte gradeId);
+        Task<GradeResponse?> GetGradeByNameAsync(string gradeName);
         Task<bool> IsGradeExistAsync(byte gradeId);
-        Task<bool> UpdateGradeAsync(GradeDTO grade);
+        Task<bool> UpdateGradeAsync(byte gradeId, UpdateGradeRequest grade);
     }
 }

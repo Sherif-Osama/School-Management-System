@@ -2,9 +2,9 @@
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.ExamDTOs;
-using School.DTO.StudentGradeDetailsDTOs;
-using School.DTO.StudentGradeDTOs;
-using School.DTO.StudentsDTOs;
+using School.DTO.StudentGradeDTOs.Requests;
+using School.DTO.StudentGradeDTOs.Responses;
+using School.DTO.StudentsDTOs.Responses;
 
 namespace School.BLL
 {
@@ -22,7 +22,7 @@ namespace School.BLL
         }
 
         #region Validation
-        private static void ValidateStudentGrade(StudentGradeDTO studentGrade)
+        private static void ValidateStudentGrade(CreateStudentGradeRequest studentGrade)
         {
             ArgumentNullException.ThrowIfNull(studentGrade);
 
@@ -30,7 +30,11 @@ namespace School.BLL
             ValidationHelper.ValidateId(studentGrade.ExamID);
             ValidateGrade(studentGrade.Grade);
         }
-
+        private static void ValidateStudentGrade(UpdateStudentGradeRequest studentGrade)
+        {
+            ArgumentNullException.ThrowIfNull(studentGrade);
+            ValidateGrade(studentGrade.Grade);
+        }
         private static void ValidateGrade(decimal grade)
         {
             if (grade < 0)
@@ -42,19 +46,25 @@ namespace School.BLL
         #endregion
 
         #region Ensure
-        private async Task<StudentDetailsDTO> GetStudentOrThrowAsync(int studentId)
+        private async Task<StudentResponse> GetStudentOrThrowAsync(int studentId)
         {
             return await _studentData.GetStudentByIdAsync(studentId)
                 ?? throw new KeyNotFoundException($"Student with ID {studentId} does not exist.");
         }
 
-        private async Task<ExamDetailsDTO> GetExamOrThrowAsync(int examId)
+        private async Task<StudentGradeResponse> GetstudentGradeOrThrowAsync(int studentGradeId)
+        {
+            return await _studentGradeData.GetStudentGradeByIdAsync(studentGradeId)
+                ?? throw new KeyNotFoundException($"student GradeId with ID {studentGradeId} does not exist.");
+        }
+
+        private async Task<ExamResponse> GetExamOrThrowAsync(int examId)
         {
             return await _examData.GetExamByIdAsync(examId)
                 ?? throw new KeyNotFoundException($"Exam with ID {examId} does not exist.");
         }
 
-        private static void EnsureStudentIsActive(StudentDetailsDTO student)
+        private static void EnsureStudentIsActive(StudentResponse student)
         {
             if (student.StatusID != 1) // Assuming 1 is the ID for active student status
                 throw new InvalidOperationException(
@@ -62,14 +72,14 @@ namespace School.BLL
         }
 
 
-        private static void EnsureStudentBelongsToExamClass(StudentDetailsDTO student, ExamDetailsDTO exam)
+        private static void EnsureStudentBelongsToExamClass(StudentResponse student, ExamResponse exam)
         {
             if (student.ClassID != exam.ClassID)
                 throw new InvalidOperationException(
                     $"Student {student.StudentID} belongs to class '{student.ClassName}', but the exam belongs to class '{exam.ClassName}'.");
         }
 
-        private static void EnsureGradeWithinTotalMarks(decimal grade, ExamDetailsDTO exam)
+        private static void EnsureGradeWithinTotalMarks(decimal grade, ExamResponse exam)
         {
             if (grade > exam.TotalMarks)
                 throw new ArgumentException($"Grade ({grade}) cannot exceed the exam's TotalMarks ({exam.TotalMarks}).", nameof(grade));
@@ -84,7 +94,7 @@ namespace School.BLL
         //this method need to optimization!!!
         private async Task EnsureStudentGradeUniqueAsync(int studentId, int examId, int? studentGradeId = null)
         {
-            List<StudentGradeDetailsDTO> examGrades = await _studentGradeData.GetStudentGradesByExamIdAsync(examId);
+            List<StudentGradeResponse> examGrades = await _studentGradeData.GetStudentGradesByExamIdAsync(examId);
 
             bool isDuplicate = examGrades.Exists(g =>
                 g.StudentID == studentId &&
@@ -97,16 +107,16 @@ namespace School.BLL
         #endregion
 
         #region Public
-        public Task<List<StudentGradeDetailsDTO>> GetAllStudentGradesAsync()
+        public Task<List<StudentGradeResponse>> GetAllStudentGradesAsync()
         {
             return _studentGradeData.GetAllStudentGradesAsync();
         }
 
-        public async Task<StudentGradeDetailsDTO?> GetStudentGradeByIdAsync(int studentGradeId)
+        public async Task<StudentGradeResponse?> GetStudentGradeByIdAsync(int studentGradeId)
         {
             ValidationHelper.ValidateId(studentGradeId);
 
-            StudentGradeDetailsDTO? studentGradeDetails = await _studentGradeData.GetStudentGradeByIdAsync(studentGradeId);
+            StudentGradeResponse? studentGradeDetails = await _studentGradeData.GetStudentGradeByIdAsync(studentGradeId);
 
             if (studentGradeDetails == null)
                 throw new KeyNotFoundException($"StudentGrade with ID {studentGradeId} does not exist.");
@@ -114,40 +124,40 @@ namespace School.BLL
             return studentGradeDetails;
         }
 
-        public Task<List<StudentGradeDetailsDTO>> GetStudentGradesByStudentIdAsync(int studentId)
+        public Task<List<StudentGradeResponse>> GetStudentGradesByStudentIdAsync(int studentId)
         {
             ValidationHelper.ValidateId(studentId);
 
             return _studentGradeData.GetStudentGradesByStudentIdAsync(studentId);
         }
 
-        public Task<List<StudentGradeDetailsDTO>> GetStudentGradesByExamIdAsync(int examId)
+        public Task<List<StudentGradeResponse>> GetStudentGradesByExamIdAsync(int examId)
         {
             ValidationHelper.ValidateId(examId);
 
             return _studentGradeData.GetStudentGradesByExamIdAsync(examId);
         }
 
-        public Task<List<StudentGradeDetailsDTO>> GetStudentGradesByClassIdAsync(int classId)
+        public Task<List<StudentGradeResponse>> GetStudentGradesByClassIdAsync(int classId)
         {
             ValidationHelper.ValidateId(classId);
 
             return _studentGradeData.GetStudentGradesByClassIdAsync(classId);
         }
 
-        public Task<List<StudentGradeDetailsDTO>> GetStudentGradesBySubjectIdAsync(int subjectId)
+        public Task<List<StudentGradeResponse>> GetStudentGradesBySubjectIdAsync(int subjectId)
         {
             ValidationHelper.ValidateId(subjectId);
 
             return _studentGradeData.GetStudentGradesBySubjectIdAsync(subjectId);
         }
 
-        public async Task<int> AddStudentGradeAsync(StudentGradeDTO studentGrade)
+        public async Task<int> AddStudentGradeAsync(CreateStudentGradeRequest studentGrade)
         {
             ValidateStudentGrade(studentGrade);
 
-            StudentDetailsDTO student = await GetStudentOrThrowAsync(studentGrade.StudentID);
-            ExamDetailsDTO exam = await GetExamOrThrowAsync(studentGrade.ExamID);
+            StudentResponse student = await GetStudentOrThrowAsync(studentGrade.StudentID);
+            ExamResponse exam = await GetExamOrThrowAsync(studentGrade.ExamID);
 
             EnsureStudentIsActive(student);
             EnsureStudentBelongsToExamClass(student, exam);
@@ -163,26 +173,24 @@ namespace School.BLL
             return newStudentGradeId;
         }
 
-        public async Task<bool> UpdateStudentGradeAsync(StudentGradeDTO studentGrade)
+        public async Task<bool> UpdateStudentGradeAsync(int studentGradeId, UpdateStudentGradeRequest studentGrade)
         {
+            ValidationHelper.ValidateId(studentGradeId);
+
             ValidateStudentGrade(studentGrade);
-            ValidationHelper.ValidateId(studentGrade.StudentGradeID);
 
-            await EnsureHelper.EnsureExistsAsync(_studentGradeData.IsStudentGradeExistAsync, studentGrade.StudentGradeID, "Student Grade");
-
-            StudentDetailsDTO student = await GetStudentOrThrowAsync(studentGrade.StudentID);
-            ExamDetailsDTO exam = await GetExamOrThrowAsync(studentGrade.ExamID);
+            var CurrentstudentGrade = await GetstudentGradeOrThrowAsync(studentGradeId);
+            var student = await GetStudentOrThrowAsync(CurrentstudentGrade.StudentID);
+            var exam = await GetExamOrThrowAsync(CurrentstudentGrade.ExamID);
 
             EnsureStudentIsActive(student);
-            EnsureStudentBelongsToExamClass(student, exam);
             EnsureGradeWithinTotalMarks(studentGrade.Grade, exam);
             EnsureGradeConsistentWithAbsence(studentGrade.Grade, studentGrade.IsAbsent);
-            await EnsureStudentGradeUniqueAsync(studentGrade.StudentID, studentGrade.ExamID, studentGrade.StudentGradeID);
 
-            bool isUpdated = await _studentGradeData.UpdateStudentGradeAsync(studentGrade);
+            bool isUpdated = await _studentGradeData.UpdateStudentGradeAsync(studentGradeId, studentGrade);
 
             if (!isUpdated)
-                throw new InvalidOperationException($"Failed to update the student grade with ID {studentGrade.StudentGradeID}");
+                throw new InvalidOperationException($"Failed to update the student grade with ID {studentGradeId}");
 
             return isUpdated;
         }

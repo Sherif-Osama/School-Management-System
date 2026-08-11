@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
-using School.DTO.RoleDTOs;
+using School.DTO.RoleDTOs.Requests;
+using School.DTO.RoleDTOs.Responses;
 
 namespace School.API.Controllers
 {
@@ -19,7 +20,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Roles.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<RoleDTO>>> GetAllRoles()
+        public async Task<ActionResult<List<RoleResponse>>> GetAllRoles()
         {
             return Ok(await _roleService.GetAllRolesAsync());
         }
@@ -28,9 +29,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Roles.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<RoleDTO>> GetRoleById(int id)
+        public async Task<ActionResult<RoleResponse>> GetRoleById(int id)
         {
-            RoleDTO? role = await _roleService.GetRoleByIdAsync(id);
+            RoleResponse? role = await _roleService.GetRoleByIdAsync(id);
 
             if (role == null)
                 return NotFound();
@@ -42,9 +43,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Roles.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<RoleDTO>> GetRoleByName(string roleName)
+        public async Task<ActionResult<RoleResponse>> GetRoleByName(string roleName)
         {
-            RoleDTO? role = await _roleService.GetRoleByNameAsync(roleName);
+            RoleResponse? role = await _roleService.GetRoleByNameAsync(roleName);
 
             if (role == null)
                 return NotFound();
@@ -55,7 +56,7 @@ namespace School.API.Controllers
         [HttpPost]
         [Authorize(Policy = "Roles.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult<int>> AddRole(RoleDTO role)
+        public async Task<ActionResult<int>> AddRole(CreateRoleRequest role)
         {
             int roleId = await _roleService.AddRoleAsync(role);
 
@@ -63,12 +64,12 @@ namespace School.API.Controllers
                 nameof(GetRoleById), new { id = roleId }, roleId);
         }
 
-        [HttpPut]
+        [HttpPut("{roleId:int}")]
         [Authorize(Policy = "Roles.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateRole(RoleDTO role)
+        public async Task<IActionResult> UpdateRole(int roleId, UpdateRoleRequest role)
         {
-            await _roleService.UpdateRoleAsync(role);
+            await _roleService.UpdateRoleAsync(roleId, role);
 
             return Ok();
         }

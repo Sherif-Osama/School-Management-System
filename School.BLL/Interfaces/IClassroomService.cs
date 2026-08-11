@@ -1,15 +1,16 @@
-﻿using School.DTO.ClassroomDTOs;
+﻿using School.DTO.ClassroomDTOs.Requests;
+using School.DTO.ClassroomDTOs.Responses;
 
 namespace School.BLL.Interfaces
 {
     public interface IClassroomService
     {
-        Task<int> AddClassroomAsync(ClassroomDTO classroom);
+        Task<int> AddClassroomAsync(CreateClassroomRequest classroom);
         Task<bool> DeleteClassroomAsync(int classroomId);
-        Task<List<ClassroomDTO>> GetAllClassroomsAsync();
-        Task<ClassroomDTO?> GetClassroomByIdAsync(int classroomId);
-        Task<ClassroomDTO?> GetClassroomByRoomNameAsync(string roomName);
+        Task<List<ClassroomResponse>> GetAllClassroomsAsync();
+        Task<ClassroomResponse?> GetClassroomByIdAsync(int classroomId);
+        Task<ClassroomResponse?> GetClassroomByRoomNameAsync(string roomName);
         Task<bool> IsClassroomExistAsync(int classroomId);
-        Task<bool> UpdateClassroomAsync(ClassroomDTO classroom);
+        Task<bool> UpdateClassroomAsync(int classroomId, UpdateClassroomRequest classroom);
     }
 }

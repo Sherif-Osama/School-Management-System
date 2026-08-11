@@ -19,7 +19,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Roles.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<RolePermissionDetailsDTO>>> GetAllRolePermissions()
+        public async Task<ActionResult<List<RolePermissionResponse>>> GetAllRolePermissions()
         {
             return Ok(await _rolePermissionService.GetAllRolePermissionsAsync());
         }
@@ -28,9 +28,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Roles.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<RolePermissionDetailsDTO>> GetRolePermission(int roleId, int permissionId)
+        public async Task<ActionResult<RolePermissionResponse>> GetRolePermission(int roleId, int permissionId)
         {
-            RolePermissionDetailsDTO? rolePermission =
+            RolePermissionResponse? rolePermission =
                 await _rolePermissionService.GetRolePermissionAsync(roleId, permissionId);
 
             if (rolePermission == null)
@@ -42,9 +42,9 @@ namespace School.API.Controllers
         [HttpGet("Role/{roleId:int}")]
         [Authorize(Policy = "Roles.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<RolePermissionDetailsDTO>>> GetPermissionsByRoleId(int roleId)
+        public async Task<ActionResult<List<RolePermissionResponse>>> GetPermissionsByRoleId(int roleId)
         {
-            List<RolePermissionDetailsDTO> permissions =
+            List<RolePermissionResponse> permissions =
                 await _rolePermissionService.GetPermissionsByRoleIdAsync(roleId);
 
             if (permissions.Count == 0)
@@ -56,7 +56,7 @@ namespace School.API.Controllers
         [HttpPost]
         [Authorize(Policy = "Roles.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> AddRolePermission(RolePermissionDTO rolePermission)
+        public async Task<IActionResult> AddRolePermission(RolePermissionRequest rolePermission)
         {
             await _rolePermissionService.AddRolePermissionAsync(rolePermission);
 

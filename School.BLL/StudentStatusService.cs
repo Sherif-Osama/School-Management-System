@@ -1,7 +1,8 @@
 ﻿using School.BLL.Common;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.StudentStatusDTOs;
+using School.DTO.StudentStatusDTOs.Requests;
+using School.DTO.StudentStatusDTOs.Responses;
 
 namespace School.BLL
 {
@@ -16,25 +17,30 @@ namespace School.BLL
         }
 
         #region Validation
-        private static void ValidateStatus(StudentStatusDTO status)
+        private static void ValidateStatus(CreateStudentStatusRequest status)
         {
             ArgumentNullException.ThrowIfNull(status);
 
             status.StatusName = ValidationHelper.ValidateString(status.StatusName, nameof(status.StatusName), MinStatusNameLength, MaxStatusNameLength);
         }
+        private static void ValidateStatus(UpdateStudentStatusRequest status)
+        {
+            ArgumentNullException.ThrowIfNull(status);
+            status.StatusName = ValidationHelper.ValidateString(status.StatusName, nameof(status.StatusName), MinStatusNameLength, MaxStatusNameLength);
+        }
         #endregion
 
         #region Public
-        public async Task<List<StudentStatusDTO>> GetAllStudentStatusesAsync()
+        public async Task<List<StudentStatusResponse>> GetAllStudentStatusesAsync()
         {
             return await _studentStatusData.GetAllStudentStatusesAsync();
         }
 
-        public async Task<StudentStatusDTO?> GetStudentStatusByIdAsync(int statusId)
+        public async Task<StudentStatusResponse?> GetStudentStatusByIdAsync(int statusId)
         {
             ValidationHelper.ValidateId(statusId);
 
-            StudentStatusDTO? status = await _studentStatusData.GetStudentStatusByIdAsync(statusId);
+            StudentStatusResponse? status = await _studentStatusData.GetStudentStatusByIdAsync(statusId);
 
             if (status == null)
                 throw new KeyNotFoundException($"Student status with ID {statusId} does not exist.");
@@ -42,11 +48,11 @@ namespace School.BLL
             return status;
         }
 
-        public async Task<StudentStatusDTO?> GetStudentStatusByNameAsync(string statusName)
+        public async Task<StudentStatusResponse?> GetStudentStatusByNameAsync(string statusName)
         {
             statusName = ValidationHelper.ValidateString(statusName, nameof(statusName), MinStatusNameLength, MaxStatusNameLength);
 
-            StudentStatusDTO? status = await _studentStatusData.GetStudentStatusByNameAsync(statusName);
+            StudentStatusResponse? status = await _studentStatusData.GetStudentStatusByNameAsync(statusName);
 
             if (status == null)
                 throw new KeyNotFoundException($"Student status '{statusName}' does not exist.");
@@ -54,7 +60,7 @@ namespace School.BLL
             return status;
         }
 
-        public async Task<int> AddStudentStatusAsync(StudentStatusDTO status)
+        public async Task<int> AddStudentStatusAsync(CreateStudentStatusRequest status)
         {
             ValidateStatus(status);
 
@@ -68,18 +74,18 @@ namespace School.BLL
             return newStatusId;
         }
 
-        public async Task<bool> UpdateStudentStatusAsync(StudentStatusDTO status)
+        public async Task<bool> UpdateStudentStatusAsync(int statusId, UpdateStudentStatusRequest status)
         {
             ValidateStatus(status);
-            ValidationHelper.ValidateId(status.StatusID);
+            ValidationHelper.ValidateId(statusId);
 
-            await EnsureHelper.EnsureExistsAsync(_studentStatusData.IsStudentStatusExistAsync, status.StatusID, "Student Status");
-            await EnsureHelper.EnsureUniqueAsync(_studentStatusData.GetStudentStatusByNameAsync, status.StatusName, s => s.StatusID, status.StatusID);
+            await EnsureHelper.EnsureExistsAsync(_studentStatusData.IsStudentStatusExistAsync, statusId, "Student Status");
+            await EnsureHelper.EnsureUniqueAsync(_studentStatusData.GetStudentStatusByNameAsync, status.StatusName, s => s.StatusID, statusId);
 
-            bool isUpdated = await _studentStatusData.UpdateStudentStatusAsync(status);
+            bool isUpdated = await _studentStatusData.UpdateStudentStatusAsync(statusId, status);
 
             if (!isUpdated)
-                throw new InvalidOperationException($"Failed to update student status with ID {status.StatusID}.");
+                throw new InvalidOperationException($"Failed to update student status with ID {statusId}.");
 
             return isUpdated;
         }

@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
-using School.DTO.StudentStatusDTOs;
+using School.DTO.StudentStatusDTOs.Requests;
+using School.DTO.StudentStatusDTOs.Responses;
 
 namespace School.API.Controllers
 {
@@ -19,7 +20,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Students.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<StudentStatusDTO>>> GetAllStudentStatuses()
+        public async Task<ActionResult<List<StudentStatusResponse>>> GetAllStudentStatuses()
         {
             return Ok(await _studentStatusService.GetAllStudentStatusesAsync());
         }
@@ -28,9 +29,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Students.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<StudentStatusDTO>> GetStudentStatusById(int id)
+        public async Task<ActionResult<StudentStatusResponse>> GetStudentStatusById(int id)
         {
-            StudentStatusDTO? status = await _studentStatusService.GetStudentStatusByIdAsync(id);
+            StudentStatusResponse? status = await _studentStatusService.GetStudentStatusByIdAsync(id);
 
             if (status == null)
                 return NotFound();
@@ -42,9 +43,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Students.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<StudentStatusDTO>> GetStudentStatusByName(string statusName)
+        public async Task<ActionResult<StudentStatusResponse>> GetStudentStatusByName(string statusName)
         {
-            StudentStatusDTO? status = await _studentStatusService.GetStudentStatusByNameAsync(statusName);
+            StudentStatusResponse? status = await _studentStatusService.GetStudentStatusByNameAsync(statusName);
 
             if (status == null)
                 return NotFound();
@@ -55,9 +56,9 @@ namespace School.API.Controllers
         [HttpPost]
         [Authorize(Policy = "Students.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult<int>> AddStudentStatus(StudentStatusDTO statusDTO)
+        public async Task<ActionResult<int>> AddStudentStatus(CreateStudentStatusRequest status)
         {
-            int statusId = await _studentStatusService.AddStudentStatusAsync(statusDTO);
+            int statusId = await _studentStatusService.AddStudentStatusAsync(status);
 
             return CreatedAtAction(
                 nameof(GetStudentStatusById),
@@ -65,12 +66,12 @@ namespace School.API.Controllers
                 statusId);
         }
 
-        [HttpPut]
+        [HttpPut("{statusId:int}")]
         [Authorize(Policy = "Students.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> UpdateStudentStatus(StudentStatusDTO statusDTO)
+        public async Task<ActionResult> UpdateStudentStatus(int statusId, UpdateStudentStatusRequest status)
         {
-            await _studentStatusService.UpdateStudentStatusAsync(statusDTO);
+            await _studentStatusService.UpdateStudentStatusAsync(statusId, status);
 
             return Ok();
         }

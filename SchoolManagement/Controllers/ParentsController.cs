@@ -4,7 +4,8 @@ using School.API.Authorization.OwnedResources;
 using School.API.Authorization.Requirements;
 using School.BLL.Authentication;
 using School.BLL.Interfaces;
-using School.DTO.ParentsDTOs;
+using School.DTO.ParentsDTOs.Requests;
+using School.DTO.ParentsDTOs.Responses;
 
 namespace School.API.Controllers
 {
@@ -24,7 +25,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Parents.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<ParentDetailsDTO>>> GetAllParents()
+        public async Task<ActionResult<List<ParentResponse>>> GetAllParents()
         {
             return Ok(await _parentService.GetAllParentsAsync());
         }
@@ -34,9 +35,9 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<ParentDetailsDTO>> GetParentById(int id)
+        public async Task<ActionResult<ParentResponse>> GetParentById(int id)
         {
-            ParentDetailsDTO? parent = await _parentService.GetParentByIdAsync(id);
+            ParentResponse? parent = await _parentService.GetParentByIdAsync(id);
 
             if (parent == null)
                 return NotFound();
@@ -58,9 +59,9 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<ParentDetailsDTO>> GetParentByPersonId(int personId)
+        public async Task<ActionResult<ParentResponse>> GetParentByPersonId(int personId)
         {
-            ParentDetailsDTO? parent = await _parentService.GetParentByPersonIdAsync(personId);
+            ParentResponse? parent = await _parentService.GetParentByPersonIdAsync(personId);
 
             if (parent == null)
                 return NotFound();
@@ -81,9 +82,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Parents.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ParentDetailsDTO>> GetParentByNationalId(string nationalId)
+        public async Task<ActionResult<ParentResponse>> GetParentByNationalId(string nationalId)
         {
-            ParentDetailsDTO? parent = await _parentService.GetParentByNationalIdAsync(nationalId);
+            ParentResponse? parent = await _parentService.GetParentByNationalIdAsync(nationalId);
 
             if (parent == null)
                 return NotFound();
@@ -94,24 +95,14 @@ namespace School.API.Controllers
         [HttpPost]
         [Authorize(Policy = "Parents.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult<int>> AddParent(ParentDTO parentDTO)
+        public async Task<ActionResult<int>> AddParent(CreateParentRequest parent)
         {
-            int parentId = await _parentService.AddParentAsync(parentDTO);
+            int parentId = await _parentService.AddParentAsync(parent);
 
             return CreatedAtAction(
                 nameof(GetParentById),
                 new { id = parentId },
                 parentId);
-        }
-
-        [HttpPut]
-        [Authorize(Policy = "Parents.Update")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> UpdateParent(ParentDTO parentDTO)
-        {
-            await _parentService.UpdateParentAsync(parentDTO);
-
-            return Ok();
         }
 
         [HttpDelete("{id:int}")]

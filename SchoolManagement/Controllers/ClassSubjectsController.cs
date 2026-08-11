@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
-using School.DTO.AssociationsDTOs.ClassSubjectDTOs;
+using School.DTO.AssociationsDTOs.ClassSubjectDTOs.Requests;
+using School.DTO.AssociationsDTOs.ClassSubjectDTOs.Responses;
 
 namespace School.API.Controllers
 {
@@ -19,7 +20,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Classes.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<ClassSubjectDetailsDTO>>> GetAllClassSubjects()
+        public async Task<ActionResult<List<ClassSubjectResponse>>> GetAllClassSubjects()
         {
             return Ok(await _classSubjectService.GetAllClassSubjectsAsync());
         }
@@ -28,9 +29,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Classes.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ClassSubjectDetailsDTO>> GetClassSubjectById(int id)
+        public async Task<ActionResult<ClassSubjectResponse>> GetClassSubjectById(int id)
         {
-            ClassSubjectDetailsDTO? classSubject =
+            ClassSubjectResponse? classSubject =
                 await _classSubjectService.GetClassSubjectByIdAsync(id);
 
             if (classSubject == null)
@@ -42,7 +43,7 @@ namespace School.API.Controllers
         [HttpGet("Class/{classId:int}")]
         [Authorize(Policy = "Classes.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<ClassSubjectDetailsDTO>>> GetClassSubjectsByClassId(int classId)
+        public async Task<ActionResult<List<ClassSubjectResponse>>> GetClassSubjectsByClassId(int classId)
         {
             return Ok(await _classSubjectService.GetClassSubjectsByClassIdAsync(classId));
         }
@@ -50,7 +51,7 @@ namespace School.API.Controllers
         [HttpGet("Teacher/{teacherId:int}")]
         [Authorize(Policy = "Classes.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<ClassSubjectDetailsDTO>>> GetClassSubjectsByTeacherId(int teacherId)
+        public async Task<ActionResult<List<ClassSubjectResponse>>> GetClassSubjectsByTeacherId(int teacherId)
         {
             return Ok(await _classSubjectService.GetClassSubjectsByTeacherIdAsync(teacherId));
         }
@@ -58,7 +59,7 @@ namespace School.API.Controllers
         [HttpGet("Subject/{subjectId:int}")]
         [Authorize(Policy = "Classes.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<ClassSubjectDetailsDTO>>> GetClassSubjectsBySubjectId(byte subjectId)
+        public async Task<ActionResult<List<ClassSubjectResponse>>> GetClassSubjectsBySubjectId(byte subjectId)
         {
             return Ok(await _classSubjectService.GetClassSubjectsBySubjectIdAsync(subjectId));
         }
@@ -66,7 +67,7 @@ namespace School.API.Controllers
         [HttpPost]
         [Authorize(Policy = "Classes.Update")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult<int>> AddClassSubject(ClassSubjectDTO classSubject)
+        public async Task<ActionResult<int>> AddClassSubject(CreateClassSubjectRequest classSubject)
         {
             int classSubjectId =
                 await _classSubjectService.AddClassSubjectAsync(classSubject);
@@ -77,12 +78,12 @@ namespace School.API.Controllers
                 classSubjectId);
         }
 
-        [HttpPut]
+        [HttpPut("{classsubjectID:int}")]
         [Authorize(Policy = "Classes.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateClassSubject(ClassSubjectDTO classSubject)
+        public async Task<IActionResult> UpdateClassSubject(int classsubjectID, UpdateClassSubjectRequest classSubject)
         {
-            await _classSubjectService.UpdateClassSubjectAsync(classSubject);
+            await _classSubjectService.UpdateClassSubjectAsync(classsubjectID, classSubject);
 
             return Ok();
         }

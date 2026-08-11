@@ -1,7 +1,8 @@
 ﻿using School.BLL.Common;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.StudentsDTOs;
+using School.DTO.StudentsDTOs.Requests;
+using School.DTO.StudentsDTOs.Responses;
 
 namespace School.BLL
 {
@@ -23,17 +24,29 @@ namespace School.BLL
         }
 
         #region Helpers Methods
-        private static void ValidateStudent(StudentDTO student)
+        private static void ValidateEnrollmentDate(DateTime enrollmentDate)
+        {
+            if (enrollmentDate == default || enrollmentDate > DateTime.Today)
+                throw new ArgumentException("Enrollment date is invalid.", nameof(enrollmentDate));
+        }
+
+        private static void ValidateStudent(CreateStudentRequest student)
         {
             ArgumentNullException.ThrowIfNull(student);
             ValidationHelper.ValidateId(student.PersonID);
             ValidationHelper.ValidateId(student.ClassID);
             ValidationHelper.ValidateId(student.StatusID);
+            ValidateEnrollmentDate(student.EnrollmentDate);
 
-            if (student.EnrollmentDate == default || student.EnrollmentDate > DateTime.Now)
-                throw new ArgumentException("Enrollment date is invalid.", nameof(student.EnrollmentDate));
         }
 
+        private static void ValidateStudent(UpdateStudentRequest student)
+        {
+            ArgumentNullException.ThrowIfNull(student);
+            ValidationHelper.ValidateId(student.ClassID);
+            ValidationHelper.ValidateId(student.StatusID);
+            ValidateEnrollmentDate(student.EnrollmentDate);
+        }
         // A person who is already a Teacher cannot also be registered as a Student.
         private async Task EnsurePersonIsNotTeacherAsync(int personId)
         {
@@ -48,7 +61,7 @@ namespace School.BLL
                 throw new InvalidOperationException($"Person ID {personId} is already registered as a parent.");
         }
 
-        private async Task<StudentDetailsDTO> EnsureStudentExistsAsync(int studentId)
+        private async Task<StudentResponse> EnsureStudentExistsAsync(int studentId)
         {
             var student = await _studentData.GetStudentByIdAsync(studentId);
 
@@ -67,36 +80,36 @@ namespace School.BLL
         #endregion
 
         #region Public Methods
-        public async Task<List<StudentDetailsDTO>> GetAllStudentsAsync()
+        public async Task<List<StudentResponse>> GetAllStudentsAsync()
         {
             return await _studentData.GetAllStudentsAsync();
         }
 
-        public async Task<StudentDetailsDTO?> GetStudentByIdAsync(int studentId)
+        public async Task<StudentResponse?> GetStudentByIdAsync(int studentId)
         {
             ValidationHelper.ValidateId(studentId);
 
-            StudentDetailsDTO? studentDetailsDTO = await _studentData.GetStudentByIdAsync(studentId);
+            StudentResponse? student = await _studentData.GetStudentByIdAsync(studentId);
 
-            if (studentDetailsDTO == null)
+            if (student == null)
                 throw new KeyNotFoundException($"Student with ID {studentId} does not exist.");
 
-            return studentDetailsDTO;
+            return student;
         }
 
-        public async Task<StudentDetailsDTO?> GetStudentByPersonIdAsync(int personId)
+        public async Task<StudentResponse?> GetStudentByPersonIdAsync(int personId)
         {
             ValidationHelper.ValidateId(personId);
 
-            StudentDetailsDTO? studentDetailsDTO = await _studentData.GetStudentByPersonIdAsync(personId);
+            StudentResponse? student = await _studentData.GetStudentByPersonIdAsync(personId);
 
-            if (studentDetailsDTO == null)
+            if (student == null)
                 throw new KeyNotFoundException($"Student with person ID {personId} does not exist.");
 
-            return studentDetailsDTO;
+            return student;
         }
 
-        public async Task<int> AddStudentAsync(StudentDTO student)
+        public async Task<int> AddStudentAsync(CreateStudentRequest student)
         {
             ValidateStudent(student);
 
@@ -120,15 +133,13 @@ namespace School.BLL
             return newStudentId;
         }
 
-        public async Task<bool> UpdateStudentAsync(StudentDTO student)
+        public async Task<bool> UpdateStudentAsync(int studentId, UpdateStudentRequest student)
         {
             ValidateStudent(student);
 
-            ValidationHelper.ValidateId(student.StudentID);
+            ValidationHelper.ValidateId(studentId);
 
-            var currentStudent = await EnsureStudentExistsAsync(student.StudentID);
-
-            await EnsureHelper.EnsureExistsAsync(_personData.IsPersonExistAsync, student.PersonID, "Person");
+            var currentStudent = await EnsureStudentExistsAsync(studentId);
 
             await EnsureHelper.EnsureExistsAsync(_classData.IsClassExistAsync, student.ClassID, "Class");
 
@@ -137,16 +148,10 @@ namespace School.BLL
                 await EnsureClassHasAvailableCapacityAsync(student.ClassID);
             }
 
-            await EnsureHelper.EnsureUniqueAsync(_studentData.GetStudentByPersonIdAsync, student.PersonID, s => s.StudentID, student.StudentID);
-
-            await EnsurePersonIsNotTeacherAsync(student.PersonID);
-
-            await EnsurePersonIsNotParentAsync(student.PersonID);
-
-            bool isUpdated = await _studentData.UpdateStudentAsync(student);
+            bool isUpdated = await _studentData.UpdateStudentAsync(studentId, student);
 
             if (!isUpdated)
-                throw new InvalidOperationException($"Failed to update student with ID {student.StudentID}");
+                throw new InvalidOperationException($"Failed to update student with ID {studentId}");
 
             return isUpdated;
         }

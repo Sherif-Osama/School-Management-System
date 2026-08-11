@@ -1,7 +1,8 @@
 ﻿using School.BLL.Common;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.UserDTOs;
+using School.DTO.UserDTOs.Requests;
+using School.DTO.UserDTOs.Responses;
 
 namespace School.BLL
 {
@@ -19,7 +20,7 @@ namespace School.BLL
             _personData = personData;
         }
         #region Validation
-        private static void ValidateUser(UserDTO user)
+        private static void ValidateUser(CreateUserRequest user)
         {
             ArgumentNullException.ThrowIfNull(user);
 
@@ -29,11 +30,11 @@ namespace School.BLL
             user.Password = ValidationHelper.ValidateString(user.Password, nameof(user.Password), MinPasswordLength, MaxPasswordLength);
         }
 
-        private static void ValidateUpdatePassword(UpdatePasswordDTO dto)
+        private static void ValidateUpdatePassword(int UserID, UpdatePasswordRequest dto)
         {
             ArgumentNullException.ThrowIfNull(dto);
 
-            ValidationHelper.ValidateId(dto.UserID);
+            ValidationHelper.ValidateId(UserID);
 
             dto.CurrentPassword = ValidationHelper.ValidateString(dto.CurrentPassword, nameof(dto.CurrentPassword), MinPasswordLength, MaxPasswordLength);
             dto.NewPassword = ValidationHelper.ValidateString(dto.NewPassword, nameof(dto.NewPassword), MinPasswordLength, MaxPasswordLength);
@@ -48,16 +49,16 @@ namespace School.BLL
         #endregion
 
         #region Public
-        public Task<List<UserDetailsDTO>> GetAllUsersAsync()
+        public Task<List<UserResponse>> GetAllUsersAsync()
         {
             return _userData.GetAllUsersAsync();
         }
 
-        public async Task<UserDetailsDTO?> GetUserByIdAsync(int userId)
+        public async Task<UserResponse?> GetUserByIdAsync(int userId)
         {
             ValidationHelper.ValidateId(userId);
 
-            UserDetailsDTO? user = await _userData.GetUserByIdAsync(userId);
+            UserResponse? user = await _userData.GetUserByIdAsync(userId);
 
             if (user == null)
                 throw new KeyNotFoundException($"User with ID {userId} does not exist.");
@@ -65,11 +66,11 @@ namespace School.BLL
             return user;
         }
 
-        public async Task<UserDetailsDTO?> GetUserByUsernameAsync(string username)
+        public async Task<UserResponse?> GetUserByUsernameAsync(string username)
         {
             username = ValidationHelper.ValidateString(username, nameof(username), MinUsernameLength, MaxUsernameLength);
 
-            UserDetailsDTO? user = await _userData.GetUserByUsernameAsync(username);
+            UserResponse? user = await _userData.GetUserByUsernameAsync(username);
 
             if (user == null)
                 throw new KeyNotFoundException($"User with username '{username}' does not exist.");
@@ -77,13 +78,13 @@ namespace School.BLL
             return user;
         }
 
-        public async Task<UserDetailsDTO?> GetUserByPersonIdAsync(int personId)
+        public async Task<UserResponse?> GetUserByPersonIdAsync(int personId)
         {
             ValidationHelper.ValidateId(personId);
 
             await EnsureHelper.EnsureExistsAsync(_personData.IsPersonExistAsync, personId, "Person");
 
-            UserDetailsDTO? user = await _userData.GetUserByPersonIdAsync(personId);
+            UserResponse? user = await _userData.GetUserByPersonIdAsync(personId);
 
             if (user == null)
                 throw new KeyNotFoundException($"User for person ID {personId} does not exist.");
@@ -91,7 +92,7 @@ namespace School.BLL
             return user;
         }
 
-        public async Task<int> AddUserAsync(UserDTO user)
+        public async Task<int> AddUserAsync(CreateUserRequest user)
         {
             ValidateUser(user);
 
@@ -109,35 +110,32 @@ namespace School.BLL
             return newUserId;
         }
 
-        public async Task<bool> UpdateUserAsync(UpdateUserDTO user)
+        public async Task<bool> UpdateUserAsync(int userId, UpdateUserRequest user)
         {
             ArgumentNullException.ThrowIfNull(user);
 
-            ValidationHelper.ValidateId(user.UserID);
-            ValidationHelper.ValidateId(user.PersonID);
+            ValidationHelper.ValidateId(userId);
 
             user.Username = ValidationHelper.ValidateString(user.Username, nameof(user.Username), MinUsernameLength, MaxUsernameLength);
 
-            await EnsureHelper.EnsureExistsAsync(_userData.IsUserExistAsync, user.UserID, "User");
-            await EnsureHelper.EnsureExistsAsync(_personData.IsPersonExistAsync, user.PersonID, "Person");
-            await EnsureHelper.EnsureUniqueAsync(_userData.GetUserByUsernameAsync, user.Username, u => u.UserID, user.UserID);
-            await EnsureHelper.EnsureUniqueAsync(_userData.GetUserByPersonIdAsync, user.PersonID, u => u.UserID, user.UserID);
+            await EnsureHelper.EnsureExistsAsync(_userData.IsUserExistAsync, userId, "User");
+            await EnsureHelper.EnsureUniqueAsync(_userData.GetUserByUsernameAsync, user.Username, u => u.UserID, userId);
 
-            bool isUpdated = await _userData.UpdateUserAsync(user);
+            bool isUpdated = await _userData.UpdateUserAsync(userId, user);
 
             if (!isUpdated)
-                throw new InvalidOperationException($"Failed to update user with ID {user.UserID}.");
+                throw new InvalidOperationException($"Failed to update user with ID {userId}.");
 
             return isUpdated;
         }
 
-        public async Task<bool> ChangePasswordAsync(UpdatePasswordDTO dto)
+        public async Task<bool> ChangePasswordAsync(int userId, UpdatePasswordRequest dto)
         {
-            ValidateUpdatePassword(dto);
+            ValidateUpdatePassword(userId, dto);
 
-            await EnsureHelper.EnsureExistsAsync(_userData.IsUserExistAsync, dto.UserID, "User");
+            await EnsureHelper.EnsureExistsAsync(_userData.IsUserExistAsync, userId, "User");
 
-            string? hash = await _userData.GetPasswordHashByUserIdAsync(dto.UserID);
+            string? hash = await _userData.GetPasswordHashByUserIdAsync(userId);
 
             if (hash is null)
                 throw new InvalidOperationException("Password hash was not found.");
@@ -147,7 +145,7 @@ namespace School.BLL
 
             string newHash = PasswordHasher.Hash(dto.NewPassword);
 
-            bool isUpdated = await _userData.UpdatePasswordAsync(dto.UserID, newHash);
+            bool isUpdated = await _userData.UpdatePasswordAsync(userId, newHash);
 
             if (!isUpdated)
                 throw new InvalidOperationException("Failed to change the password.");

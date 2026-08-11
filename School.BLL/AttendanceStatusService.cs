@@ -1,7 +1,8 @@
 ﻿using School.BLL.Common;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.AttendanceStatusDTOs;
+using School.DTO.AttendanceStatusDTOs.Requests;
+using School.DTO.AttendanceStatusDTOs.Responses;
 
 namespace School.BLL
 {
@@ -16,7 +17,7 @@ namespace School.BLL
         }
 
         #region Validation
-        private static void ValidateStatus(AttendanceStatusDTO status)
+        private static void ValidateStatus(AttendanceStatusRequest status)
         {
             ArgumentNullException.ThrowIfNull(status);
 
@@ -25,16 +26,16 @@ namespace School.BLL
         #endregion
 
         #region Public
-        public Task<List<AttendanceStatusDTO>> GetAllAttendanceStatusesAsync()
+        public Task<List<AttendanceStatusResponse>> GetAllAttendanceStatusesAsync()
         {
             return _attendanceStatusData.GetAllAttendanceStatusesAsync();
         }
 
-        public async Task<AttendanceStatusDTO?> GetAttendanceStatusByIdAsync(int statusId)
+        public async Task<AttendanceStatusResponse?> GetAttendanceStatusByIdAsync(int statusId)
         {
             ValidationHelper.ValidateId(statusId);
 
-            AttendanceStatusDTO? attendance = await _attendanceStatusData.GetAttendanceStatusByIdAsync(statusId);
+            AttendanceStatusResponse? attendance = await _attendanceStatusData.GetAttendanceStatusByIdAsync(statusId);
 
             if (attendance == null)
                 throw new KeyNotFoundException($"Attendance status with ID {statusId} does not exist.");
@@ -42,11 +43,11 @@ namespace School.BLL
             return attendance;
         }
 
-        public async Task<AttendanceStatusDTO?> GetAttendanceStatusByNameAsync(string statusName)
+        public async Task<AttendanceStatusResponse?> GetAttendanceStatusByNameAsync(string statusName)
         {
             statusName = ValidationHelper.ValidateString(statusName, nameof(statusName), MinStatusNameLength, MaxStatusNameLength);
 
-            AttendanceStatusDTO? attendance = await _attendanceStatusData.GetAttendanceStatusByNameAsync(statusName);
+            AttendanceStatusResponse? attendance = await _attendanceStatusData.GetAttendanceStatusByNameAsync(statusName);
 
             if (attendance == null)
                 throw new KeyNotFoundException($"Attendance status with name '{statusName}' does not exist.");
@@ -54,7 +55,7 @@ namespace School.BLL
             return attendance;
         }
 
-        public async Task<int> AddAttendanceStatusAsync(AttendanceStatusDTO status)
+        public async Task<int> AddAttendanceStatusAsync(AttendanceStatusRequest status)
         {
             ValidateStatus(status);
             await EnsureHelper.EnsureUniqueAsync(_attendanceStatusData.GetAttendanceStatusByNameAsync, status.StatusName);
@@ -67,18 +68,18 @@ namespace School.BLL
             return newStatusId;
         }
 
-        public async Task<bool> UpdateAttendanceStatusAsync(AttendanceStatusDTO status)
+        public async Task<bool> UpdateAttendanceStatusAsync(int statusID, AttendanceStatusRequest status)
         {
             ValidateStatus(status);
-            ValidationHelper.ValidateId(status.StatusID);
+            ValidationHelper.ValidateId(statusID);
 
-            await EnsureHelper.EnsureExistsAsync(_attendanceStatusData.IsAttendanceStatusExistAsync, status.StatusID, "Attendance Status");
-            await EnsureHelper.EnsureUniqueAsync(_attendanceStatusData.GetAttendanceStatusByNameAsync, status.StatusName, s => s.StatusID, status.StatusID);
+            await EnsureHelper.EnsureExistsAsync(_attendanceStatusData.IsAttendanceStatusExistAsync, statusID, "Attendance Status");
+            await EnsureHelper.EnsureUniqueAsync(_attendanceStatusData.GetAttendanceStatusByNameAsync, status.StatusName, s => s.StatusID, statusID);
 
-            bool isUpdated = await _attendanceStatusData.UpdateAttendanceStatusAsync(status);
+            bool isUpdated = await _attendanceStatusData.UpdateAttendanceStatusAsync(statusID, status);
 
             if (!isUpdated)
-                throw new InvalidOperationException($"Failed to update attendance status with ID {status.StatusID}.");
+                throw new InvalidOperationException($"Failed to update attendance status with ID {statusID}.");
 
             return isUpdated;
         }

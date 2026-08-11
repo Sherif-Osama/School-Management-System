@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
-using School.DTO.PersonDTOs;
+using School.DTO.PersonDTOs.Requests;
+using School.DTO.PersonDTOs.Responses;
 
 namespace School.API.Controllers
 {
@@ -18,7 +19,7 @@ namespace School.API.Controllers
 
         [HttpGet]
         [Authorize(Policy = "People.View")]
-        public async Task<ActionResult<List<PersonDTO>>> GetAllPeople()
+        public async Task<ActionResult<List<PersonResponse>>> GetAllPeople()
         {
             var people = await _personService.GetAllPeopleAsync();
 
@@ -29,7 +30,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet("{id:int}")]
         [Authorize(Policy = "People.View")]
-        public async Task<ActionResult<PersonDTO>> GetPersonById(int id)
+        public async Task<ActionResult<PersonResponse>> GetPersonById(int id)
         {
             var person = await _personService.GetPersonByIdAsync(id);
 
@@ -43,7 +44,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet("NationalID/{nationalId}")]
         [Authorize(Policy = "People.View")]
-        public async Task<ActionResult<PersonDTO>> GetPersonByNationalId(string nationalId)
+        public async Task<ActionResult<PersonResponse>> GetPersonByNationalId(string nationalId)
         {
             var person = await _personService.GetPersonByNationalIDAsync(nationalId);
 
@@ -56,20 +57,20 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [HttpPost]
         [Authorize(Policy = "People.Create")]
-        public async Task<ActionResult<int>> AddPersonAsync(PersonDTO newPersonDTO)
+        public async Task<ActionResult<int>> AddPersonAsync(CreatePersonRequest Person)
         {
-            int personId = await _personService.AddPersonAsync(newPersonDTO);
+            int personId = await _personService.AddPersonAsync(Person);
 
             return CreatedAtAction(nameof(GetPersonById), new { id = personId },
                 personId);
         }
 
+        [HttpPut("{personId:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [HttpPut("Update")]
         [Authorize(Policy = "People.Update")]
-        public async Task<ActionResult> UpdatePersonAsync(PersonDTO updatedPersonDTO)
+        public async Task<ActionResult> UpdatePersonAsync(int personId, UpdatePersonRequest Person)
         {
-            await _personService.UpdatePersonAsync(updatedPersonDTO);
+            await _personService.UpdatePersonAsync(personId, Person);
 
             return Ok();
         }

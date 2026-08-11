@@ -2,7 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
 using School.DAL.Interfaces;
-using School.DTO.StudentsDTOs;
+using School.DTO.StudentsDTOs.Requests;
+using School.DTO.StudentsDTOs.Responses;
 using System.Data;
 
 namespace School.DAL
@@ -13,9 +14,9 @@ namespace School.DAL
 
         #region Helper Methods
 
-        private static StudentDetailsDTO MapStudentDetails(SqlDataReader reader)
+        private static StudentResponse MapStudentDetails(SqlDataReader reader)
         {
-            return new StudentDetailsDTO
+            return new StudentResponse
             {
                 StudentID = reader.GetInt32(reader.GetOrdinal("StudentID")),
                 PersonID = reader.GetInt32(reader.GetOrdinal("PersonID")),
@@ -42,7 +43,7 @@ namespace School.DAL
             };
         }
 
-        private static void AddParameters(SqlCommand command, StudentDTO student)
+        private static void AddParameters(SqlCommand command, CreateStudentRequest student)
         {
             command.Parameters.Add("@PersonID", SqlDbType.Int).Value = student.PersonID;
             command.Parameters.Add("@ClassID", SqlDbType.Int).Value = student.ClassID;
@@ -54,26 +55,28 @@ namespace School.DAL
 
         #region Public Methods
 
-        public Task<List<StudentDetailsDTO>> GetAllStudentsAsync() =>
+        public Task<List<StudentResponse>> GetAllStudentsAsync() =>
             QueryListAsync("SP_GetAllStudents", null, MapStudentDetails);
 
-        public Task<StudentDetailsDTO?> GetStudentByIdAsync(int studentId) =>
+        public Task<StudentResponse?> GetStudentByIdAsync(int studentId) =>
             QuerySingleAsync("SP_GetStudentByID", cmd => cmd.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId,
                 MapStudentDetails);
 
-        public Task<StudentDetailsDTO?> GetStudentByPersonIdAsync(int personId) =>
+        public Task<StudentResponse?> GetStudentByPersonIdAsync(int personId) =>
             QuerySingleAsync("SP_GetStudentByPersonID", cmd => cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId,
                 MapStudentDetails);
 
-        public Task<int> AddStudentAsync(StudentDTO student) =>
+        public Task<int> AddStudentAsync(CreateStudentRequest student) =>
             InsertAsync<int>("SP_AddStudent", cmd => AddParameters(cmd, student), "@StudentID", SqlDbType.Int);
 
-        public Task<bool> UpdateStudentAsync(StudentDTO student) =>
+        public Task<bool> UpdateStudentAsync(int studentId, UpdateStudentRequest student) =>
             ExecuteNonQueryAsync("SP_UpdateStudent",
                 cmd =>
                 {
-                    cmd.Parameters.Add("@StudentID", SqlDbType.Int).Value = student.StudentID;
-                    AddParameters(cmd, student);
+                    cmd.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId;
+                    cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = student.ClassID;
+                    cmd.Parameters.Add("@EnrollmentDate", SqlDbType.Date).Value = student.EnrollmentDate;
+                    cmd.Parameters.Add("@StatusID", SqlDbType.Int).Value = student.StatusID;
                 });
 
         public Task<bool> DeleteStudentAsync(int studentId) =>

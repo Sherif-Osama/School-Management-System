@@ -1,15 +1,16 @@
-﻿using School.DTO.SubjectDTOs;
+﻿using School.DTO.SubjectDTOs.Requests;
+using School.DTO.SubjectDTOs.Responses;
 
 namespace School.DAL.Interfaces
 {
     public interface ISubjectData
     {
-        Task<int> AddSubjectAsync(SubjectDTO subject);
+        Task<int> AddSubjectAsync(CreateSubjectRequest subject);
         Task<bool> DeleteSubjectAsync(int subjectId);
-        Task<List<SubjectDTO>> GetAllSubjectsAsync();
-        Task<SubjectDTO?> GetSubjectByIdAsync(int subjectId);
-        Task<SubjectDTO?> GetSubjectByNameAsync(string subjectName);
+        Task<List<SubjectResponse>> GetAllSubjectsAsync();
+        Task<SubjectResponse?> GetSubjectByIdAsync(int subjectId);
+        Task<SubjectResponse?> GetSubjectByNameAsync(string subjectName);
         Task<bool> IsSubjectExistAsync(int subjectId);
-        Task<bool> UpdateSubjectAsync(SubjectDTO subject);
+        Task<bool> UpdateSubjectAsync(int subjectId, UpdateSubjectRequest subject);
     }
 }

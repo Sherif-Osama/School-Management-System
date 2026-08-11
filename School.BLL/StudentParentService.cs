@@ -2,6 +2,7 @@
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.AssociationsDTOs.StudentParentDTOs;
+using School.DTO.AssociationsDTOs.StudentParentDTOs.Requests;
 
 namespace School.BLL
 {
@@ -19,7 +20,7 @@ namespace School.BLL
         }
 
         #region Private Helpers
-        private static void ValidateRelation(StudentParentDTO relation)
+        private static void ValidateRelation(StudentParentRequest relation)
         {
             ArgumentNullException.ThrowIfNull(relation);
 
@@ -27,25 +28,13 @@ namespace School.BLL
             ValidationHelper.ValidateId(relation.ParentID);
         }
 
-        //private async Task EnsureStudentExistsAsync(int studentId)
-        //{
-        //    if (!await _studentData.IsStudentExistAsync(studentId))
-        //        throw new KeyNotFoundException($"Student with ID {studentId} does not exist.");
-        //}
-
-        //private async Task EnsureParentExistsAsync(int parentId)
-        //{
-        //    if (!await _parentData.IsParentExistAsync(parentId))
-        //        throw new KeyNotFoundException($"Parent with ID {parentId} does not exist.");
-        //}
-
-        private async Task EnsureRelationDoesNotExistAsync(StudentParentDTO relation)
+        private async Task EnsureRelationDoesNotExistAsync(StudentParentRequest relation)
         {
             if (await _studentParentData.IsStudentParentExistAsync(relation))
                 throw new InvalidOperationException("This student is already linked to this parent.");
         }
 
-        private async Task EnsureRelationExistsAsync(StudentParentDTO relation)
+        private async Task EnsureRelationExistsAsync(StudentParentRequest relation)
         {
             if (!await _studentParentData.IsStudentParentExistAsync(relation))
                 throw new KeyNotFoundException("The relationship does not exist.");
@@ -55,12 +44,12 @@ namespace School.BLL
 
         #region Public Methods
 
-        public async Task<List<StudentParentDetailsDTO>> GetAllStudentParentsAsync()
+        public async Task<List<StudentParentResponse>> GetAllStudentParentsAsync()
         {
             return await _studentParentData.GetAllStudentParentsAsync();
         }
 
-        public async Task<List<StudentParentDetailsDTO>> GetParentsByStudentIdAsync(int studentId)
+        public async Task<List<StudentParentResponse>> GetParentsByStudentIdAsync(int studentId)
         {
             ValidationHelper.ValidateId(studentId);
 
@@ -69,7 +58,7 @@ namespace School.BLL
             return await _studentParentData.GetParentsByStudentIdAsync(studentId);
         }
 
-        public async Task<List<StudentParentDetailsDTO>> GetStudentsByParentIdAsync(int parentId)
+        public async Task<List<StudentParentResponse>> GetStudentsByParentIdAsync(int parentId)
         {
             ValidationHelper.ValidateId(parentId);
 
@@ -78,7 +67,7 @@ namespace School.BLL
             return await _studentParentData.GetStudentsByParentIdAsync(parentId);
         }
 
-        public async Task<bool> AddStudentParentAsync(StudentParentDTO relation)
+        public async Task<bool> AddStudentParentAsync(StudentParentRequest relation)
         {
             ValidateRelation(relation);
 
@@ -96,7 +85,7 @@ namespace School.BLL
             return isRelationAdded;
         }
 
-        public async Task<bool> DeleteStudentParentAsync(StudentParentDTO relation)
+        public async Task<bool> DeleteStudentParentAsync(StudentParentRequest relation)
         {
             ValidateRelation(relation);
             await EnsureHelper.EnsureExistsAsync(_studentData.IsStudentExistAsync, relation.StudentID, "Student");

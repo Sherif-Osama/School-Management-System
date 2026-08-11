@@ -2,7 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
 using School.DAL.Interfaces;
-using School.DTO.AttendanceDTOs;
+using School.DTO.AttendanceDTOs.Requests;
+using School.DTO.AttendanceDTOs.Responses;
 using System.Data;
 
 namespace School.DAL
@@ -13,9 +14,9 @@ namespace School.DAL
 
         #region Helper Methods
 
-        private static AttendanceDetailsDTO MapAttendanceDetails(SqlDataReader reader)
+        private static AttendanceResponse MapAttendanceDetails(SqlDataReader reader)
         {
-            return new AttendanceDetailsDTO
+            return new AttendanceResponse
             {
                 AttendanceID = reader.GetInt32(reader.GetOrdinal("AttendanceID")),
                 StudentID = reader.GetInt32(reader.GetOrdinal("StudentID")),
@@ -35,7 +36,7 @@ namespace School.DAL
             };
         }
 
-        private static void AddParameters(SqlCommand command, AttendanceDTO attendance)
+        private static void AddParameters(SqlCommand command, CreateAttendanceRequest attendance)
         {
             command.Parameters.Add("@StudentID", SqlDbType.Int).Value = attendance.StudentID;
             command.Parameters.Add("@AttendanceDate", SqlDbType.Date).Value = attendance.AttendanceDate.ToDateTime(TimeOnly.MinValue);
@@ -46,38 +47,40 @@ namespace School.DAL
 
         #region Public Methods
 
-        public Task<List<AttendanceDetailsDTO>> GetAllAttendancesAsync() =>
+        public Task<List<AttendanceResponse>> GetAllAttendancesAsync() =>
             QueryListAsync("SP_GetAllAttendances", null, MapAttendanceDetails);
 
-        public Task<AttendanceDetailsDTO?> GetAttendanceByIdAsync(int attendanceId) =>
+        public Task<AttendanceResponse?> GetAttendanceByIdAsync(int attendanceId) =>
             QuerySingleAsync("SP_GetAttendanceByID", cmd => cmd.Parameters.Add("@AttendanceID", SqlDbType.Int).Value = attendanceId,
                 MapAttendanceDetails);
 
-        public Task<List<AttendanceDetailsDTO>> GetAttendancesByStudentIdAsync(int studentId) =>
+        public Task<List<AttendanceResponse>> GetAttendancesByStudentIdAsync(int studentId) =>
             QueryListAsync("SP_GetAttendancesByStudentID", cmd => cmd.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId,
                 MapAttendanceDetails);
 
-        public Task<List<AttendanceDetailsDTO>> GetAttendancesByClassIdAsync(int classId) =>
+        public Task<List<AttendanceResponse>> GetAttendancesByClassIdAsync(int classId) =>
             QueryListAsync("SP_GetAttendancesByClassID", cmd => cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId,
                 MapAttendanceDetails);
 
-        public Task<List<AttendanceDetailsDTO>> GetAttendancesByDateAsync(DateOnly attendanceDate) =>
+        public Task<List<AttendanceResponse>> GetAttendancesByDateAsync(DateOnly attendanceDate) =>
             QueryListAsync("SP_GetAttendancesByDate", cmd => cmd.Parameters.Add("@AttendanceDate", SqlDbType.Date).Value = attendanceDate.ToDateTime(TimeOnly.MinValue),
                 MapAttendanceDetails);
 
-        public Task<List<AttendanceDetailsDTO>> GetAttendancesByStatusIdAsync(int statusId) =>
+        public Task<List<AttendanceResponse>> GetAttendancesByStatusIdAsync(int statusId) =>
             QueryListAsync("SP_GetAttendancesByStatusID", cmd => cmd.Parameters.Add("@StatusID", SqlDbType.Int).Value = statusId,
                 MapAttendanceDetails);
 
-        public Task<int> AddAttendanceAsync(AttendanceDTO attendance) =>
+        public Task<int> AddAttendanceAsync(CreateAttendanceRequest attendance) =>
             InsertAsync<int>("SP_AddAttendance", cmd => AddParameters(cmd, attendance), "@AttendanceID", SqlDbType.Int);
 
-        public Task<bool> UpdateAttendanceAsync(AttendanceDTO attendance) =>
+        public Task<bool> UpdateAttendanceAsync(int studentId, int attendanceID, UpdateAttendanceRequest attendance) =>
             ExecuteNonQueryAsync("SP_UpdateAttendance",
                 cmd =>
                 {
-                    cmd.Parameters.Add("@AttendanceID", SqlDbType.Int).Value = attendance.AttendanceID;
-                    AddParameters(cmd, attendance);
+                    cmd.Parameters.Add("@AttendanceID", SqlDbType.Int).Value = attendanceID;
+                    cmd.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId;
+                    cmd.Parameters.Add("@AttendanceDate", SqlDbType.Date).Value = attendance.AttendanceDate.ToDateTime(TimeOnly.MinValue);
+                    cmd.Parameters.Add("@StatusID", SqlDbType.Int).Value = attendance.StatusID;
                 });
 
         public Task<bool> DeleteAttendanceAsync(int attendanceId) =>

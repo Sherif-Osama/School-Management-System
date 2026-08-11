@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
 using School.DAL.Interfaces;
 using School.DTO.ExamDTOs;
+using School.DTO.ExamDTOs.Requests;
 using System.Data;
 
 namespace School.DAL
@@ -12,9 +13,9 @@ namespace School.DAL
         public ExamData(IConfiguration configuration) : base(configuration) { }
 
         #region Helper Methods
-        private static ExamDetailsDTO MapExamDetails(SqlDataReader reader)
+        private static ExamResponse MapExamDetails(SqlDataReader reader)
         {
-            return new ExamDetailsDTO
+            return new ExamResponse
             {
                 ExamID = reader.GetInt32(reader.GetOrdinal("ExamID")),
                 GradeID = reader.GetByte(reader.GetOrdinal("GradeID")),
@@ -35,7 +36,7 @@ namespace School.DAL
             };
         }
 
-        private static void AddParameters(SqlCommand command, ExamDTO exam)
+        private static void AddParameters(SqlCommand command, CreateExamRequest exam)
         {
             command.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = exam.ClassSubjectID;
             command.Parameters.Add("@ExamTypeID", SqlDbType.Int).Value = exam.ExamTypeID;
@@ -47,33 +48,36 @@ namespace School.DAL
 
         #region Public Methods
 
-        public Task<List<ExamDetailsDTO>> GetAllExamsAsync() =>
+        public Task<List<ExamResponse>> GetAllExamsAsync() =>
             QueryListAsync("SP_GetAll_Exams", null, MapExamDetails);
 
-        public Task<ExamDetailsDTO?> GetExamByIdAsync(int examId) =>
+        public Task<ExamResponse?> GetExamByIdAsync(int examId) =>
             QuerySingleAsync("SP_GetExamByID", cmd => cmd.Parameters.Add("@ExamID", SqlDbType.Int).Value = examId,
                 MapExamDetails);
 
-        public Task<List<ExamDetailsDTO>> GetExamsByClassIdAsync(int classId) =>
+        public Task<List<ExamResponse>> GetExamsByClassIdAsync(int classId) =>
             QueryListAsync("SP_GetExamsByClassID", cmd => cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId,
                 MapExamDetails);
 
-        public Task<List<ExamDetailsDTO>> GetExamsByTeacherIdAsync(int teacherId) =>
+        public Task<List<ExamResponse>> GetExamsByTeacherIdAsync(int teacherId) =>
             QueryListAsync("SP_GetExamsByTeacherID", cmd => cmd.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId,
                 MapExamDetails);
 
-        public Task<List<ExamDetailsDTO>> GetExamsBySubjectIdAsync(int subjectId) =>
+        public Task<List<ExamResponse>> GetExamsBySubjectIdAsync(int subjectId) =>
             QueryListAsync("SP_GetExamsBySubjectID", cmd => cmd.Parameters.Add("@SubjectID", SqlDbType.Int).Value = subjectId, MapExamDetails);
 
-        public Task<int> AddExamAsync(ExamDTO exam) =>
+        public Task<int> AddExamAsync(CreateExamRequest exam) =>
             InsertAsync<int>("SP_AddExam", cmd => AddParameters(cmd, exam), "@ExamID", SqlDbType.Int);
 
-        public Task<bool> UpdateExamAsync(ExamDTO exam) =>
+        public Task<bool> UpdateExamAsync(int examId, UpdateExamRequest exam) =>
             ExecuteNonQueryAsync("SP_UpdateExam",
                 cmd =>
                 {
-                    cmd.Parameters.Add("@ExamID", SqlDbType.Int).Value = exam.ExamID;
-                    AddParameters(cmd, exam);
+                    cmd.Parameters.Add("@ExamID", SqlDbType.Int).Value = examId;
+                    cmd.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = exam.ClassSubjectID;
+                    cmd.Parameters.Add("@ExamTypeID", SqlDbType.Int).Value = exam.ExamTypeID;
+                    cmd.Parameters.Add("@ExamDate", SqlDbType.Date).Value = exam.ExamDate;
+                    cmd.Parameters.Add("@TotalMarks", SqlDbType.Decimal).Value = exam.TotalMarks;
                 });
 
         public Task<bool> DeleteExamAsync(int examId) =>

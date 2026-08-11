@@ -2,7 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
 using School.DAL.Interfaces;
-using School.DTO.SubjectDTOs;
+using School.DTO.SubjectDTOs.Requests;
+using School.DTO.SubjectDTOs.Responses;
 using System.Data;
 
 namespace School.DAL
@@ -13,9 +14,9 @@ namespace School.DAL
 
         #region Helper Methods
 
-        private static SubjectDTO MapSubject(SqlDataReader reader)
+        private static SubjectResponse MapSubject(SqlDataReader reader)
         {
-            return new SubjectDTO
+            return new SubjectResponse
             {
                 SubjectID = reader.GetInt32(reader.GetOrdinal("SubjectID")),
                 SubjectName = reader.GetString(reader.GetOrdinal("SubjectName")),
@@ -23,7 +24,7 @@ namespace School.DAL
             };
         }
 
-        private static void AddParameters(SqlCommand command, SubjectDTO subject)
+        private static void AddParameters(SqlCommand command, CreateSubjectRequest subject)
         {
             command.Parameters.Add("@SubjectName", SqlDbType.NVarChar).Value = subject.SubjectName;
             command.Parameters.Add("@IsActive", SqlDbType.Bit).Value = subject.IsActive;
@@ -33,26 +34,27 @@ namespace School.DAL
 
         #region Public Methods
 
-        public Task<List<SubjectDTO>> GetAllSubjectsAsync() =>
+        public Task<List<SubjectResponse>> GetAllSubjectsAsync() =>
             QueryListAsync("SP_GetAllSubjects", null, MapSubject);
 
-        public Task<SubjectDTO?> GetSubjectByIdAsync(int subjectId) =>
+        public Task<SubjectResponse?> GetSubjectByIdAsync(int subjectId) =>
             QuerySingleAsync("SP_GetSubjectByID", cmd => cmd.Parameters.Add("@SubjectID", SqlDbType.Int).Value = subjectId,
                 MapSubject);
 
-        public Task<SubjectDTO?> GetSubjectByNameAsync(string subjectName) =>
+        public Task<SubjectResponse?> GetSubjectByNameAsync(string subjectName) =>
             QuerySingleAsync("SP_GetSubjectByName", cmd => cmd.Parameters.Add("@SubjectName", SqlDbType.NVarChar).Value = subjectName,
                 MapSubject);
 
-        public Task<int> AddSubjectAsync(SubjectDTO subject) =>
+        public Task<int> AddSubjectAsync(CreateSubjectRequest subject) =>
             InsertAsync<int>("SP_AddSubject", cmd => AddParameters(cmd, subject), "@SubjectID", SqlDbType.Int);
 
-        public Task<bool> UpdateSubjectAsync(SubjectDTO subject) =>
+        public Task<bool> UpdateSubjectAsync(int subjectId, UpdateSubjectRequest subject) =>
             ExecuteNonQueryAsync("SP_UpdateSubject",
                 cmd =>
                 {
-                    cmd.Parameters.Add("@SubjectID", SqlDbType.Int).Value = subject.SubjectID;
-                    AddParameters(cmd, subject);
+                    cmd.Parameters.Add("@SubjectID", SqlDbType.Int).Value = subjectId;
+                    cmd.Parameters.Add("@SubjectName", SqlDbType.NVarChar).Value = subject.SubjectName;
+                    cmd.Parameters.Add("@IsActive", SqlDbType.Bit).Value = subject.IsActive;
                 });
 
         public Task<bool> DeleteSubjectAsync(int subjectId) =>

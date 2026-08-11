@@ -1,8 +1,9 @@
 ﻿using School.BLL.Common;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.AssociationsDTOs.ClassSubjectDTOs;
+using School.DTO.AssociationsDTOs.ClassSubjectDTOs.Responses;
 using School.DTO.ExamDTOs;
+using School.DTO.ExamDTOs.Requests;
 
 namespace School.BLL
 {
@@ -27,7 +28,17 @@ namespace School.BLL
         }
 
         #region Validation
-        private static void ValidateExam(ExamDTO exam)
+        private static void ValidateExam(CreateExamRequest exam)
+        {
+            ArgumentNullException.ThrowIfNull(exam);
+
+            ValidationHelper.ValidateId(exam.ClassSubjectID);
+            ValidationHelper.ValidateId(exam.ExamTypeID);
+            ValidateExamDate(exam.ExamDate);
+            ValidateTotalMarks(exam.TotalMarks);
+        }
+
+        private static void ValidateExam(UpdateExamRequest exam)
         {
             ArgumentNullException.ThrowIfNull(exam);
 
@@ -69,7 +80,7 @@ namespace School.BLL
         #endregion
 
         #region Ensure
-        private async Task<ClassSubjectDetailsDTO> GetValidatedClassSubjectAsync(int classSubjectId)
+        private async Task<ClassSubjectResponse> GetValidatedClassSubjectAsync(int classSubjectId)
         {
             var classSubject = await _classSubjectData.GetClassSubjectByIdAsync(classSubjectId);
 
@@ -85,7 +96,7 @@ namespace School.BLL
                 throw new InvalidOperationException("An exam of this type already exists for this class subject.");
         }
 
-        private async Task EnsureExamDateWithinAcademicYearAsync(ClassSubjectDetailsDTO classSubject, DateOnly examDate)
+        private async Task EnsureExamDateWithinAcademicYearAsync(ClassSubjectResponse classSubject, DateOnly examDate)
         {
             var schoolClass = await _classData.GetClassByIdAsync(classSubject.ClassID)
                 ?? throw new KeyNotFoundException($"Class with ID {classSubject.ClassID} does not exist.");
@@ -102,16 +113,16 @@ namespace School.BLL
         #endregion
 
         #region Public
-        public async Task<List<ExamDetailsDTO>> GetAllExamsAsync()
+        public async Task<List<ExamResponse>> GetAllExamsAsync()
         {
             return await _examData.GetAllExamsAsync();
         }
 
-        public async Task<ExamDetailsDTO?> GetExamByIdAsync(int examId)
+        public async Task<ExamResponse?> GetExamByIdAsync(int examId)
         {
             ValidationHelper.ValidateId(examId);
 
-            ExamDetailsDTO? exam = await _examData.GetExamByIdAsync(examId);
+            ExamResponse? exam = await _examData.GetExamByIdAsync(examId);
 
             if (exam == null)
                 throw new KeyNotFoundException($"Exam with ID {examId} does not exist.");
@@ -119,25 +130,25 @@ namespace School.BLL
             return exam;
         }
 
-        public async Task<List<ExamDetailsDTO>> GetExamsByClassIdAsync(int classId)
+        public async Task<List<ExamResponse>> GetExamsByClassIdAsync(int classId)
         {
             ValidationHelper.ValidateId(classId);
             return await _examData.GetExamsByClassIdAsync(classId);
         }
 
-        public async Task<List<ExamDetailsDTO>> GetExamsByTeacherIdAsync(int teacherId)
+        public async Task<List<ExamResponse>> GetExamsByTeacherIdAsync(int teacherId)
         {
             ValidationHelper.ValidateId(teacherId);
             return await _examData.GetExamsByTeacherIdAsync(teacherId);
         }
 
-        public async Task<List<ExamDetailsDTO>> GetExamsBySubjectIdAsync(int subjectId)
+        public async Task<List<ExamResponse>> GetExamsBySubjectIdAsync(int subjectId)
         {
             ValidationHelper.ValidateId(subjectId);
             return await _examData.GetExamsBySubjectIdAsync(subjectId);
         }
 
-        public async Task<int> AddExamAsync(ExamDTO exam)
+        public async Task<int> AddExamAsync(CreateExamRequest exam)
         {
             ValidateExam(exam);
 
@@ -154,21 +165,21 @@ namespace School.BLL
             return newExamId;
         }
 
-        public async Task<bool> UpdateExamAsync(ExamDTO exam)
+        public async Task<bool> UpdateExamAsync(int examId, UpdateExamRequest exam)
         {
             ValidateExam(exam);
-            ValidationHelper.ValidateId(exam.ExamID);
+            ValidationHelper.ValidateId(examId);
 
-            await EnsureHelper.EnsureExistsAsync(_examData.IsExamExistAsync, exam.ExamID, "Exam");
+            await EnsureHelper.EnsureExistsAsync(_examData.IsExamExistAsync, examId, "Exam");
             var classSubject = await GetValidatedClassSubjectAsync(exam.ClassSubjectID);
             await EnsureHelper.EnsureExistsAsync(_examTypeData.IsExamTypeExistAsync, exam.ExamTypeID, "Exam Type");
-            await EnsureExamUniqueAsync(exam.ClassSubjectID, exam.ExamTypeID, exam.ExamID);
+            await EnsureExamUniqueAsync(exam.ClassSubjectID, exam.ExamTypeID, examId);
             await EnsureExamDateWithinAcademicYearAsync(classSubject, exam.ExamDate);
 
-            bool isUpdated = await _examData.UpdateExamAsync(exam);
+            bool isUpdated = await _examData.UpdateExamAsync(examId, exam);
 
             if (!isUpdated)
-                throw new InvalidOperationException($"Failed to update exam with ID {exam.ExamID}.");
+                throw new InvalidOperationException($"Failed to update exam with ID {examId}.");
 
             return isUpdated;
         }

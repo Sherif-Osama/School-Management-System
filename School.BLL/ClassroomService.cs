@@ -1,7 +1,8 @@
 ﻿using School.BLL.Common;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.ClassroomDTOs;
+using School.DTO.ClassroomDTOs.Requests;
+using School.DTO.ClassroomDTOs.Responses;
 
 namespace School.BLL
 {
@@ -16,7 +17,15 @@ namespace School.BLL
         }
 
         #region Validation
-        private static void ValidateClassroom(ClassroomDTO classroom)
+        private static void ValidateClassroom(CreateClassroomRequest classroom)
+        {
+            ArgumentNullException.ThrowIfNull(classroom);
+
+            classroom.RoomName = ValidationHelper.ValidateString(classroom.RoomName, nameof(classroom.RoomName), MinRoomNameLength, MaxRoomNameLength);
+
+            ValidateCapacity(classroom.Capacity);
+        }
+        private static void ValidateClassroom(UpdateClassroomRequest classroom)
         {
             ArgumentNullException.ThrowIfNull(classroom);
 
@@ -39,16 +48,16 @@ namespace School.BLL
         #endregion
 
         #region Public Methods
-        public Task<List<ClassroomDTO>> GetAllClassroomsAsync()
+        public Task<List<ClassroomResponse>> GetAllClassroomsAsync()
         {
             return _classroomData.GetAllClassroomsAsync();
         }
 
-        public async Task<ClassroomDTO?> GetClassroomByIdAsync(int classroomId)
+        public async Task<ClassroomResponse?> GetClassroomByIdAsync(int classroomId)
         {
             ValidationHelper.ValidateId(classroomId);
 
-            ClassroomDTO? classroom = await _classroomData.GetClassroomByIdAsync(classroomId);
+            ClassroomResponse? classroom = await _classroomData.GetClassroomByIdAsync(classroomId);
 
             if (classroom == null)
                 throw new KeyNotFoundException($"Classroom with ID {classroomId} does not exist.");
@@ -56,11 +65,11 @@ namespace School.BLL
             return classroom;
         }
 
-        public async Task<ClassroomDTO?> GetClassroomByRoomNameAsync(string roomName)
+        public async Task<ClassroomResponse?> GetClassroomByRoomNameAsync(string roomName)
         {
             roomName = ValidationHelper.ValidateString(roomName, nameof(roomName), MinRoomNameLength, MaxRoomNameLength);
 
-            ClassroomDTO? classroom = await _classroomData.GetClassroomByRoomNameAsync(roomName);
+            ClassroomResponse? classroom = await _classroomData.GetClassroomByRoomNameAsync(roomName);
 
             if (classroom == null)
                 throw new KeyNotFoundException($"Classroom with room name {roomName} does not exist.");
@@ -68,7 +77,7 @@ namespace School.BLL
             return classroom;
         }
 
-        public async Task<int> AddClassroomAsync(ClassroomDTO classroom)
+        public async Task<int> AddClassroomAsync(CreateClassroomRequest classroom)
         {
             ValidateClassroom(classroom);
 
@@ -82,20 +91,20 @@ namespace School.BLL
             return newClassroomId;
         }
 
-        public async Task<bool> UpdateClassroomAsync(ClassroomDTO classroom)
+        public async Task<bool> UpdateClassroomAsync(int classroomId, UpdateClassroomRequest classroom)
         {
             ValidateClassroom(classroom);
 
-            ValidationHelper.ValidateId(classroom.ClassroomID);
+            ValidationHelper.ValidateId(classroomId);
 
-            await EnsureHelper.EnsureExistsAsync(_classroomData.IsClassroomExistAsync, classroom.ClassroomID, "Classroom");
+            await EnsureHelper.EnsureExistsAsync(_classroomData.IsClassroomExistAsync, classroomId, "Classroom");
 
-            await EnsureHelper.EnsureUniqueAsync(_classroomData.GetClassroomByRoomNameAsync, classroom.RoomName, c => c.ClassroomID, classroom.ClassroomID);
+            await EnsureHelper.EnsureUniqueAsync(_classroomData.GetClassroomByRoomNameAsync, classroom.RoomName, c => c.ClassroomID, classroomId);
 
-            bool isUpdated = await _classroomData.UpdateClassroomAsync(classroom);
+            bool isUpdated = await _classroomData.UpdateClassroomAsync(classroomId, classroom);
 
             if (!isUpdated)
-                throw new InvalidOperationException($"Failed to update classroom with ID {classroom.ClassroomID}.");
+                throw new InvalidOperationException($"Failed to update classroom with ID {classroomId}.");
 
             return isUpdated;
         }

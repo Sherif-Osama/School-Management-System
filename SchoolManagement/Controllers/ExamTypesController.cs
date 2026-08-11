@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
-using School.DTO.ExamTypeDTOs;
+using School.DTO.ExamTypeDTOs.Requests;
+using School.DTO.ExamTypeDTOs.Responses;
 
 namespace School.API.Controllers
 {
@@ -19,7 +20,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Exams.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<ExamTypeDTO>>> GetAllExamTypes()
+        public async Task<ActionResult<List<ExamTypeResponse>>> GetAllExamTypes()
         {
             return Ok(await _examTypeService.GetAllExamTypesAsync());
         }
@@ -28,9 +29,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Exams.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ExamTypeDTO>> GetExamTypeById(int id)
+        public async Task<ActionResult<ExamTypeResponse>> GetExamTypeById(int id)
         {
-            ExamTypeDTO? examType = await _examTypeService.GetExamTypeByIdAsync(id);
+            ExamTypeResponse? examType = await _examTypeService.GetExamTypeByIdAsync(id);
 
             if (examType == null)
                 return NotFound();
@@ -42,9 +43,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Exams.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ExamTypeDTO>> GetExamTypeByName(string examName)
+        public async Task<ActionResult<ExamTypeResponse>> GetExamTypeByName(string examName)
         {
-            ExamTypeDTO? examType = await _examTypeService.GetExamTypeByNameAsync(examName);
+            ExamTypeResponse? examType = await _examTypeService.GetExamTypeByNameAsync(examName);
 
             if (examType == null)
                 return NotFound();
@@ -55,7 +56,7 @@ namespace School.API.Controllers
         [HttpPost]
         [Authorize(Policy = "Exams.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult<int>> AddExamType(ExamTypeDTO examType)
+        public async Task<ActionResult<int>> AddExamType(CreateExamTypeRequest examType)
         {
             int examTypeId = await _examTypeService.AddExamTypeAsync(examType);
 
@@ -65,12 +66,12 @@ namespace School.API.Controllers
                 examTypeId);
         }
 
-        [HttpPut]
+        [HttpPut("{examTypeId:int}")]
         [Authorize(Policy = "Exams.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateExamType(ExamTypeDTO examType)
+        public async Task<IActionResult> UpdateExamType(int examTypeId, UpdateExamTypeRequest examType)
         {
-            await _examTypeService.UpdateExamTypeAsync(examType);
+            await _examTypeService.UpdateExamTypeAsync(examTypeId, examType);
 
             return Ok();
         }

@@ -1,16 +1,17 @@
 ﻿using School.DTO.ExamDTOs;
+using School.DTO.ExamDTOs.Requests;
 
 namespace School.BLL.Interfaces
 {
     public interface IExamService
     {
-        Task<int> AddExamAsync(ExamDTO exam);
+        Task<int> AddExamAsync(CreateExamRequest exam);
         Task<bool> DeleteExamAsync(int examId);
-        Task<List<ExamDetailsDTO>> GetAllExamsAsync();
-        Task<ExamDetailsDTO?> GetExamByIdAsync(int examId);
-        Task<List<ExamDetailsDTO>> GetExamsByClassIdAsync(int classId);
-        Task<List<ExamDetailsDTO>> GetExamsBySubjectIdAsync(int subjectId);
-        Task<List<ExamDetailsDTO>> GetExamsByTeacherIdAsync(int teacherId);
-        Task<bool> UpdateExamAsync(ExamDTO exam);
+        Task<List<ExamResponse>> GetAllExamsAsync();
+        Task<ExamResponse?> GetExamByIdAsync(int examId);
+        Task<List<ExamResponse>> GetExamsByClassIdAsync(int classId);
+        Task<List<ExamResponse>> GetExamsBySubjectIdAsync(int subjectId);
+        Task<List<ExamResponse>> GetExamsByTeacherIdAsync(int teacherId);
+        Task<bool> UpdateExamAsync(int examId, UpdateExamRequest exam);
     }
 }

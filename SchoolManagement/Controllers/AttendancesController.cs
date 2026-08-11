@@ -4,7 +4,8 @@ using School.API.Authorization.OwnedResources;
 using School.API.Authorization.Requirements;
 using School.BLL.Authentication;
 using School.BLL.Interfaces;
-using School.DTO.AttendanceDTOs;
+using School.DTO.AttendanceDTOs.Requests;
+using School.DTO.AttendanceDTOs.Responses;
 
 namespace School.API.Controllers
 {
@@ -24,7 +25,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Attendance.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<AttendanceDetailsDTO>>> GetAllAttendances()
+        public async Task<ActionResult<List<AttendanceResponse>>> GetAllAttendances()
         {
             return Ok(await _attendanceService.GetAllAttendancesAsync());
         }
@@ -34,9 +35,9 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<AttendanceDetailsDTO>> GetAttendanceById(int id)
+        public async Task<ActionResult<AttendanceResponse>> GetAttendanceById(int id)
         {
-            AttendanceDetailsDTO? attendance = await _attendanceService.GetAttendanceByIdAsync(id);
+            AttendanceResponse? attendance = await _attendanceService.GetAttendanceByIdAsync(id);
 
             if (attendance == null)
                 return NotFound();
@@ -57,7 +58,7 @@ namespace School.API.Controllers
         [Authorize(Policy = "Attendance.View.Own")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<List<AttendanceDetailsDTO>>> GetAttendancesByStudentId(int studentId)
+        public async Task<ActionResult<List<AttendanceResponse>>> GetAttendancesByStudentId(int studentId)
         {
             if (!User.HasClaim(CustomClaimTypes.Permission, "Attendance.View.All"))
             {
@@ -74,15 +75,15 @@ namespace School.API.Controllers
         [HttpGet("Class/{classId:int}")]
         [Authorize(Policy = "Attendance.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<AttendanceDetailsDTO>>> GetAttendancesByClassId(int classId)
+        public async Task<ActionResult<List<AttendanceResponse>>> GetAttendancesByClassId(int classId)
         {
             return Ok(await _attendanceService.GetAttendancesByClassIdAsync(classId));
         }
 
-        [HttpGet("Date/{attendanceDate:datetime}")]
+        [HttpGet("Date/{attendanceDate}")]
         [Authorize(Policy = "Attendance.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<AttendanceDetailsDTO>>> GetAttendancesByDate(DateOnly attendanceDate)
+        public async Task<ActionResult<List<AttendanceResponse>>> GetAttendancesByDate(DateOnly attendanceDate)
         {
             return Ok(await _attendanceService.GetAttendancesByDateAsync(attendanceDate));
         }
@@ -90,7 +91,7 @@ namespace School.API.Controllers
         [HttpGet("Status/{statusId:int}")]
         [Authorize(Policy = "Attendance.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<AttendanceDetailsDTO>>> GetAttendancesByStatusId(int statusId)
+        public async Task<ActionResult<List<AttendanceResponse>>> GetAttendancesByStatusId(int statusId)
         {
             return Ok(await _attendanceService.GetAttendancesByStatusIdAsync(statusId));
         }
@@ -98,9 +99,9 @@ namespace School.API.Controllers
         [HttpPost]
         [Authorize(Policy = "Attendance.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult<int>> AddAttendance(AttendanceDTO attendanceDTO)
+        public async Task<ActionResult<int>> AddAttendance(CreateAttendanceRequest attendance)
         {
-            int attendanceId = await _attendanceService.AddAttendanceAsync(attendanceDTO);
+            int attendanceId = await _attendanceService.AddAttendanceAsync(attendance);
 
             return CreatedAtAction(
                 nameof(GetAttendanceById),
@@ -108,12 +109,12 @@ namespace School.API.Controllers
                 attendanceId);
         }
 
-        [HttpPut]
+        [HttpPut("student/{studentId:int}/attendance/{attendanceID:int}")]
         [Authorize(Policy = "Attendance.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> UpdateAttendance(AttendanceDTO attendanceDTO)
+        public async Task<ActionResult> UpdateAttendance(int studentId, int attendanceID, UpdateAttendanceRequest attendance)
         {
-            await _attendanceService.UpdateAttendanceAsync(attendanceDTO);
+            await _attendanceService.UpdateAttendanceAsync(studentId, attendanceID, attendance);
 
             return Ok();
         }

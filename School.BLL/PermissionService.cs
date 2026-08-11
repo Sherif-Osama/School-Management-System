@@ -1,7 +1,8 @@
 ﻿using School.BLL.Common;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.PermissionDTOs;
+using School.DTO.PermissionDTOs.Requests;
+using School.DTO.PermissionDTOs.Responses;
 
 namespace School.BLL
 {
@@ -16,28 +17,45 @@ namespace School.BLL
         }
 
         #region Validation
-        private static void ValidatePermission(PermissionDTO permission)
+
+        private static void ValidatePermission(CreatePermissionRequest permission)
         {
             ArgumentNullException.ThrowIfNull(permission);
 
-            permission.PermissionName = ValidationHelper.ValidateString(permission.PermissionName, nameof(permission.PermissionName), MinPermissionNameLength, MaxPermissionNameLength);
+            permission.PermissionName = ValidationHelper.ValidateString(
+                permission.PermissionName, nameof(permission.PermissionName), MinPermissionNameLength, MaxPermissionNameLength);
 
-            if (permission.Description?.Length > 255)
-                throw new ArgumentException("Description cannot exceed 255 characters.", nameof(permission.Description));
+            ValidateDescription(permission.Description);
         }
+
+        private static void ValidatePermission(UpdatePermissionRequest permission)
+        {
+            ArgumentNullException.ThrowIfNull(permission);
+
+            permission.PermissionName = ValidationHelper.ValidateString(
+                permission.PermissionName, nameof(permission.PermissionName), MinPermissionNameLength, MaxPermissionNameLength);
+
+            ValidateDescription(permission.Description);
+        }
+
+        private static void ValidateDescription(string? description)
+        {
+            if (description?.Length > 255) throw new ArgumentException("Description cannot exceed 255 characters.", nameof(description));
+        }
+
         #endregion
 
         #region Public
-        public Task<List<PermissionDTO>> GetAllPermissionsAsync()
+        public Task<List<PermissionResponse>> GetAllPermissionsAsync()
         {
             return _permissionData.GetAllPermissionsAsync();
         }
 
-        public async Task<PermissionDTO?> GetPermissionByIdAsync(int permissionId)
+        public async Task<PermissionResponse?> GetPermissionByIdAsync(int permissionId)
         {
             ValidationHelper.ValidateId(permissionId);
 
-            PermissionDTO? permission = await _permissionData.GetPermissionByIdAsync(permissionId);
+            PermissionResponse? permission = await _permissionData.GetPermissionByIdAsync(permissionId);
 
             if (permission == null)
                 throw new KeyNotFoundException($"Permission with ID {permissionId} does not exist.");
@@ -45,11 +63,11 @@ namespace School.BLL
             return permission;
         }
 
-        public async Task<PermissionDTO?> GetPermissionByNameAsync(string permissionName)
+        public async Task<PermissionResponse?> GetPermissionByNameAsync(string permissionName)
         {
             permissionName = ValidationHelper.ValidateString(permissionName, nameof(permissionName), MinPermissionNameLength, MaxPermissionNameLength);
 
-            PermissionDTO? permission = await _permissionData.GetPermissionByNameAsync(permissionName);
+            PermissionResponse? permission = await _permissionData.GetPermissionByNameAsync(permissionName);
 
             if (permission == null)
                 throw new KeyNotFoundException($"Permission '{permissionName}' does not exist.");
@@ -57,7 +75,7 @@ namespace School.BLL
             return permission;
         }
 
-        public async Task<int> AddPermissionAsync(PermissionDTO permission)
+        public async Task<int> AddPermissionAsync(CreatePermissionRequest permission)
         {
             ValidatePermission(permission);
 
@@ -71,18 +89,18 @@ namespace School.BLL
             return permissionId;
         }
 
-        public async Task<bool> UpdatePermissionAsync(PermissionDTO permission)
+        public async Task<bool> UpdatePermissionAsync(int permissionID, UpdatePermissionRequest permission)
         {
             ValidatePermission(permission);
-            ValidationHelper.ValidateId(permission.PermissionID);
+            ValidationHelper.ValidateId(permissionID);
 
-            await EnsureHelper.EnsureExistsAsync(_permissionData.IsPermissionExistAsync, permission.PermissionID, "Permission");
-            await EnsureHelper.EnsureUniqueAsync(_permissionData.GetPermissionByNameAsync, permission.PermissionName, p => p.PermissionID, permission.PermissionID);
+            await EnsureHelper.EnsureExistsAsync(_permissionData.IsPermissionExistAsync, permissionID, "Permission");
+            await EnsureHelper.EnsureUniqueAsync(_permissionData.GetPermissionByNameAsync, permission.PermissionName, p => p.PermissionID, permissionID);
 
-            bool isUpdated = await _permissionData.UpdatePermissionAsync(permission);
+            bool isUpdated = await _permissionData.UpdatePermissionAsync(permissionID, permission);
 
             if (!isUpdated)
-                throw new InvalidOperationException($"Failed to update permission with ID {permission.PermissionID}.");
+                throw new InvalidOperationException($"Failed to update permission with ID {permissionID}.");
 
             return isUpdated;
         }

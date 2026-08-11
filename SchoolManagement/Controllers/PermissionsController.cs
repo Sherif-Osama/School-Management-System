@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
-using School.DTO.PermissionDTOs;
+using School.DTO.PermissionDTOs.Requests;
+using School.DTO.PermissionDTOs.Responses;
 
 namespace School.API.Controllers
 {
@@ -19,7 +20,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Permissions.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<PermissionDTO>>> GetAllPermissions()
+        public async Task<ActionResult<List<PermissionResponse>>> GetAllPermissions()
         {
             return Ok(await _permissionService.GetAllPermissionsAsync());
         }
@@ -28,9 +29,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Permissions.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<PermissionDTO>> GetPermissionById(int id)
+        public async Task<ActionResult<PermissionResponse>> GetPermissionById(int id)
         {
-            PermissionDTO? permission = await _permissionService.GetPermissionByIdAsync(id);
+            PermissionResponse? permission = await _permissionService.GetPermissionByIdAsync(id);
 
             if (permission == null)
                 return NotFound();
@@ -42,9 +43,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Permissions.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<PermissionDTO>> GetPermissionByName(string permissionName)
+        public async Task<ActionResult<PermissionResponse>> GetPermissionByName(string permissionName)
         {
-            PermissionDTO? permission = await _permissionService.GetPermissionByNameAsync(permissionName);
+            PermissionResponse? permission = await _permissionService.GetPermissionByNameAsync(permissionName);
 
             if (permission == null)
                 return NotFound();
@@ -55,7 +56,7 @@ namespace School.API.Controllers
         [HttpPost]
         [Authorize(Policy = "Permissions.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult<int>> AddPermission(PermissionDTO permission)
+        public async Task<ActionResult<int>> AddPermission(CreatePermissionRequest permission)
         {
             int permissionId = await _permissionService.AddPermissionAsync(permission);
 
@@ -65,12 +66,12 @@ namespace School.API.Controllers
                 permissionId);
         }
 
-        [HttpPut]
+        [HttpPut("{permissionId:int}")]
         [Authorize(Policy = "Permissions.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdatePermission(PermissionDTO permission)
+        public async Task<IActionResult> UpdatePermission(int permissionId, UpdatePermissionRequest permission)
         {
-            await _permissionService.UpdatePermissionAsync(permission);
+            await _permissionService.UpdatePermissionAsync(permissionId, permission);
 
             return Ok();
         }

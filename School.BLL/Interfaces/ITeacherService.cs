@@ -1,16 +1,17 @@
-﻿using School.DTO.TeachersDTOs;
+﻿using School.DTO.TeachersDTOs.Requests;
+using School.DTO.TeachersDTOs.Responses;
 
 namespace School.BLL.Interfaces
 {
     public interface ITeacherService
     {
-        Task<int> AddTeacherAsync(TeacherDTO teacher);
+        Task<int> AddTeacherAsync(CreateTeacherRequest teacher);
         Task<bool> DeleteTeacherAsync(int teacherId);
-        Task<List<TeacherDetailsDTO>> GetAllTeachersAsync();
-        Task<TeacherDetailsDTO?> GetTeacherByIdAsync(int teacherId);
-        Task<TeacherDetailsDTO?> GetTeacherByNationalIdAsync(string nationalId);
-        Task<TeacherDetailsDTO?> GetTeacherByPersonIdAsync(int personId);
+        Task<List<TeacherResponse>> GetAllTeachersAsync();
+        Task<TeacherResponse?> GetTeacherByIdAsync(int teacherId);
+        Task<TeacherResponse?> GetTeacherByNationalIdAsync(string nationalId);
+        Task<TeacherResponse?> GetTeacherByPersonIdAsync(int personId);
         Task<bool> IsTeacherExistAsync(int teacherId);
-        Task<bool> UpdateTeacherAsync(TeacherDTO teacher);
+        Task<bool> UpdateTeacherAsync(int teacherId, UpdateTeacherRequest teacher);
     }
 }

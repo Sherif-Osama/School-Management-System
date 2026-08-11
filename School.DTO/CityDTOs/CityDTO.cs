@@ -1,5 +1,8 @@
 ﻿namespace School.DTO.CityDTOs
 {
+    // Read-only lookup DTO.
+    // No Create or Update requests are required for this entity.
+    // Used to retrieve country reference data for selection and display.
     public class CityDTO
     {
         public int CityID { get; set; }

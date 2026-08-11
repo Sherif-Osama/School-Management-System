@@ -1,20 +1,21 @@
 ﻿using School.DTO.AuthDTOs;
-using School.DTO.UserDTOs;
+using School.DTO.UserDTOs.Requests;
+using School.DTO.UserDTOs.Responses;
 
 namespace School.DAL.Interfaces
 {
     public interface IUserData
     {
-        Task<int> AddUserAsync(UserDTO user);
+        Task<int> AddUserAsync(CreateUserRequest user);
         Task<bool> DeleteUserAsync(int userId);
-        Task<List<UserDetailsDTO>> GetAllUsersAsync();
+        Task<List<UserResponse>> GetAllUsersAsync();
         Task<string?> GetPasswordHashByUserIdAsync(int userId);
-        Task<UserDetailsDTO?> GetUserByIdAsync(int userId);
-        Task<UserDetailsDTO?> GetUserByPersonIdAsync(int personId);
-        Task<UserDetailsDTO?> GetUserByUsernameAsync(string username);
+        Task<UserResponse?> GetUserByIdAsync(int userId);
+        Task<UserResponse?> GetUserByPersonIdAsync(int personId);
+        Task<UserResponse?> GetUserByUsernameAsync(string username);
         Task<bool> IsUserExistAsync(int userId);
         Task<bool> UpdatePasswordAsync(int userId, string passwordHash);
         Task<UserAuthDTO?> GetUserForAuthenticationAsync(string username);
-        Task<bool> UpdateUserAsync(UpdateUserDTO user);
+        Task<bool> UpdateUserAsync(int userId, UpdateUserRequest user);
     }
 }

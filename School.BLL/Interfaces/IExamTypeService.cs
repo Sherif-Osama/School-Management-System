@@ -1,14 +1,15 @@
-﻿using School.DTO.ExamTypeDTOs;
+﻿using School.DTO.ExamTypeDTOs.Requests;
+using School.DTO.ExamTypeDTOs.Responses;
 
 namespace School.BLL.Interfaces
 {
     public interface IExamTypeService
     {
-        Task<int> AddExamTypeAsync(ExamTypeDTO examType);
+        Task<int> AddExamTypeAsync(CreateExamTypeRequest examType);
         Task<bool> DeleteExamTypeAsync(int examTypeId);
-        Task<List<ExamTypeDTO>> GetAllExamTypesAsync();
-        Task<ExamTypeDTO?> GetExamTypeByIdAsync(int examTypeId);
-        Task<ExamTypeDTO?> GetExamTypeByNameAsync(string examName);
-        Task<bool> UpdateExamTypeAsync(ExamTypeDTO examType);
+        Task<List<ExamTypeResponse>> GetAllExamTypesAsync();
+        Task<ExamTypeResponse?> GetExamTypeByIdAsync(int examTypeId);
+        Task<ExamTypeResponse?> GetExamTypeByNameAsync(string examName);
+        Task<bool> UpdateExamTypeAsync(int examTypeId, UpdateExamTypeRequest examType);
     }
 }

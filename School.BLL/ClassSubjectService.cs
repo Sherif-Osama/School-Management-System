@@ -1,8 +1,9 @@
 ﻿using School.BLL.Common;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.AssociationsDTOs.ClassSubjectDTOs;
-using School.DTO.AssociationsDTOs.TeacherSubjectDTOs;
+using School.DTO.AssociationsDTOs.ClassSubjectDTOs.Requests;
+using School.DTO.AssociationsDTOs.ClassSubjectDTOs.Responses;
+using School.DTO.AssociationsDTOs.TeacherSubjectDTOs.Requests;
 
 namespace School.BLL
 {
@@ -25,7 +26,7 @@ namespace School.BLL
 
         #region Private Helpers
 
-        private static void ValidateClassSubject(ClassSubjectDTO classSubject)
+        private static void ValidateClassSubject(CreateClassSubjectRequest classSubject)
         {
             ArgumentNullException.ThrowIfNull(classSubject);
 
@@ -33,12 +34,18 @@ namespace School.BLL
             ValidationHelper.ValidateId(classSubject.TeacherID);
             ValidationHelper.ValidateId(classSubject.SubjectID);
         }
+        private static void ValidateClassSubject(UpdateClassSubjectRequest classSubject)
+        {
+            ArgumentNullException.ThrowIfNull(classSubject);
+
+            ValidationHelper.ValidateId(classSubject.TeacherID);
+        }
 
         private async Task EnsureTeacherCanTeachSubjectAsync(int teacherId, int subjectId)
         {
             bool exists =
                 await _teacherSubjectData.IsTeacherSubjectExistAsync(
-                    new TeacherSubjectDTO
+                    new TeacherSubjectRequest
                     {
                         TeacherID = teacherId,
                         SubjectID = subjectId
@@ -54,9 +61,9 @@ namespace School.BLL
         // single-key lookups.
         // Future improvement: update EnsureHelper to support lookup delegates
         // that accept multiple parameters!!!
-        private async Task EnsureUniqueClassSubjectAsync(ClassSubjectDTO classSubject, int? currentClassSubjectId = null)
+        private async Task EnsureUniqueClassSubjectAsync(CreateClassSubjectRequest classSubject, int? currentClassSubjectId = null)
         {
-            ClassSubjectDetailsDTO? relation = await _classSubjectData.GetClassSubjectByDetailsAsync(classSubject.ClassID, classSubject.TeacherID, classSubject.SubjectID);
+            ClassSubjectResponse? relation = await _classSubjectData.GetClassSubjectByDetailsAsync(classSubject.ClassID, classSubject.TeacherID, classSubject.SubjectID);
 
             if (relation == null)
                 return;
@@ -68,16 +75,25 @@ namespace School.BLL
                 "This class, teacher and subject assignment already exists.");
         }
 
+        private async Task<ClassSubjectResponse> EnsureClassSubjectExistsAsync(int classSubjectId)
+        {
+            var classSubject = await _classSubjectData.GetClassSubjectByIdAsync(classSubjectId);
+
+            if (classSubject == null)
+                throw new KeyNotFoundException($"ClassSubject with ID {classSubjectId} does not exist.");
+
+            return classSubject;
+        }
         #endregion
 
         #region Public Methods
-        public Task<List<ClassSubjectDetailsDTO>> GetAllClassSubjectsAsync() => _classSubjectData.GetAllClassSubjectsAsync();
+        public Task<List<ClassSubjectResponse>> GetAllClassSubjectsAsync() => _classSubjectData.GetAllClassSubjectsAsync();
 
-        public async Task<ClassSubjectDetailsDTO?> GetClassSubjectByIdAsync(int classSubjectId)
+        public async Task<ClassSubjectResponse?> GetClassSubjectByIdAsync(int classSubjectId)
         {
             ValidationHelper.ValidateId(classSubjectId);
 
-            ClassSubjectDetailsDTO? classSubject = await _classSubjectData.GetClassSubjectByIdAsync(classSubjectId);
+            ClassSubjectResponse? classSubject = await _classSubjectData.GetClassSubjectByIdAsync(classSubjectId);
 
             if (classSubject == null)
                 throw new KeyNotFoundException($"ClassSubject with ID {classSubjectId} does not exist.");
@@ -85,7 +101,7 @@ namespace School.BLL
             return classSubject;
         }
 
-        public async Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsByClassIdAsync(int classId)
+        public async Task<List<ClassSubjectResponse>> GetClassSubjectsByClassIdAsync(int classId)
         {
             ValidationHelper.ValidateId(classId);
 
@@ -94,7 +110,7 @@ namespace School.BLL
             return await _classSubjectData.GetClassSubjectsByClassIdAsync(classId);
         }
 
-        public async Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsByTeacherIdAsync(int teacherId)
+        public async Task<List<ClassSubjectResponse>> GetClassSubjectsByTeacherIdAsync(int teacherId)
         {
             ValidationHelper.ValidateId(teacherId);
 
@@ -103,7 +119,7 @@ namespace School.BLL
             return await _classSubjectData.GetClassSubjectsByTeacherIdAsync(teacherId);
         }
 
-        public async Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsBySubjectIdAsync(int subjectId)
+        public async Task<List<ClassSubjectResponse>> GetClassSubjectsBySubjectIdAsync(int subjectId)
         {
             ValidationHelper.ValidateId(subjectId);
 
@@ -112,7 +128,7 @@ namespace School.BLL
             return await _classSubjectData.GetClassSubjectsBySubjectIdAsync(subjectId);
         }
 
-        public async Task<int> AddClassSubjectAsync(ClassSubjectDTO classSubject)
+        public async Task<int> AddClassSubjectAsync(CreateClassSubjectRequest classSubject)
         {
             ValidateClassSubject(classSubject);
 
@@ -130,26 +146,22 @@ namespace School.BLL
             return newClassSubjectId;
         }
 
-        public async Task<bool> UpdateClassSubjectAsync(ClassSubjectDTO classSubject)
+        public async Task<bool> UpdateClassSubjectAsync(int classsubjectID, UpdateClassSubjectRequest classSubject)
         {
             ValidateClassSubject(classSubject);
 
-            ValidationHelper.ValidateId(classSubject.ClassSubjectID);
+            ValidationHelper.ValidateId(classsubjectID);
 
-            await EnsureHelper.EnsureExistsAsync(_classSubjectData.IsClassSubjectExistAsync, classSubject.ClassSubjectID, "Class Subject");
+            var CurrentClassSubject = await EnsureClassSubjectExistsAsync(classsubjectID);
 
-            await EnsureHelper.EnsureExistsAsync(_classData.IsClassExistAsync, classSubject.ClassID, "Class");
             await EnsureHelper.EnsureExistsAsync(_teacherData.IsTeacherExistAsync, classSubject.TeacherID, "Teacher");
-            await EnsureHelper.EnsureExistsAsync(_subjectData.IsSubjectExistAsync, classSubject.SubjectID, "Subject");
 
-            await EnsureTeacherCanTeachSubjectAsync(classSubject.TeacherID, classSubject.SubjectID);
+            await EnsureTeacherCanTeachSubjectAsync(classSubject.TeacherID, CurrentClassSubject.SubjectID);
 
-            await EnsureUniqueClassSubjectAsync(classSubject, classSubject.ClassSubjectID);
-
-            bool isUpdated = await _classSubjectData.UpdateClassSubjectAsync(classSubject);
+            bool isUpdated = await _classSubjectData.UpdateClassSubjectAsync(classsubjectID, classSubject);
 
             if (!isUpdated)
-                throw new InvalidOperationException($"Failed to update class subject with ID {classSubject.ClassSubjectID}.");
+                throw new InvalidOperationException($"Failed to update class subject with ID {classsubjectID}.");
 
             return isUpdated;
         }

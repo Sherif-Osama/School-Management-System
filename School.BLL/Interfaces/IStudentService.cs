@@ -1,14 +1,15 @@
-﻿using School.DTO.StudentsDTOs;
+﻿using School.DTO.StudentsDTOs.Requests;
+using School.DTO.StudentsDTOs.Responses;
 
 namespace School.BLL.Interfaces
 {
     public interface IStudentService
     {
-        Task<int> AddStudentAsync(StudentDTO student);
+        Task<int> AddStudentAsync(CreateStudentRequest student);
         Task<bool> DeleteStudentAsync(int studentId);
-        Task<List<StudentDetailsDTO>> GetAllStudentsAsync();
-        Task<StudentDetailsDTO?> GetStudentByIdAsync(int studentId);
-        Task<StudentDetailsDTO?> GetStudentByPersonIdAsync(int personId);
-        Task<bool> UpdateStudentAsync(StudentDTO student);
+        Task<List<StudentResponse>> GetAllStudentsAsync();
+        Task<StudentResponse?> GetStudentByIdAsync(int studentId);
+        Task<StudentResponse?> GetStudentByPersonIdAsync(int personId);
+        Task<bool> UpdateStudentAsync(int studentId, UpdateStudentRequest student);
     }
 }

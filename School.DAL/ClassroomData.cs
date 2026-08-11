@@ -2,7 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
 using School.DAL.Interfaces;
-using School.DTO.ClassroomDTOs;
+using School.DTO.ClassroomDTOs.Requests;
+using School.DTO.ClassroomDTOs.Responses;
 using System.Data;
 
 namespace School.DAL
@@ -13,9 +14,9 @@ namespace School.DAL
 
         #region Helper Methods
 
-        private static ClassroomDTO MapClassroom(SqlDataReader reader)
+        private static ClassroomResponse MapClassroom(SqlDataReader reader)
         {
-            return new ClassroomDTO
+            return new ClassroomResponse
             {
                 ClassroomID = reader.GetInt32(reader.GetOrdinal("ClassroomID")),
                 RoomName = reader.GetString(reader.GetOrdinal("RoomName")),
@@ -23,7 +24,7 @@ namespace School.DAL
             };
         }
 
-        private static void AddParameters(SqlCommand command, ClassroomDTO classroom)
+        private static void AddParameters(SqlCommand command, CreateClassroomRequest classroom)
         {
             command.Parameters.Add("@RoomName", SqlDbType.NVarChar, 20).Value = classroom.RoomName.Trim();
             command.Parameters.Add("@Capacity", SqlDbType.Int).Value = classroom.Capacity;
@@ -33,25 +34,26 @@ namespace School.DAL
 
         #region Public Methods
 
-        public Task<List<ClassroomDTO>> GetAllClassroomsAsync() => QueryListAsync("SP_GetAllClassrooms", null, MapClassroom);
+        public Task<List<ClassroomResponse>> GetAllClassroomsAsync() => QueryListAsync("SP_GetAllClassrooms", null, MapClassroom);
 
-        public Task<ClassroomDTO?> GetClassroomByIdAsync(int classroomId) =>
+        public Task<ClassroomResponse?> GetClassroomByIdAsync(int classroomId) =>
             QuerySingleAsync("SP_GetClassroomByID", cmd => cmd.Parameters.Add("@ClassroomID", SqlDbType.Int).Value = classroomId,
                 MapClassroom);
 
-        public Task<ClassroomDTO?> GetClassroomByRoomNameAsync(string roomName) =>
+        public Task<ClassroomResponse?> GetClassroomByRoomNameAsync(string roomName) =>
             QuerySingleAsync("SP_GetClassroomByRoomName", cmd => cmd.Parameters.Add("@RoomName", SqlDbType.NVarChar, 20).Value = roomName.Trim(),
                 MapClassroom);
 
-        public Task<int> AddClassroomAsync(ClassroomDTO classroom) =>
+        public Task<int> AddClassroomAsync(CreateClassroomRequest classroom) =>
             InsertAsync<int>("SP_AddClassroom", cmd => AddParameters(cmd, classroom), "@ClassroomID", SqlDbType.Int);
 
-        public Task<bool> UpdateClassroomAsync(ClassroomDTO classroom) =>
+        public Task<bool> UpdateClassroomAsync(int classroomId, UpdateClassroomRequest classroom) =>
             ExecuteNonQueryAsync("SP_UpdateClassroom",
                 cmd =>
                 {
-                    cmd.Parameters.Add("@ClassroomID", SqlDbType.Int).Value = classroom.ClassroomID;
-                    AddParameters(cmd, classroom);
+                    cmd.Parameters.Add("@ClassroomID", SqlDbType.Int).Value = classroomId;
+                    cmd.Parameters.Add("@RoomName", SqlDbType.NVarChar, 20).Value = classroom.RoomName.Trim();
+                    cmd.Parameters.Add("@Capacity", SqlDbType.Int).Value = classroom.Capacity;
                 });
 
         public Task<bool> DeleteClassroomAsync(int classroomId) =>

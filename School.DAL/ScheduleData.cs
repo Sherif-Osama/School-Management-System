@@ -2,7 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
 using School.DAL.Interfaces;
-using School.DTO.ScheduleDTOs;
+using School.DTO.ScheduleDTOs.Requests;
+using School.DTO.ScheduleDTOs.Responses;
 using System.Data;
 
 namespace School.DAL
@@ -13,9 +14,9 @@ namespace School.DAL
 
         #region Helper Methods
 
-        private static ScheduleDetailsDTO MapScheduleDetails(SqlDataReader reader)
+        private static ScheduleResponse MapScheduleDetails(SqlDataReader reader)
         {
-            return new ScheduleDetailsDTO
+            return new ScheduleResponse
             {
                 ScheduleID = reader.GetInt32(reader.GetOrdinal("ScheduleID")),
                 GradeID = reader.GetByte(reader.GetOrdinal("GradeID")),
@@ -39,7 +40,7 @@ namespace School.DAL
             };
         }
 
-        private static void AddParameters(SqlCommand command, ScheduleDTO schedule)
+        private static void AddParameters(SqlCommand command, CreateScheduleRequest schedule)
         {
             command.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = schedule.ClassSubjectID;
             command.Parameters.Add("@DayOfWeek", SqlDbType.TinyInt).Value = schedule.DayOfWeek;
@@ -64,39 +65,43 @@ namespace School.DAL
 
         #region Public Methods
 
-        public Task<List<ScheduleDetailsDTO>> GetAllSchedulesAsync() =>
+        public Task<List<ScheduleResponse>> GetAllSchedulesAsync() =>
             QueryListAsync("SP_GetAllSchedules", null, MapScheduleDetails);
 
-        public Task<ScheduleDetailsDTO?> GetScheduleByIdAsync(int scheduleId) =>
+        public Task<ScheduleResponse?> GetScheduleByIdAsync(int scheduleId) =>
             QuerySingleAsync("SP_GetScheduleByID", cmd => cmd.Parameters.Add("@ScheduleID", SqlDbType.Int).Value = scheduleId,
                 MapScheduleDetails);
 
-        public Task<List<ScheduleDetailsDTO>> GetSchedulesByClassIdAsync(int classId) =>
+        public Task<List<ScheduleResponse>> GetSchedulesByClassIdAsync(int classId) =>
             QueryListAsync("SP_GetSchedulesByClassID", cmd => cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId,
                 MapScheduleDetails);
 
-        public Task<List<ScheduleDetailsDTO>> GetSchedulesByClassroomIdAsync(int classroomId) =>
+        public Task<List<ScheduleResponse>> GetSchedulesByClassroomIdAsync(int classroomId) =>
             QueryListAsync("SP_GetSchedulesByClassroomID", cmd => cmd.Parameters.Add("@ClassroomID", SqlDbType.Int).Value = classroomId,
                 MapScheduleDetails);
 
-        public Task<List<ScheduleDetailsDTO>> GetSchedulesByClassSubjectIdAsync(int classSubjectId) =>
+        public Task<List<ScheduleResponse>> GetSchedulesByClassSubjectIdAsync(int classSubjectId) =>
             QueryListAsync("SP_GetSchedulesByClassSubjectID", cmd => cmd.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = classSubjectId,
                 MapScheduleDetails);
 
-        public Task<List<ScheduleDetailsDTO>> GetSchedulesByTeacherIdAsync(int teacherId) =>
+        public Task<List<ScheduleResponse>> GetSchedulesByTeacherIdAsync(int teacherId) =>
             QueryListAsync("SP_GetSchedulesByTeacherID", cmd => cmd.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId,
                 MapScheduleDetails);
 
-        public Task<int> AddScheduleAsync(ScheduleDTO schedule) =>
+        public Task<int> AddScheduleAsync(CreateScheduleRequest schedule) =>
             InsertAsync<int>("SP_AddSchedule", cmd => AddParameters(cmd, schedule), "@ScheduleID",
                 SqlDbType.Int);
 
-        public Task<bool> UpdateScheduleAsync(ScheduleDTO schedule) =>
+        public Task<bool> UpdateScheduleAsync(int scheduleId, UpdateScheduleRequest schedule) =>
             ExecuteNonQueryAsync("SP_UpdateSchedule",
                 cmd =>
                 {
-                    cmd.Parameters.Add("@ScheduleID", SqlDbType.Int).Value = schedule.ScheduleID;
-                    AddParameters(cmd, schedule);
+                    cmd.Parameters.Add("@ScheduleID", SqlDbType.Int).Value = scheduleId;
+                    cmd.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = schedule.ClassSubjectID;
+                    cmd.Parameters.Add("@DayOfWeek", SqlDbType.TinyInt).Value = schedule.DayOfWeek;
+                    cmd.Parameters.Add("@StartTime", SqlDbType.Time).Value = schedule.StartTime.ToTimeSpan();
+                    cmd.Parameters.Add("@EndTime", SqlDbType.Time).Value = schedule.EndTime.ToTimeSpan();
+                    cmd.Parameters.Add("@ClassroomID", SqlDbType.Int).Value = schedule.ClassroomID;
                 });
 
         public Task<bool> DeleteScheduleAsync(int scheduleId) =>

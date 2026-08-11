@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
-using School.DTO.SubjectDTOs;
+using School.DTO.SubjectDTOs.Requests;
+using School.DTO.SubjectDTOs.Responses;
 
 namespace School.API.Controllers
 {
@@ -19,7 +20,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Subjects.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<SubjectDTO>>> GetAllSubjects()
+        public async Task<ActionResult<List<SubjectResponse>>> GetAllSubjects()
         {
             return Ok(await _subjectService.GetAllSubjectsAsync());
         }
@@ -28,9 +29,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Subjects.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<SubjectDTO>> GetSubjectById(int id)
+        public async Task<ActionResult<SubjectResponse>> GetSubjectById(int id)
         {
-            SubjectDTO? subject = await _subjectService.GetSubjectByIdAsync(id);
+            SubjectResponse? subject = await _subjectService.GetSubjectByIdAsync(id);
 
             if (subject == null)
                 return NotFound();
@@ -42,9 +43,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Subjects.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<SubjectDTO>> GetSubjectByName(string name)
+        public async Task<ActionResult<SubjectResponse>> GetSubjectByName(string name)
         {
-            SubjectDTO? subject = await _subjectService.GetSubjectByNameAsync(name);
+            SubjectResponse? subject = await _subjectService.GetSubjectByNameAsync(name);
 
             if (subject == null)
                 return NotFound();
@@ -55,9 +56,9 @@ namespace School.API.Controllers
         [HttpPost]
         [Authorize(Policy = "Subjects.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult<int>> AddSubject(SubjectDTO subjectDTO)
+        public async Task<ActionResult<int>> AddSubject(CreateSubjectRequest subject)
         {
-            int subjectId = await _subjectService.AddSubjectAsync(subjectDTO);
+            int subjectId = await _subjectService.AddSubjectAsync(subject);
 
             return CreatedAtAction(
                 nameof(GetSubjectById),
@@ -65,12 +66,12 @@ namespace School.API.Controllers
                 subjectId);
         }
 
-        [HttpPut]
+        [HttpPut("{id:int}")]
         [Authorize(Policy = "Subjects.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> UpdateSubject(SubjectDTO subjectDTO)
+        public async Task<ActionResult> UpdateSubject(int id, UpdateSubjectRequest subject)
         {
-            await _subjectService.UpdateSubjectAsync(subjectDTO);
+            await _subjectService.UpdateSubjectAsync(id, subject);
 
             return Ok();
         }

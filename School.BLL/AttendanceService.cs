@@ -1,8 +1,9 @@
 ﻿using School.BLL.Common;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.AttendanceDTOs;
-using School.DTO.StudentsDTOs;
+using School.DTO.AttendanceDTOs.Requests;
+using School.DTO.AttendanceDTOs.Responses;
+using School.DTO.StudentsDTOs.Responses;
 
 namespace School.BLL
 {
@@ -22,11 +23,19 @@ namespace School.BLL
         }
 
         #region Validation
-        private static void ValidateAttendance(AttendanceDTO attendance)
+        private static void ValidateAttendance(CreateAttendanceRequest attendance)
         {
             ArgumentNullException.ThrowIfNull(attendance);
 
             ValidationHelper.ValidateId(attendance.StudentID);
+            ValidationHelper.ValidateId(attendance.StatusID);
+            ValidateAttendanceDate(attendance.AttendanceDate);
+        }
+        private static void ValidateAttendance(UpdateAttendanceRequest attendance)
+        {
+            ArgumentNullException.ThrowIfNull(attendance);
+
+
             ValidationHelper.ValidateId(attendance.StatusID);
             ValidateAttendanceDate(attendance.AttendanceDate);
         }
@@ -45,19 +54,19 @@ namespace School.BLL
         #endregion
 
         #region Ensure
-        private async Task<StudentDetailsDTO> GetStudentOrThrowAsync(int studentId)
+        private async Task<StudentResponse> GetStudentOrThrowAsync(int studentId)
         {
             return await _studentData.GetStudentByIdAsync(studentId)
                 ?? throw new KeyNotFoundException($"Student with ID {studentId} does not exist.");
         }
 
-        private static void EnsureStudentIsActive(StudentDetailsDTO student)
+        private static void EnsureStudentIsActive(StudentResponse student)
         {
             if (student.StatusID != 1) // Assuming 1 represents the "Active" status
                 throw new InvalidOperationException($"Cannot record attendance for student {student.StudentID}: status is '{student.StatusName}', not Active '.");
         }
 
-        private async Task EnsureAttendanceDateWithinAcademicYearAsync(StudentDetailsDTO student, DateOnly attendanceDate)
+        private async Task EnsureAttendanceDateWithinAcademicYearAsync(StudentResponse student, DateOnly attendanceDate)
         {
             var schoolClass = await _classData.GetClassByIdAsync(student.ClassID)
                 ?? throw new KeyNotFoundException($"Class with ID {student.ClassID} does not exist.");
@@ -73,7 +82,7 @@ namespace School.BLL
                     nameof(attendanceDate));
         }
 
-        private static void EnsureAttendanceDateNotBeforeEnrollment(StudentDetailsDTO student, DateOnly attendanceDate)
+        private static void EnsureAttendanceDateNotBeforeEnrollment(StudentResponse student, DateOnly attendanceDate)
         {
             DateOnly enrollmentDate = DateOnly.FromDateTime(student.EnrollmentDate);
 
@@ -95,16 +104,16 @@ namespace School.BLL
         #endregion
 
         #region Public
-        public Task<List<AttendanceDetailsDTO>> GetAllAttendancesAsync()
+        public Task<List<AttendanceResponse>> GetAllAttendancesAsync()
         {
             return _attendanceData.GetAllAttendancesAsync();
         }
 
-        public async Task<AttendanceDetailsDTO?> GetAttendanceByIdAsync(int attendanceId)
+        public async Task<AttendanceResponse?> GetAttendanceByIdAsync(int attendanceId)
         {
             ValidationHelper.ValidateId(attendanceId);
 
-            AttendanceDetailsDTO? attendance = await _attendanceData.GetAttendanceByIdAsync(attendanceId);
+            AttendanceResponse? attendance = await _attendanceData.GetAttendanceByIdAsync(attendanceId);
 
             if (attendance == null)
                 throw new KeyNotFoundException($"Attendance with ID {attendanceId} does not exist.");
@@ -112,39 +121,39 @@ namespace School.BLL
             return attendance;
         }
 
-        public async Task<List<AttendanceDetailsDTO>> GetAttendancesByStudentIdAsync(int studentId)
+        public async Task<List<AttendanceResponse>> GetAttendancesByStudentIdAsync(int studentId)
         {
             ValidationHelper.ValidateId(studentId);
 
             return await _attendanceData.GetAttendancesByStudentIdAsync(studentId);
         }
 
-        public async Task<List<AttendanceDetailsDTO>> GetAttendancesByClassIdAsync(int classId)
+        public async Task<List<AttendanceResponse>> GetAttendancesByClassIdAsync(int classId)
         {
             ValidationHelper.ValidateId(classId);
 
             return await _attendanceData.GetAttendancesByClassIdAsync(classId);
         }
 
-        public async Task<List<AttendanceDetailsDTO>> GetAttendancesByDateAsync(DateOnly attendanceDate)
+        public async Task<List<AttendanceResponse>> GetAttendancesByDateAsync(DateOnly attendanceDate)
         {
             ValidateAttendanceDate(attendanceDate);
 
             return await _attendanceData.GetAttendancesByDateAsync(attendanceDate);
         }
 
-        public async Task<List<AttendanceDetailsDTO>> GetAttendancesByStatusIdAsync(int statusId)
+        public async Task<List<AttendanceResponse>> GetAttendancesByStatusIdAsync(int statusId)
         {
             ValidationHelper.ValidateId(statusId);
 
             return await _attendanceData.GetAttendancesByStatusIdAsync(statusId);
         }
 
-        public async Task<int> AddAttendanceAsync(AttendanceDTO attendance)
+        public async Task<int> AddAttendanceAsync(CreateAttendanceRequest attendance)
         {
             ValidateAttendance(attendance);
 
-            StudentDetailsDTO student = await GetStudentOrThrowAsync(attendance.StudentID);
+            StudentResponse student = await GetStudentOrThrowAsync(attendance.StudentID);
             await EnsureHelper.EnsureExistsAsync(_attendanceStatusData.IsAttendanceStatusExistAsync, attendance.StatusID, "Attendance Status");
 
             EnsureStudentIsActive(student);
@@ -160,25 +169,25 @@ namespace School.BLL
             return newAttendanceId;
         }
 
-        public async Task<bool> UpdateAttendanceAsync(AttendanceDTO attendance)
+        public async Task<bool> UpdateAttendanceAsync(int studentId, int attendanceID, UpdateAttendanceRequest attendance)
         {
             ValidateAttendance(attendance);
-            ValidationHelper.ValidateId(attendance.AttendanceID);
+            ValidationHelper.ValidateId(attendanceID);
+            ValidationHelper.ValidateId(studentId);
+            await EnsureHelper.EnsureExistsAsync(_attendanceData.IsAttendanceExistAsync, attendanceID, "Attendance");
 
-            await EnsureHelper.EnsureExistsAsync(_attendanceData.IsAttendanceExistAsync, attendance.AttendanceID, "Attendance");
-
-            StudentDetailsDTO student = await GetStudentOrThrowAsync(attendance.StudentID);
+            StudentResponse student = await GetStudentOrThrowAsync(studentId);
             await EnsureHelper.EnsureExistsAsync(_attendanceStatusData.IsAttendanceStatusExistAsync, attendance.StatusID, "Attendance Status");
 
             EnsureStudentIsActive(student);
             await EnsureAttendanceDateWithinAcademicYearAsync(student, attendance.AttendanceDate);
             EnsureAttendanceDateNotBeforeEnrollment(student, attendance.AttendanceDate);
-            await EnsureAttendanceUniqueAsync(attendance.StudentID, attendance.AttendanceDate, attendance.AttendanceID);
+            await EnsureAttendanceUniqueAsync(studentId, attendance.AttendanceDate, attendanceID);
 
-            bool isUpdated = await _attendanceData.UpdateAttendanceAsync(attendance);
+            bool isUpdated = await _attendanceData.UpdateAttendanceAsync(studentId, attendanceID, attendance);
 
             if (!isUpdated)
-                throw new InvalidOperationException($"Failed to update attendance with ID {attendance.AttendanceID}.");
+                throw new InvalidOperationException($"Failed to update attendance with ID {attendanceID}.");
 
             return isUpdated;
         }

@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
-using School.DTO.AssociationsDTOs.UserRoleDTOs;
+using School.DTO.AssociationsDTOs.UserRoleDTOs.Requests;
+using School.DTO.AssociationsDTOs.UserRoleDTOs.Responses;
 
 namespace School.API.Controllers
 {
@@ -19,7 +20,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Roles.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<UserRoleDetailsDTO>>> GetAllUserRoles()
+        public async Task<ActionResult<List<UserRoleResponse>>> GetAllUserRoles()
         {
             return Ok(await _userRoleService.GetAllUserRolesAsync());
         }
@@ -28,9 +29,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Roles.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<UserRoleDetailsDTO>> GetUserRole(int userId, int roleId)
+        public async Task<ActionResult<UserRoleResponse>> GetUserRole(int userId, int roleId)
         {
-            UserRoleDetailsDTO? userRole =
+            UserRoleResponse? userRole =
                 await _userRoleService.GetUserRoleAsync(userId, roleId);
 
             if (userRole == null)
@@ -43,9 +44,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Roles.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<List<UserRoleDetailsDTO>>> GetRolesByUserId(int userId)
+        public async Task<ActionResult<List<UserRoleResponse>>> GetRolesByUserId(int userId)
         {
-            List<UserRoleDetailsDTO> roles =
+            List<UserRoleResponse> roles =
                 await _userRoleService.GetRolesByUserIdAsync(userId);
 
             if (roles.Count == 0)
@@ -57,7 +58,7 @@ namespace School.API.Controllers
         [HttpPost]
         [Authorize(Policy = "UserRoles.Assign")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> AddUserRole(UserRoleDTO userRole)
+        public async Task<IActionResult> AddUserRole(UserRoleRequest userRole)
         {
             await _userRoleService.AddUserRoleAsync(userRole);
 

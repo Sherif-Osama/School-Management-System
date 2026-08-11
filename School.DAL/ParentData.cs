@@ -2,7 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
 using School.DAL.Interfaces;
-using School.DTO.ParentsDTOs;
+using School.DTO.ParentsDTOs.Requests;
+using School.DTO.ParentsDTOs.Responses;
 using System.Data;
 
 namespace School.DAL
@@ -13,9 +14,9 @@ namespace School.DAL
 
         #region Helper Methods
 
-        private static ParentDetailsDTO MapParentDetails(SqlDataReader reader)
+        private static ParentResponse MapParentDetails(SqlDataReader reader)
         {
-            return new ParentDetailsDTO
+            return new ParentResponse
             {
                 ParentID = reader.GetInt32(reader.GetOrdinal("ParentID")),
                 PersonID = reader.GetInt32(reader.GetOrdinal("PersonID")),
@@ -34,7 +35,7 @@ namespace School.DAL
             };
         }
 
-        private static void AddParameters(SqlCommand command, ParentDTO parent)
+        private static void AddParameters(SqlCommand command, CreateParentRequest parent)
         {
             command.Parameters.Add("@PersonID", SqlDbType.Int).Value = parent.PersonID;
         }
@@ -43,32 +44,24 @@ namespace School.DAL
 
         #region Public Methods
 
-        public Task<List<ParentDetailsDTO>> GetAllParentsAsync() =>
+        public Task<List<ParentResponse>> GetAllParentsAsync() =>
             QueryListAsync("SP_GetAllParents", null, MapParentDetails);
 
-        public Task<ParentDetailsDTO?> GetParentByIdAsync(int parentId) =>
+        public Task<ParentResponse?> GetParentByIdAsync(int parentId) =>
             QuerySingleAsync("SP_GetParentByID", cmd => cmd.Parameters.Add("@ParentID", SqlDbType.Int).Value = parentId,
                 MapParentDetails);
 
-        public Task<ParentDetailsDTO?> GetParentByPersonIdAsync(int personId) =>
+        public Task<ParentResponse?> GetParentByPersonIdAsync(int personId) =>
             QuerySingleAsync("SP_GetParentByPersonID", cmd => cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId,
                 MapParentDetails);
 
-        public Task<ParentDetailsDTO?> GetParentByNationalIdAsync(string nationalId) =>
+        public Task<ParentResponse?> GetParentByNationalIdAsync(string nationalId) =>
             QuerySingleAsync("SP_GetParentByNationalID", cmd => cmd.Parameters.Add("@NationalID", SqlDbType.NVarChar, 14).Value = nationalId,
                 MapParentDetails);
 
-        public Task<int> AddParentAsync(ParentDTO parent) =>
+        public Task<int> AddParentAsync(CreateParentRequest parent) =>
             InsertAsync<int>("SP_AddParent", cmd => AddParameters(cmd, parent), "@ParentID",
                 SqlDbType.Int);
-
-        public Task<bool> UpdateParentAsync(ParentDTO parent) =>
-            ExecuteNonQueryAsync("SP_UpdateParent",
-                cmd =>
-                {
-                    cmd.Parameters.Add("@ParentID", SqlDbType.Int).Value = parent.ParentID;
-                    AddParameters(cmd, parent);
-                });
 
         public Task<bool> DeleteParentAsync(int parentId) =>
             ExecuteNonQueryAsync("SP_DeleteParent", cmd => cmd.Parameters.Add("@ParentID", SqlDbType.Int).Value = parentId);

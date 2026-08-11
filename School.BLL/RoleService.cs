@@ -1,7 +1,8 @@
 ﻿using School.BLL.Common;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.RoleDTOs;
+using School.DTO.RoleDTOs.Requests;
+using School.DTO.RoleDTOs.Responses;
 
 namespace School.BLL
 {
@@ -17,29 +18,43 @@ namespace School.BLL
         }
         #region Validation
 
-        private static void ValidateRole(RoleDTO role)
+        private static void ValidateRole(CreateRoleRequest role)
         {
             ArgumentNullException.ThrowIfNull(role);
 
             role.RoleName = ValidationHelper.ValidateString(role.RoleName, nameof(role.RoleName), MinRoleNameLength, MaxRoleNameLength);
 
-            if (role.Description?.Length > 255)
-                throw new ArgumentException("Description cannot exceed 255 characters.", nameof(role.Description));
+            ValidateDescription(role.Description);
+        }
+
+        private static void ValidateRole(UpdateRoleRequest role)
+        {
+            ArgumentNullException.ThrowIfNull(role);
+
+            role.RoleName = ValidationHelper.ValidateString(role.RoleName, nameof(role.RoleName), MinRoleNameLength, MaxRoleNameLength);
+
+            ValidateDescription(role.Description);
+        }
+
+        private static void ValidateDescription(string? description)
+        {
+            if (description?.Length > 255)
+                throw new ArgumentException("Description cannot exceed 255 characters.", nameof(description));
         }
 
         #endregion
 
         #region Public
-        public async Task<List<RoleDTO>> GetAllRolesAsync()
+        public async Task<List<RoleResponse>> GetAllRolesAsync()
         {
             return await _roleData.GetAllRolesAsync();
         }
 
-        public async Task<RoleDTO?> GetRoleByIdAsync(int roleId)
+        public async Task<RoleResponse?> GetRoleByIdAsync(int roleId)
         {
             ValidationHelper.ValidateId(roleId);
 
-            RoleDTO? role = await _roleData.GetRoleByIdAsync(roleId);
+            RoleResponse? role = await _roleData.GetRoleByIdAsync(roleId);
 
             if (role == null)
                 throw new KeyNotFoundException($"Role with ID {roleId} does not exist.");
@@ -47,11 +62,11 @@ namespace School.BLL
             return role;
         }
 
-        public async Task<RoleDTO?> GetRoleByNameAsync(string roleName)
+        public async Task<RoleResponse?> GetRoleByNameAsync(string roleName)
         {
             roleName = ValidationHelper.ValidateString(roleName, nameof(roleName), MinRoleNameLength, MaxRoleNameLength);
 
-            RoleDTO? role = await _roleData.GetRoleByNameAsync(roleName);
+            RoleResponse? role = await _roleData.GetRoleByNameAsync(roleName);
 
             if (role == null)
                 throw new KeyNotFoundException($"Role '{roleName}' does not exist.");
@@ -59,7 +74,7 @@ namespace School.BLL
             return role;
         }
 
-        public async Task<int> AddRoleAsync(RoleDTO role)
+        public async Task<int> AddRoleAsync(CreateRoleRequest role)
         {
             ValidateRole(role);
 
@@ -73,18 +88,18 @@ namespace School.BLL
             return newRoleId;
         }
 
-        public async Task<bool> UpdateRoleAsync(RoleDTO role)
+        public async Task<bool> UpdateRoleAsync(int roleId, UpdateRoleRequest role)
         {
             ValidateRole(role);
-            ValidationHelper.ValidateId(role.RoleID);
+            ValidationHelper.ValidateId(roleId);
 
-            await EnsureHelper.EnsureExistsAsync(_roleData.IsRoleExistAsync, role.RoleID, "Role");
-            await EnsureHelper.EnsureUniqueAsync(_roleData.GetRoleByNameAsync, role.RoleName, r => r.RoleID, role.RoleID);
+            await EnsureHelper.EnsureExistsAsync(_roleData.IsRoleExistAsync, roleId, "Role");
+            await EnsureHelper.EnsureUniqueAsync(_roleData.GetRoleByNameAsync, role.RoleName, r => r.RoleID, roleId);
 
-            bool isUpdated = await _roleData.UpdateRoleAsync(role);
+            bool isUpdated = await _roleData.UpdateRoleAsync(roleId, role);
 
             if (!isUpdated)
-                throw new InvalidOperationException($"Failed to update role with ID {role.RoleID}.");
+                throw new InvalidOperationException($"Failed to update role with ID {roleId}.");
 
             return isUpdated;
         }

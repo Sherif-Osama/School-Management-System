@@ -4,8 +4,8 @@ using School.API.Authorization.OwnedResources;
 using School.API.Authorization.Requirements;
 using School.BLL.Authentication;
 using School.BLL.Interfaces;
-using School.DTO.StudentGradeDetailsDTOs;
-using School.DTO.StudentGradeDTOs;
+using School.DTO.StudentGradeDTOs.Requests;
+using School.DTO.StudentGradeDTOs.Responses;
 
 namespace School.API.Controllers
 {
@@ -25,7 +25,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Grades.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<StudentGradeDetailsDTO>>> GetAllStudentGrades()
+        public async Task<ActionResult<List<StudentGradeResponse>>> GetAllStudentGrades()
         {
             return Ok(await _studentGradeService.GetAllStudentGradesAsync());
         }
@@ -35,9 +35,9 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<StudentGradeDetailsDTO>> GetStudentGradeById(int id)
+        public async Task<ActionResult<StudentGradeResponse>> GetStudentGradeById(int id)
         {
-            StudentGradeDetailsDTO? studentGrade = await _studentGradeService.GetStudentGradeByIdAsync(id);
+            StudentGradeResponse? studentGrade = await _studentGradeService.GetStudentGradeByIdAsync(id);
 
             if (studentGrade == null)
                 return NotFound();
@@ -58,7 +58,7 @@ namespace School.API.Controllers
         [Authorize(Policy = "Grades.View.Own")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<List<StudentGradeDetailsDTO>>> GetStudentGradesByStudentId(int studentId)
+        public async Task<ActionResult<List<StudentGradeResponse>>> GetStudentGradesByStudentId(int studentId)
         {
             if (!User.HasClaim(CustomClaimTypes.Permission, "Grades.View.All"))
             {
@@ -72,11 +72,10 @@ namespace School.API.Controllers
             return Ok(await _studentGradeService.GetStudentGradesByStudentIdAsync(studentId));
         }
 
-        // إرجاع درجات كل الطلاب في امتحان واحد - مفيش معنى لـ "Own" هنا، فضلت .All بس
         [HttpGet("Exam/{examId:int}")]
         [Authorize(Policy = "Grades.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<StudentGradeDetailsDTO>>> GetStudentGradesByExamId(int examId)
+        public async Task<ActionResult<List<StudentGradeResponse>>> GetStudentGradesByExamId(int examId)
         {
             return Ok(await _studentGradeService.GetStudentGradesByExamIdAsync(examId));
         }
@@ -84,7 +83,7 @@ namespace School.API.Controllers
         [HttpGet("Class/{classId:int}")]
         [Authorize(Policy = "Grades.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<StudentGradeDetailsDTO>>> GetStudentGradesByClassId(int classId)
+        public async Task<ActionResult<List<StudentGradeResponse>>> GetStudentGradesByClassId(int classId)
         {
             return Ok(await _studentGradeService.GetStudentGradesByClassIdAsync(classId));
         }
@@ -92,7 +91,7 @@ namespace School.API.Controllers
         [HttpGet("Subject/{subjectId:int}")]
         [Authorize(Policy = "Grades.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<StudentGradeDetailsDTO>>> GetStudentGradesBySubjectId(int subjectId)
+        public async Task<ActionResult<List<StudentGradeResponse>>> GetStudentGradesBySubjectId(int subjectId)
         {
             return Ok(await _studentGradeService.GetStudentGradesBySubjectIdAsync(subjectId));
         }
@@ -100,9 +99,9 @@ namespace School.API.Controllers
         [HttpPost]
         [Authorize(Policy = "Grades.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult<int>> AddStudentGrade(StudentGradeDTO studentGradeDTO)
+        public async Task<ActionResult<int>> AddStudentGrade(CreateStudentGradeRequest studentGrade)
         {
-            int studentGradeId = await _studentGradeService.AddStudentGradeAsync(studentGradeDTO);
+            int studentGradeId = await _studentGradeService.AddStudentGradeAsync(studentGrade);
 
             return CreatedAtAction(
                 nameof(GetStudentGradeById),
@@ -110,12 +109,12 @@ namespace School.API.Controllers
                 studentGradeId);
         }
 
-        [HttpPut]
+        [HttpPut("{studentGradeId:int}")]
         [Authorize(Policy = "Grades.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> UpdateStudentGrade(StudentGradeDTO studentGradeDTO)
+        public async Task<ActionResult> UpdateStudentGrade(int studentGradeId, UpdateStudentGradeRequest studentGrade)
         {
-            await _studentGradeService.UpdateStudentGradeAsync(studentGradeDTO);
+            await _studentGradeService.UpdateStudentGradeAsync(studentGradeId, studentGrade);
 
             return Ok();
         }

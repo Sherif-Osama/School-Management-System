@@ -4,7 +4,8 @@ using School.API.Authorization.OwnedResources;
 using School.API.Authorization.Requirements;
 using School.BLL.Authentication;
 using School.BLL.Interfaces;
-using School.DTO.UserDTOs;
+using School.DTO.UserDTOs.Requests;
+using School.DTO.UserDTOs.Responses;
 
 namespace School.API.Controllers
 {
@@ -24,7 +25,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Users.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<UserDetailsDTO>>> GetAllUsers()
+        public async Task<ActionResult<List<UserResponse>>> GetAllUsers()
         {
             return Ok(await _userService.GetAllUsersAsync());
         }
@@ -34,9 +35,9 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<UserDetailsDTO>> GetUserById(int id)
+        public async Task<ActionResult<UserResponse>> GetUserById(int id)
         {
-            UserDetailsDTO? user = await _userService.GetUserByIdAsync(id);
+            UserResponse? user = await _userService.GetUserByIdAsync(id);
 
             if (user == null)
                 return NotFound();
@@ -58,9 +59,9 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<UserDetailsDTO>> GetUserByUsername([FromQuery] string username)
+        public async Task<ActionResult<UserResponse>> GetUserByUsername([FromQuery] string username)
         {
-            UserDetailsDTO? user = await _userService.GetUserByUsernameAsync(username);
+            UserResponse? user = await _userService.GetUserByUsernameAsync(username);
 
             if (user == null)
                 return NotFound();
@@ -82,7 +83,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<UserDetailsDTO>> GetUserByPersonId(int personId)
+        public async Task<ActionResult<UserResponse>> GetUserByPersonId(int personId)
         {
             if (!User.HasClaim(CustomClaimTypes.Permission, "Users.View.All"))
             {
@@ -93,7 +94,7 @@ namespace School.API.Controllers
                     return Forbid();
             }
 
-            UserDetailsDTO? user = await _userService.GetUserByPersonIdAsync(personId);
+            UserResponse? user = await _userService.GetUserByPersonIdAsync(personId);
             if (user is null)
                 return NotFound("User not found.");
 
@@ -103,7 +104,7 @@ namespace School.API.Controllers
         [HttpPost]
         [Authorize(Policy = "Users.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult<int>> AddUser(UserDTO user)
+        public async Task<ActionResult<int>> AddUser(CreateUserRequest user)
         {
             int userId =
                 await _userService.AddUserAsync(user);
@@ -111,25 +112,25 @@ namespace School.API.Controllers
             return CreatedAtAction(nameof(GetUserById), new { id = userId }, userId);
         }
 
-        [HttpPut]
+        [HttpPut("{userId:int}")]
         [Authorize(Policy = "Users.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateUser(UpdateUserDTO user)
+        public async Task<IActionResult> UpdateUser(int userId, [FromBody] UpdateUserRequest user)
         {
-            await _userService.UpdateUserAsync(user);
+            await _userService.UpdateUserAsync(userId, user);
 
             return Ok();
         }
 
-        [HttpPut("ChangePassword")]
+        [HttpPut("ChangePassword/{userId:int}")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> ChangePassword(UpdatePasswordDTO changePassword)
+        public async Task<IActionResult> ChangePassword(int userId, [FromBody] UpdatePasswordRequest changePassword)
         {
             if (!User.HasClaim(CustomClaimTypes.Permission, "Users.Update"))
             {
-                UserDetailsDTO? targetUser = await _userService.GetUserByIdAsync(changePassword.UserID);
+                UserResponse? targetUser = await _userService.GetUserByIdAsync(userId);
 
                 if (targetUser is null)
                     return NotFound();
@@ -141,7 +142,7 @@ namespace School.API.Controllers
                     return Forbid();
             }
 
-            await _userService.ChangePasswordAsync(changePassword);
+            await _userService.ChangePasswordAsync(userId, changePassword);
 
             return Ok();
         }

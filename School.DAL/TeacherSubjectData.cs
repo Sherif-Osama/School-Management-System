@@ -2,7 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
 using School.DAL.Interfaces;
-using School.DTO.AssociationsDTOs.TeacherSubjectDTOs;
+using School.DTO.AssociationsDTOs.TeacherSubjectDTOs.Requests;
+using School.DTO.AssociationsDTOs.TeacherSubjectDTOs.Responses;
 using System.Data;
 
 namespace School.DAL
@@ -13,9 +14,9 @@ namespace School.DAL
 
         #region Helper Methods
 
-        private static TeacherSubjectDetailsDTO MapTeacherSubjectDetails(SqlDataReader reader)
+        private static TeacherSubjectResponse MapTeacherSubjectDetails(SqlDataReader reader)
         {
-            return new TeacherSubjectDetailsDTO
+            return new TeacherSubjectResponse
             {
                 TeacherID = reader.GetInt32(reader.GetOrdinal("TeacherID")),
                 FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
@@ -27,7 +28,7 @@ namespace School.DAL
             };
         }
 
-        private static void AddParameters(SqlCommand command, TeacherSubjectDTO teacherSubject)
+        private static void AddParameters(SqlCommand command, TeacherSubjectRequest teacherSubject)
         {
             command.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherSubject.TeacherID;
             command.Parameters.Add("@SubjectID", SqlDbType.Int).Value = teacherSubject.SubjectID;
@@ -37,24 +38,24 @@ namespace School.DAL
 
         #region Public Methods
 
-        public Task<List<TeacherSubjectDetailsDTO>> GetAllTeacherSubjectsAsync() =>
+        public Task<List<TeacherSubjectResponse>> GetAllTeacherSubjectsAsync() =>
             QueryListAsync("SP_GetAllTeacherSubjects", null, MapTeacherSubjectDetails);
 
-        public Task<List<TeacherSubjectDetailsDTO>> GetSubjectsByTeacherIdAsync(int teacherId) =>
+        public Task<List<TeacherSubjectResponse>> GetSubjectsByTeacherIdAsync(int teacherId) =>
             QueryListAsync("SP_GetSubjectsByTeacherID", cmd => cmd.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId,
                 MapTeacherSubjectDetails);
 
-        public Task<List<TeacherSubjectDetailsDTO>> GetTeachersBySubjectIdAsync(int subjectId) =>
+        public Task<List<TeacherSubjectResponse>> GetTeachersBySubjectIdAsync(int subjectId) =>
             QueryListAsync("SP_GetTeachersBySubjectID", cmd => cmd.Parameters.Add("@SubjectID", SqlDbType.Int).Value = subjectId,
                 MapTeacherSubjectDetails);
 
-        public Task<bool> AssignSubjectToTeacherAsync(TeacherSubjectDTO relation) =>
+        public Task<bool> AssignSubjectToTeacherAsync(TeacherSubjectRequest relation) =>
             ExecuteNonQueryAsync("SP_AssignSubjectToTeacher", cmd => AddParameters(cmd, relation));
 
-        public Task<bool> RemoveSubjectFromTeacherAsync(TeacherSubjectDTO relation) =>
+        public Task<bool> RemoveSubjectFromTeacherAsync(TeacherSubjectRequest relation) =>
             ExecuteNonQueryAsync("SP_RemoveSubjectFromTeacher", cmd => AddParameters(cmd, relation));
 
-        public Task<bool> IsTeacherSubjectExistAsync(TeacherSubjectDTO relation) =>
+        public Task<bool> IsTeacherSubjectExistAsync(TeacherSubjectRequest relation) =>
             ExecuteExistsAsync("SP_IsTeacherSubjectExists", cmd => AddParameters(cmd, relation));
 
         #endregion

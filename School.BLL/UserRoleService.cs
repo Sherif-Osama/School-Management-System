@@ -1,7 +1,8 @@
 ﻿using School.BLL.Common;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.AssociationsDTOs.UserRoleDTOs;
+using School.DTO.AssociationsDTOs.UserRoleDTOs.Requests;
+using School.DTO.AssociationsDTOs.UserRoleDTOs.Responses;
 
 namespace School.BLL
 {
@@ -19,7 +20,7 @@ namespace School.BLL
         }
 
         #region Validation
-        private static void ValidateUserRole(UserRoleDTO userRole)
+        private static void ValidateUserRole(UserRoleRequest userRole)
         {
             ArgumentNullException.ThrowIfNull(userRole);
 
@@ -43,14 +44,14 @@ namespace School.BLL
         #endregion
 
         #region Public
-        public Task<List<UserRoleDetailsDTO>> GetAllUserRolesAsync() => _userRoleData.GetAllUserRolesAsync();
+        public Task<List<UserRoleResponse>> GetAllUserRolesAsync() => _userRoleData.GetAllUserRolesAsync();
 
-        public async Task<UserRoleDetailsDTO?> GetUserRoleAsync(int userId, int roleId)
+        public async Task<UserRoleResponse?> GetUserRoleAsync(int userId, int roleId)
         {
             ValidationHelper.ValidateId(userId);
             ValidationHelper.ValidateId(roleId);
 
-            UserRoleDetailsDTO? userRole =
+            UserRoleResponse? userRole =
                 await _userRoleData.GetUserRoleAsync(userId, roleId);
 
             if (userRole == null)
@@ -59,7 +60,7 @@ namespace School.BLL
             return userRole;
         }
 
-        public async Task<List<UserRoleDetailsDTO>> GetRolesByUserIdAsync(int userId)
+        public async Task<List<UserRoleResponse>> GetRolesByUserIdAsync(int userId)
         {
             ValidationHelper.ValidateId(userId);
 
@@ -68,7 +69,7 @@ namespace School.BLL
             return await _userRoleData.GetRolesByUserIdAsync(userId);
         }
 
-        public async Task<bool> AddUserRoleAsync(UserRoleDTO userRole)
+        public async Task<bool> AddUserRoleAsync(UserRoleRequest userRole)
         {
             ValidateUserRole(userRole);
 

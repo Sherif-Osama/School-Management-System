@@ -2,8 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
 using School.DAL.Interfaces;
-using School.DTO.StudentGradeDetailsDTOs;
-using School.DTO.StudentGradeDTOs;
+using School.DTO.StudentGradeDTOs.Requests;
+using School.DTO.StudentGradeDTOs.Responses;
 using System.Data;
 
 namespace School.DAL
@@ -14,9 +14,9 @@ namespace School.DAL
 
         #region Helper Methods
 
-        private static StudentGradeDetailsDTO MapStudentGradeDetails(SqlDataReader reader)
+        private static StudentGradeResponse MapStudentGradeResponse(SqlDataReader reader)
         {
-            return new StudentGradeDetailsDTO
+            return new StudentGradeResponse
             {
                 StudentGradeID = reader.GetInt32(reader.GetOrdinal("StudentGradeID")),
                 StudentID = reader.GetInt32(reader.GetOrdinal("StudentID")),
@@ -42,7 +42,7 @@ namespace School.DAL
             };
         }
 
-        private static void AddParameters(SqlCommand command, StudentGradeDTO studentGrade)
+        private static void AddParameters(SqlCommand command, CreateStudentGradeRequest studentGrade)
         {
             command.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentGrade.StudentID;
             command.Parameters.Add("@ExamID", SqlDbType.Int).Value = studentGrade.ExamID;
@@ -54,38 +54,39 @@ namespace School.DAL
 
         #region Public Methods
 
-        public Task<List<StudentGradeDetailsDTO>> GetAllStudentGradesAsync() =>
-            QueryListAsync("SP_GetAllStudentGrades", null, MapStudentGradeDetails);
+        public Task<List<StudentGradeResponse>> GetAllStudentGradesAsync() =>
+            QueryListAsync("SP_GetAllStudentGrades", null, MapStudentGradeResponse);
 
-        public Task<StudentGradeDetailsDTO?> GetStudentGradeByIdAsync(int studentGradeId) =>
+        public Task<StudentGradeResponse?> GetStudentGradeByIdAsync(int studentGradeId) =>
             QuerySingleAsync("SP_GetStudentGradeById", cmd => cmd.Parameters.Add("@StudentGradeID", SqlDbType.Int).Value = studentGradeId,
-                MapStudentGradeDetails);
+                MapStudentGradeResponse);
 
-        public Task<List<StudentGradeDetailsDTO>> GetStudentGradesByStudentIdAsync(int studentId) =>
+        public Task<List<StudentGradeResponse>> GetStudentGradesByStudentIdAsync(int studentId) =>
             QueryListAsync("SP_GetStudentGradesByStudentId", cmd => cmd.Parameters.Add("@StudentID", SqlDbType.Int).Value = studentId,
-                MapStudentGradeDetails);
+                MapStudentGradeResponse);
 
-        public Task<List<StudentGradeDetailsDTO>> GetStudentGradesByExamIdAsync(int examId) =>
+        public Task<List<StudentGradeResponse>> GetStudentGradesByExamIdAsync(int examId) =>
             QueryListAsync("SP_GetStudentGradesByExamId", cmd => cmd.Parameters.Add("@ExamID", SqlDbType.Int).Value = examId,
-                MapStudentGradeDetails);
+                MapStudentGradeResponse);
 
-        public Task<List<StudentGradeDetailsDTO>> GetStudentGradesByClassIdAsync(int classId) =>
+        public Task<List<StudentGradeResponse>> GetStudentGradesByClassIdAsync(int classId) =>
             QueryListAsync("SP_GetStudentGradesByClassId", cmd => cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId,
-                MapStudentGradeDetails);
+                MapStudentGradeResponse);
 
-        public Task<List<StudentGradeDetailsDTO>> GetStudentGradesBySubjectIdAsync(int subjectId) =>
+        public Task<List<StudentGradeResponse>> GetStudentGradesBySubjectIdAsync(int subjectId) =>
             QueryListAsync("SP_GetStudentGradesBySubjectId", cmd => cmd.Parameters.Add("@SubjectID", SqlDbType.Int).Value = subjectId,
-                MapStudentGradeDetails);
+                MapStudentGradeResponse);
 
-        public Task<int> AddStudentGradeAsync(StudentGradeDTO studentGrade) =>
+        public Task<int> AddStudentGradeAsync(CreateStudentGradeRequest studentGrade) =>
             InsertAsync<int>("SP_AddStudentGrade", cmd => AddParameters(cmd, studentGrade), "@StudentGradeID", SqlDbType.Int);
 
-        public Task<bool> UpdateStudentGradeAsync(StudentGradeDTO studentGrade) =>
+        public Task<bool> UpdateStudentGradeAsync(int studentGradeId, UpdateStudentGradeRequest studentGrade) =>
             ExecuteNonQueryAsync("SP_UpdateStudentGrade",
                 cmd =>
                 {
-                    cmd.Parameters.Add("@StudentGradeID", SqlDbType.Int).Value = studentGrade.StudentGradeID;
-                    AddParameters(cmd, studentGrade);
+                    cmd.Parameters.Add("@StudentGradeID", SqlDbType.Int).Value = studentGradeId;
+                    cmd.Parameters.Add("@Grade", SqlDbType.Decimal).Value = studentGrade.Grade;
+                    cmd.Parameters.Add("@IsAbsent", SqlDbType.Bit).Value = studentGrade.IsAbsent;
                 });
 
         public Task<bool> DeleteStudentGradeAsync(int studentGradeId) =>

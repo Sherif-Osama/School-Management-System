@@ -1,19 +1,19 @@
-﻿using School.DTO.StudentGradeDetailsDTOs;
-using School.DTO.StudentGradeDTOs;
+﻿using School.DTO.StudentGradeDTOs.Requests;
+using School.DTO.StudentGradeDTOs.Responses;
 
 namespace School.DAL.Interfaces
 {
     public interface IStudentGradeData
     {
-        Task<int> AddStudentGradeAsync(StudentGradeDTO studentGrade);
+        Task<int> AddStudentGradeAsync(CreateStudentGradeRequest studentGrade);
         Task<bool> DeleteStudentGradeAsync(int studentGradeId);
-        Task<List<StudentGradeDetailsDTO>> GetAllStudentGradesAsync();
-        Task<StudentGradeDetailsDTO?> GetStudentGradeByIdAsync(int studentGradeId);
-        Task<List<StudentGradeDetailsDTO>> GetStudentGradesByClassIdAsync(int classId);
-        Task<List<StudentGradeDetailsDTO>> GetStudentGradesByExamIdAsync(int examId);
-        Task<List<StudentGradeDetailsDTO>> GetStudentGradesByStudentIdAsync(int studentId);
-        Task<List<StudentGradeDetailsDTO>> GetStudentGradesBySubjectIdAsync(int subjectId);
+        Task<List<StudentGradeResponse>> GetAllStudentGradesAsync();
+        Task<StudentGradeResponse?> GetStudentGradeByIdAsync(int studentGradeId);
+        Task<List<StudentGradeResponse>> GetStudentGradesByClassIdAsync(int classId);
+        Task<List<StudentGradeResponse>> GetStudentGradesByExamIdAsync(int examId);
+        Task<List<StudentGradeResponse>> GetStudentGradesByStudentIdAsync(int studentId);
+        Task<List<StudentGradeResponse>> GetStudentGradesBySubjectIdAsync(int subjectId);
         Task<bool> IsStudentGradeExistAsync(int studentGradeId);
-        Task<bool> UpdateStudentGradeAsync(StudentGradeDTO studentGrade);
+        Task<bool> UpdateStudentGradeAsync(int studentGradeId, UpdateStudentGradeRequest studentGrade);
     }
 }

@@ -1,16 +1,16 @@
-﻿using School.DTO.ParentsDTOs;
+﻿using School.DTO.ParentsDTOs.Requests;
+using School.DTO.ParentsDTOs.Responses;
 
 namespace School.BLL.Interfaces
 {
     public interface IParentService
     {
-        Task<int> AddParentAsync(ParentDTO parent);
+        Task<int> AddParentAsync(CreateParentRequest parent);
         Task<bool> DeleteParentAsync(int parentId);
-        Task<List<ParentDetailsDTO>> GetAllParentsAsync();
-        Task<ParentDetailsDTO?> GetParentByIdAsync(int parentId);
-        Task<ParentDetailsDTO?> GetParentByNationalIdAsync(string nationalId);
-        Task<ParentDetailsDTO?> GetParentByPersonIdAsync(int personId);
+        Task<List<ParentResponse>> GetAllParentsAsync();
+        Task<ParentResponse?> GetParentByIdAsync(int parentId);
+        Task<ParentResponse?> GetParentByNationalIdAsync(string nationalId);
+        Task<ParentResponse?> GetParentByPersonIdAsync(int personId);
         Task<bool> IsParentExistAsync(int parentId);
-        Task<bool> UpdateParentAsync(ParentDTO parent);
     }
 }

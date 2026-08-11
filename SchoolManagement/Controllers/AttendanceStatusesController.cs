@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
-using School.DTO.AttendanceStatusDTOs;
+using School.DTO.AttendanceStatusDTOs.Requests;
+using School.DTO.AttendanceStatusDTOs.Responses;
 
 namespace School.API.Controllers
 {
@@ -19,7 +20,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Attendance.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<AttendanceStatusDTO>>> GetAllAttendanceStatuses()
+        public async Task<ActionResult<List<AttendanceStatusResponse>>> GetAllAttendanceStatuses()
         {
             return Ok(await _attendanceStatusService.GetAllAttendanceStatusesAsync());
         }
@@ -28,9 +29,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Attendance.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<AttendanceStatusDTO>> GetAttendanceStatusById(int id)
+        public async Task<ActionResult<AttendanceStatusResponse>> GetAttendanceStatusById(int id)
         {
-            AttendanceStatusDTO? status = await _attendanceStatusService.GetAttendanceStatusByIdAsync(id);
+            AttendanceStatusResponse? status = await _attendanceStatusService.GetAttendanceStatusByIdAsync(id);
 
             if (status == null)
                 return NotFound();
@@ -42,9 +43,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Attendance.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<AttendanceStatusDTO>> GetAttendanceStatusByName(string statusName)
+        public async Task<ActionResult<AttendanceStatusResponse>> GetAttendanceStatusByName(string statusName)
         {
-            AttendanceStatusDTO? status = await _attendanceStatusService.GetAttendanceStatusByNameAsync(statusName);
+            AttendanceStatusResponse? status = await _attendanceStatusService.GetAttendanceStatusByNameAsync(statusName);
 
             if (status == null)
                 return NotFound();
@@ -55,9 +56,9 @@ namespace School.API.Controllers
         [HttpPost]
         [Authorize(Policy = "Attendance.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult<int>> AddAttendanceStatus(AttendanceStatusDTO statusDTO)
+        public async Task<ActionResult<int>> AddAttendanceStatus(AttendanceStatusRequest status)
         {
-            int statusId = await _attendanceStatusService.AddAttendanceStatusAsync(statusDTO);
+            int statusId = await _attendanceStatusService.AddAttendanceStatusAsync(status);
 
             return CreatedAtAction(
                 nameof(GetAttendanceStatusById),
@@ -65,12 +66,12 @@ namespace School.API.Controllers
                 statusId);
         }
 
-        [HttpPut]
+        [HttpPut("{statusId:int}")]
         [Authorize(Policy = "Attendance.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> UpdateAttendanceStatus(AttendanceStatusDTO statusDTO)
+        public async Task<ActionResult> UpdateAttendanceStatus(int statusId, AttendanceStatusRequest status)
         {
-            await _attendanceStatusService.UpdateAttendanceStatusAsync(statusDTO);
+            await _attendanceStatusService.UpdateAttendanceStatusAsync(statusId, status);
 
             return Ok();
         }

@@ -1,7 +1,8 @@
 ﻿using School.BLL.Common;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.ClassesDTOs;
+using School.DTO.ClassesDTOs.Requests;
+using School.DTO.ClassesDTOs.Responses;
 
 namespace School.BLL
 {
@@ -18,7 +19,20 @@ namespace School.BLL
         }
         #region Private Helpers
 
-        private static void ValidateClass(ClassDTO schoolClass)
+        private static void ValidateClass(CreateClassRequest schoolClass)
+        {
+            ArgumentNullException.ThrowIfNull(schoolClass);
+
+            ValidationHelper.ValidateId(schoolClass.GradeID);
+
+            schoolClass.ClassName = ValidationHelper.ValidateString(schoolClass.ClassName, nameof(schoolClass.ClassName), minClassNameLength, maxClassNameLength);
+
+            schoolClass.AcademicYear = AcademicYearHelper.ValidateAcademicYear(schoolClass.AcademicYear);
+
+            ValidateCapacity(schoolClass.Capacity);
+        }
+
+        private static void ValidateClass(UpdateClassRequest schoolClass)
         {
             ArgumentNullException.ThrowIfNull(schoolClass);
 
@@ -44,7 +58,7 @@ namespace School.BLL
         // that accept multiple parameters. for (ClassService,ClassSubjectService)
         private async Task EnsureUniqueClassAsync(byte gradeId, string className, string academicYear, int? currentClassId = null)
         {
-            ClassDetailsDTO? schoolClass = await _classData.GetClassByDetailsAsync(gradeId, className, academicYear);
+            ClassResponse? schoolClass = await _classData.GetClassByDetailsAsync(gradeId, className, academicYear);
 
             if (schoolClass == null)
                 return;
@@ -58,16 +72,16 @@ namespace School.BLL
 
         #region Public Methods
 
-        public async Task<List<ClassDetailsDTO>> GetAllClassesAsync()
+        public async Task<List<ClassResponse>> GetAllClassesAsync()
         {
             return await _classData.GetAllClassesAsync();
         }
 
-        public async Task<ClassDetailsDTO?> GetClassByIdAsync(int classId)
+        public async Task<ClassResponse?> GetClassByIdAsync(int classId)
         {
             ValidationHelper.ValidateId(classId);
 
-            ClassDetailsDTO? schoolClass = await _classData.GetClassByIdAsync(classId);
+            ClassResponse? schoolClass = await _classData.GetClassByIdAsync(classId);
 
             if (schoolClass == null)
                 throw new KeyNotFoundException($"Class with ID {classId} does not exist.");
@@ -75,14 +89,14 @@ namespace School.BLL
             return schoolClass;
         }
 
-        public async Task<ClassDetailsDTO?> GetClassByDetailsAsync(byte gradeId, string className, string academicYear)
+        public async Task<ClassResponse?> GetClassByDetailsAsync(byte gradeId, string className, string academicYear)
         {
             ValidationHelper.ValidateId(gradeId);
 
             className = ValidationHelper.ValidateString(className, nameof(className), minClassNameLength, maxClassNameLength);
             academicYear = AcademicYearHelper.ValidateAcademicYear(academicYear);
 
-            ClassDetailsDTO? classDetailsDTO = await _classData.GetClassByDetailsAsync(gradeId, className, academicYear);
+            ClassResponse? classDetailsDTO = await _classData.GetClassByDetailsAsync(gradeId, className, academicYear);
 
             if (classDetailsDTO == null)
                 throw new KeyNotFoundException($"Class '{className}' does not exist in Grade {gradeId} for academic year '{academicYear}'.");
@@ -90,7 +104,7 @@ namespace School.BLL
             return classDetailsDTO;
         }
 
-        public async Task<int> AddClassAsync(ClassDTO schoolClass)
+        public async Task<int> AddClassAsync(CreateClassRequest schoolClass)
         {
             ValidateClass(schoolClass);
 
@@ -106,23 +120,23 @@ namespace School.BLL
             return newClassId;
         }
 
-        public async Task<bool> UpdateClassAsync(ClassDTO schoolClass)
+        public async Task<bool> UpdateClassAsync(int classId, UpdateClassRequest schoolClass)
         {
             ValidateClass(schoolClass);
 
-            ValidationHelper.ValidateId(schoolClass.ClassID);
+            ValidationHelper.ValidateId(classId);
 
-            await EnsureHelper.EnsureExistsAsync(_classData.IsClassExistAsync, schoolClass.ClassID, "Class");
+            await EnsureHelper.EnsureExistsAsync(_classData.IsClassExistAsync, classId, "Class");
 
             await EnsureHelper.EnsureExistsAsync(_gradeData.IsGradeExistAsync, schoolClass.GradeID, "Grade");
 
-            await EnsureUniqueClassAsync(schoolClass.GradeID, schoolClass.ClassName, schoolClass.AcademicYear, schoolClass.ClassID);
+            await EnsureUniqueClassAsync(schoolClass.GradeID, schoolClass.ClassName, schoolClass.AcademicYear, classId);
 
 
-            bool isUpdated = await _classData.UpdateClassAsync(schoolClass);
+            bool isUpdated = await _classData.UpdateClassAsync(classId, schoolClass);
 
             if (!isUpdated)
-                throw new InvalidOperationException($"Failed to update class with ID {schoolClass.ClassID}.");
+                throw new InvalidOperationException($"Failed to update class with ID {classId}.");
 
             return isUpdated;
         }

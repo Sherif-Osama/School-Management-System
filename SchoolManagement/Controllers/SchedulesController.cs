@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
-using School.DTO.ScheduleDTOs;
+using School.DTO.ScheduleDTOs.Requests;
+using School.DTO.ScheduleDTOs.Responses;
 
 namespace School.API.Controllers
 {
@@ -19,7 +20,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Schedules.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<ScheduleDetailsDTO>>> GetAllSchedules()
+        public async Task<ActionResult<List<ScheduleResponse>>> GetAllSchedules()
         {
             return Ok(await _scheduleService.GetAllSchedulesAsync());
         }
@@ -28,9 +29,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Schedules.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ScheduleDetailsDTO>> GetScheduleById(int id)
+        public async Task<ActionResult<ScheduleResponse>> GetScheduleById(int id)
         {
-            ScheduleDetailsDTO? schedule =
+            ScheduleResponse? schedule =
                 await _scheduleService.GetScheduleByIdAsync(id);
 
             if (schedule is null)
@@ -42,7 +43,7 @@ namespace School.API.Controllers
         [HttpGet("Class/{classId:int}")]
         [Authorize(Policy = "Schedules.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<ScheduleDetailsDTO>>> GetSchedulesByClassId(int classId)
+        public async Task<ActionResult<List<ScheduleResponse>>> GetSchedulesByClassId(int classId)
         {
             return Ok(await _scheduleService.GetSchedulesByClassIdAsync(classId));
         }
@@ -50,7 +51,7 @@ namespace School.API.Controllers
         [HttpGet("Teacher/{teacherId:int}")]
         [Authorize(Policy = "Schedules.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<ScheduleDetailsDTO>>> GetSchedulesByTeacherId(int teacherId)
+        public async Task<ActionResult<List<ScheduleResponse>>> GetSchedulesByTeacherId(int teacherId)
         {
             return Ok(await _scheduleService.GetSchedulesByTeacherIdAsync(teacherId));
         }
@@ -58,7 +59,7 @@ namespace School.API.Controllers
         [HttpGet("Classroom/{classroomId:int}")]
         [Authorize(Policy = "Schedules.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<ScheduleDetailsDTO>>> GetSchedulesByClassroomId(int classroomId)
+        public async Task<ActionResult<List<ScheduleResponse>>> GetSchedulesByClassroomId(int classroomId)
         {
             return Ok(await _scheduleService.GetSchedulesByClassroomIdAsync(classroomId));
         }
@@ -66,7 +67,7 @@ namespace School.API.Controllers
         [HttpGet("ClassSubject/{classSubjectId:int}")]
         [Authorize(Policy = "Schedules.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<ScheduleDetailsDTO>>> GetSchedulesByClassSubjectId(int classSubjectId)
+        public async Task<ActionResult<List<ScheduleResponse>>> GetSchedulesByClassSubjectId(int classSubjectId)
         {
             return Ok(await _scheduleService.GetSchedulesByClassSubjectIdAsync(classSubjectId));
         }
@@ -76,9 +77,9 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<int>> AddSchedule(ScheduleDTO scheduleDTO)
+        public async Task<ActionResult<int>> AddSchedule(CreateScheduleRequest schedule)
         {
-            int scheduleId = await _scheduleService.AddScheduleAsync(scheduleDTO);
+            int scheduleId = await _scheduleService.AddScheduleAsync(schedule);
 
             return CreatedAtAction(
                 nameof(GetScheduleById),
@@ -86,15 +87,15 @@ namespace School.API.Controllers
                 scheduleId);
         }
 
-        [HttpPut]
+        [HttpPut("{scheduleId:int}")]
         [Authorize(Policy = "Schedules.Update")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<IActionResult> UpdateSchedule(ScheduleDTO scheduleDTO)
+        public async Task<IActionResult> UpdateSchedule(int scheduleId, UpdateScheduleRequest schedule)
         {
-            await _scheduleService.UpdateScheduleAsync(scheduleDTO);
-            return NoContent();
+            await _scheduleService.UpdateScheduleAsync(scheduleId, schedule);
+            return Ok();
         }
 
         [HttpDelete("{id:int}")]

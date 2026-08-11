@@ -1,7 +1,8 @@
 ﻿using School.BLL.Common;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.PersonDTOs;
+using School.DTO.PersonDTOs.Requests;
+using School.DTO.PersonDTOs.Responses;
 
 namespace School.BLL
 {
@@ -17,8 +18,18 @@ namespace School.BLL
         private static int MaxNationalIdLength => 20;
 
         #region Private Helpers
+        private static void ValidateDateOfBirth(DateTime dateOfBirth)
+        {
+            if (dateOfBirth == default || dateOfBirth > DateTime.Today)
+                throw new ArgumentException("Date of birth is invalid.", nameof(dateOfBirth));
+        }
 
-        private static void ValidatePerson(PersonDTO person)
+        private static void ValidateEmail(string? email)
+        {
+            if (!string.IsNullOrWhiteSpace(email) && !email.Contains('@'))
+                throw new ArgumentException("Email format is invalid.", nameof(email));
+        }
+        private static void ValidatePerson(CreatePersonRequest person)
         {
             ArgumentNullException.ThrowIfNull(person);
 
@@ -33,26 +44,42 @@ namespace School.BLL
 
             ValidationHelper.ValidateId(person.CityID);
 
-            if (person.DateOfBirth == default || person.DateOfBirth > DateTime.Today)
-                throw new ArgumentException("Date of birth is invalid.", nameof(person.DateOfBirth));
-
-            if (!string.IsNullOrWhiteSpace(person.Email) && !person.Email.Contains('@'))
-                throw new ArgumentException("Email format is invalid.", nameof(person.Email));
+            ValidateDateOfBirth(person.DateOfBirth);
+            ValidateEmail(person.Email);
         }
+        private static void ValidatePerson(UpdatePersonRequest person)
+        {
+            ArgumentNullException.ThrowIfNull(person);
+
+            person.NationalID = ValidationHelper.ValidateString(person.NationalID, nameof(person.NationalID), MinNationalIdLength, MaxNationalIdLength);
+
+            person.FirstName = ValidationHelper.ValidateString(person.FirstName, nameof(person.FirstName));
+
+            person.SecondName = ValidationHelper.ValidateString(person.SecondName, nameof(person.SecondName));
+            person.ThirdName = ValidationHelper.ValidateString(person.ThirdName, nameof(person.ThirdName));
+
+            person.Phone = ValidationHelper.ValidateString(person.Phone, nameof(person.Phone));
+
+            ValidationHelper.ValidateId(person.CityID);
+
+            ValidateDateOfBirth(person.DateOfBirth);
+            ValidateEmail(person.Email);
+        }
+
         #endregion
 
         #region Public Methods
 
-        public async Task<List<PersonDTO>> GetAllPeopleAsync()
+        public async Task<List<PersonResponse>> GetAllPeopleAsync()
         {
             return await _personData.GetAllPeopleAsync();
         }
 
-        public async Task<PersonDTO?> GetPersonByIdAsync(int personId)
+        public async Task<PersonResponse?> GetPersonByIdAsync(int personId)
         {
             ValidationHelper.ValidateId(personId);
 
-            PersonDTO? personDTO = await _personData.GetPersonByIdAsync(personId);
+            PersonResponse? personDTO = await _personData.GetPersonByIdAsync(personId);
 
             if (personDTO == null)
                 throw new KeyNotFoundException($"Person with ID {personId} does not exist.");
@@ -60,11 +87,11 @@ namespace School.BLL
             return personDTO;
         }
 
-        public async Task<PersonDTO?> GetPersonByNationalIDAsync(string nationalId)
+        public async Task<PersonResponse?> GetPersonByNationalIDAsync(string nationalId)
         {
             nationalId = ValidationHelper.ValidateString(nationalId, nameof(nationalId), MinNationalIdLength, MaxNationalIdLength);
 
-            PersonDTO? person = await _personData.GetPersonByNationalIDAsync(nationalId);
+            PersonResponse? person = await _personData.GetPersonByNationalIDAsync(nationalId);
 
             if (person == null)
                 throw new KeyNotFoundException("Person not found.");
@@ -72,7 +99,7 @@ namespace School.BLL
             return person;
         }
 
-        public async Task<int> AddPersonAsync(PersonDTO person)
+        public async Task<int> AddPersonAsync(CreatePersonRequest person)
         {
             ValidatePerson(person);
 
@@ -86,17 +113,17 @@ namespace School.BLL
             return newPersonId;
         }
 
-        public async Task<bool> UpdatePersonAsync(PersonDTO person)
+        public async Task<bool> UpdatePersonAsync(int personId, UpdatePersonRequest person)
         {
             ValidatePerson(person);
 
-            ValidationHelper.ValidateId(person.PersonID);
+            ValidationHelper.ValidateId(personId);
 
-            await EnsureHelper.EnsureExistsAsync(_personData.IsPersonExistAsync, person.PersonID, "Person");
+            await EnsureHelper.EnsureExistsAsync(_personData.IsPersonExistAsync, personId, "Person");
 
-            await EnsureHelper.EnsureUniqueAsync(_personData.GetPersonByNationalIDAsync, person.NationalID, p => p.PersonID, person.PersonID);
+            await EnsureHelper.EnsureUniqueAsync(_personData.GetPersonByNationalIDAsync, person.NationalID, p => p.PersonID, personId);
 
-            bool isUpdated = await _personData.UpdatePersonAsync(person);
+            bool isUpdated = await _personData.UpdatePersonAsync(personId, person);
 
             if (!isUpdated)
                 throw new InvalidOperationException("Failed to update person.");

@@ -1,7 +1,8 @@
 ﻿using School.BLL.Common;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.SubjectDTOs;
+using School.DTO.SubjectDTOs.Requests;
+using School.DTO.SubjectDTOs.Responses;
 
 namespace School.BLL
 {
@@ -17,25 +18,30 @@ namespace School.BLL
 
         #region Validation
 
-        private static void ValidateSubject(SubjectDTO subject)
+        private static void ValidateSubject(CreateSubjectRequest subject)
         {
             ArgumentNullException.ThrowIfNull(subject);
 
             subject.SubjectName = ValidationHelper.ValidateString(subject.SubjectName, nameof(subject.SubjectName), MinSubjectNameLength, MaxSubjectNameLength);
         }
+        private static void ValidateSubject(UpdateSubjectRequest subject)
+        {
+            ArgumentNullException.ThrowIfNull(subject);
+            subject.SubjectName = ValidationHelper.ValidateString(subject.SubjectName, nameof(subject.SubjectName), MinSubjectNameLength, MaxSubjectNameLength);
+        }
         #endregion
 
         #region Public
-        public async Task<List<SubjectDTO>> GetAllSubjectsAsync()
+        public async Task<List<SubjectResponse>> GetAllSubjectsAsync()
         {
             return await _subjectData.GetAllSubjectsAsync();
         }
 
-        public async Task<SubjectDTO?> GetSubjectByIdAsync(int subjectId)
+        public async Task<SubjectResponse?> GetSubjectByIdAsync(int subjectId)
         {
             ValidationHelper.ValidateId(subjectId);
 
-            SubjectDTO? subject = await _subjectData.GetSubjectByIdAsync(subjectId);
+            SubjectResponse? subject = await _subjectData.GetSubjectByIdAsync(subjectId);
 
             if (subject == null)
                 throw new KeyNotFoundException($"Subject with ID {subjectId} does not exist.");
@@ -43,11 +49,11 @@ namespace School.BLL
             return subject;
         }
 
-        public async Task<SubjectDTO?> GetSubjectByNameAsync(string subjectName)
+        public async Task<SubjectResponse?> GetSubjectByNameAsync(string subjectName)
         {
             subjectName = ValidationHelper.ValidateString(subjectName, nameof(subjectName), MinSubjectNameLength, MaxSubjectNameLength);
 
-            SubjectDTO? subject = await _subjectData.GetSubjectByNameAsync(subjectName);
+            SubjectResponse? subject = await _subjectData.GetSubjectByNameAsync(subjectName);
 
             if (subject == null)
                 throw new KeyNotFoundException($"Subject '{subjectName}' does not exist.");
@@ -55,7 +61,7 @@ namespace School.BLL
             return subject;
         }
 
-        public async Task<int> AddSubjectAsync(SubjectDTO subject)
+        public async Task<int> AddSubjectAsync(CreateSubjectRequest subject)
         {
             ValidateSubject(subject);
 
@@ -69,18 +75,18 @@ namespace School.BLL
             return newSubjectId;
         }
 
-        public async Task<bool> UpdateSubjectAsync(SubjectDTO subject)
+        public async Task<bool> UpdateSubjectAsync(int subjectId, UpdateSubjectRequest subject)
         {
             ValidateSubject(subject);
-            ValidationHelper.ValidateId(subject.SubjectID);
+            ValidationHelper.ValidateId(subjectId);
 
-            await EnsureHelper.EnsureExistsAsync(_subjectData.IsSubjectExistAsync, subject.SubjectID, "Subject");
-            await EnsureHelper.EnsureUniqueAsync(_subjectData.GetSubjectByNameAsync, subject.SubjectName, s => s.SubjectID, subject.SubjectID);
+            await EnsureHelper.EnsureExistsAsync(_subjectData.IsSubjectExistAsync, subjectId, "Subject");
+            await EnsureHelper.EnsureUniqueAsync(_subjectData.GetSubjectByNameAsync, subject.SubjectName, s => s.SubjectID, subjectId);
 
-            bool isUpdated = await _subjectData.UpdateSubjectAsync(subject);
+            bool isUpdated = await _subjectData.UpdateSubjectAsync(subjectId, subject);
 
             if (!isUpdated)
-                throw new InvalidOperationException($"Failed to update subject with ID {subject.SubjectID}.");
+                throw new InvalidOperationException($"Failed to update subject with ID {subjectId}.");
 
             return isUpdated;
         }
@@ -105,7 +111,6 @@ namespace School.BLL
 
             return await _subjectData.IsSubjectExistAsync(subjectId);
         }
-
         #endregion
     }
 }

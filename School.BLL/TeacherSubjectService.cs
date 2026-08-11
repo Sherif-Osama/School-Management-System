@@ -1,7 +1,8 @@
 ﻿using School.BLL.Common;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.AssociationsDTOs.TeacherSubjectDTOs;
+using School.DTO.AssociationsDTOs.TeacherSubjectDTOs.Requests;
+using School.DTO.AssociationsDTOs.TeacherSubjectDTOs.Responses;
 
 namespace School.BLL
 {
@@ -23,7 +24,7 @@ namespace School.BLL
 
         #region Validation
 
-        private static void ValidateRelation(TeacherSubjectDTO relation)
+        private static void ValidateRelation(TeacherSubjectRequest relation)
         {
             ArgumentNullException.ThrowIfNull(relation);
 
@@ -33,13 +34,13 @@ namespace School.BLL
         #endregion
 
         #region Ensure
-        private async Task EnsureRelationExistsAsync(TeacherSubjectDTO relation)
+        private async Task EnsureRelationExistsAsync(TeacherSubjectRequest relation)
         {
             if (!await _teacherSubjectData.IsTeacherSubjectExistAsync(relation))
                 throw new KeyNotFoundException("The teacher is not assigned to this subject.");
         }
 
-        private async Task EnsureRelationDoesNotExistAsync(TeacherSubjectDTO relation)
+        private async Task EnsureRelationDoesNotExistAsync(TeacherSubjectRequest relation)
         {
             if (await _teacherSubjectData.IsTeacherSubjectExistAsync(relation))
                 throw new InvalidOperationException("This subject is already assigned to the teacher.");
@@ -48,12 +49,12 @@ namespace School.BLL
 
         #region Public
 
-        public async Task<List<TeacherSubjectDetailsDTO>> GetAllTeacherSubjectsAsync()
+        public async Task<List<TeacherSubjectResponse>> GetAllTeacherSubjectsAsync()
         {
             return await _teacherSubjectData.GetAllTeacherSubjectsAsync();
         }
 
-        public async Task<List<TeacherSubjectDetailsDTO>> GetSubjectsByTeacherIdAsync(int teacherId)
+        public async Task<List<TeacherSubjectResponse>> GetSubjectsByTeacherIdAsync(int teacherId)
         {
             ValidationHelper.ValidateId(teacherId);
 
@@ -62,7 +63,7 @@ namespace School.BLL
             return await _teacherSubjectData.GetSubjectsByTeacherIdAsync(teacherId);
         }
 
-        public async Task<List<TeacherSubjectDetailsDTO>> GetTeachersBySubjectIdAsync(int subjectId)
+        public async Task<List<TeacherSubjectResponse>> GetTeachersBySubjectIdAsync(int subjectId)
         {
             ValidationHelper.ValidateId(subjectId);
 
@@ -71,7 +72,7 @@ namespace School.BLL
             return await _teacherSubjectData.GetTeachersBySubjectIdAsync(subjectId);
         }
 
-        public async Task<bool> AssignSubjectToTeacherAsync(TeacherSubjectDTO relation)
+        public async Task<bool> AssignSubjectToTeacherAsync(TeacherSubjectRequest relation)
         {
             ValidateRelation(relation);
 
@@ -87,7 +88,7 @@ namespace School.BLL
             return isAssigned;
         }
 
-        public async Task<bool> RemoveSubjectFromTeacherAsync(TeacherSubjectDTO relation)
+        public async Task<bool> RemoveSubjectFromTeacherAsync(TeacherSubjectRequest relation)
         {
             ValidateRelation(relation);
 

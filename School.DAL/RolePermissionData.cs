@@ -16,9 +16,9 @@ namespace School.DAL
 
         #region Helper Methods
 
-        private static RolePermissionDetailsDTO MapRolePermission(SqlDataReader reader)
+        private static RolePermissionResponse MapRolePermission(SqlDataReader reader)
         {
-            return new RolePermissionDetailsDTO
+            return new RolePermissionResponse
             {
                 RoleID = reader.GetInt32(reader.GetOrdinal("RoleID")),
                 RoleName = reader.GetString(reader.GetOrdinal("RoleName")),
@@ -30,7 +30,7 @@ namespace School.DAL
             };
         }
 
-        private static void AddParameters(SqlCommand command, RolePermissionDTO rolePermission)
+        private static void AddParameters(SqlCommand command, RolePermissionRequest rolePermission)
         {
             command.Parameters.Add("@RoleID", SqlDbType.Int).Value = rolePermission.RoleID;
             command.Parameters.Add("@PermissionID", SqlDbType.Int).Value = rolePermission.PermissionID;
@@ -43,10 +43,10 @@ namespace School.DAL
         #endregion
 
         #region Public Methods
-        public Task<List<RolePermissionDetailsDTO>> GetAllRolePermissionsAsync() =>
+        public Task<List<RolePermissionResponse>> GetAllRolePermissionsAsync() =>
             QueryListAsync("SP_GetAllRolePermissions", null, MapRolePermission);
 
-        public Task<RolePermissionDetailsDTO?> GetRolePermissionAsync(int roleId, int permissionId) =>
+        public Task<RolePermissionResponse?> GetRolePermissionAsync(int roleId, int permissionId) =>
             QuerySingleAsync("SP_GetRolePermission",
                 cmd =>
                 {
@@ -54,7 +54,7 @@ namespace School.DAL
                     cmd.Parameters.Add("@PermissionID", SqlDbType.Int).Value = permissionId;
                 }, MapRolePermission);
 
-        public Task<List<RolePermissionDetailsDTO>> GetPermissionsByRoleIdAsync(int roleId) =>
+        public Task<List<RolePermissionResponse>> GetPermissionsByRoleIdAsync(int roleId) =>
             QueryListAsync("SP_GetPermissionsByRoleID",
                 cmd =>
                 {
@@ -68,7 +68,7 @@ namespace School.DAL
             cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
         }, MapPermissionName);
 
-        public Task<bool> AddRolePermissionAsync(RolePermissionDTO rolePermission) =>
+        public Task<bool> AddRolePermissionAsync(RolePermissionRequest rolePermission) =>
           ExecuteNonQueryAsync("SP_AddRolePermission", cmd => AddParameters(cmd, rolePermission));
 
         public Task<bool> DeleteRolePermissionAsync(int roleId, int permissionId) =>

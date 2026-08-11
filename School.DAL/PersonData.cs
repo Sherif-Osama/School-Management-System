@@ -2,7 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
 using School.DAL.Interfaces;
-using School.DTO.PersonDTOs;
+using School.DTO.PersonDTOs.Requests;
+using School.DTO.PersonDTOs.Responses;
 using System.Data;
 
 namespace School.DAL
@@ -13,9 +14,9 @@ namespace School.DAL
 
         #region Helper Methods
 
-        private static PersonDTO MapPerson(SqlDataReader reader)
+        private static PersonResponse MapPerson(SqlDataReader reader)
         {
-            return new PersonDTO
+            return new PersonResponse
             {
                 PersonID = reader.GetInt32(reader.GetOrdinal("PersonID")),
                 NationalID = reader.GetString(reader.GetOrdinal("NationalID")),
@@ -33,7 +34,7 @@ namespace School.DAL
             };
         }
 
-        private static void AddParameters(SqlCommand command, PersonDTO person)
+        private static void AddParameters(SqlCommand command, CreatePersonRequest person)
         {
             command.Parameters.Add("@NationalID", SqlDbType.NVarChar, 50).Value = person.NationalID;
             command.Parameters.Add("@FirstName", SqlDbType.NVarChar, 50).Value = person.FirstName;
@@ -53,25 +54,36 @@ namespace School.DAL
 
         #region Public Methods
 
-        public Task<List<PersonDTO>> GetAllPeopleAsync() => QueryListAsync("SP_GetAllPeople", null, MapPerson);
+        public Task<List<PersonResponse>> GetAllPeopleAsync() => QueryListAsync("SP_GetAllPeople", null, MapPerson);
 
-        public Task<PersonDTO?> GetPersonByIdAsync(int personId) => QuerySingleAsync("SP_GetPersonByID", cmd => cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId,
+        public Task<PersonResponse?> GetPersonByIdAsync(int personId) => QuerySingleAsync("SP_GetPersonByID", cmd => cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId,
                 MapPerson);
 
-        public Task<PersonDTO?> GetPersonByNationalIDAsync(string nationalId) =>
+        public Task<PersonResponse?> GetPersonByNationalIDAsync(string nationalId) =>
             QuerySingleAsync("SP_GetPersonByNationalID", cmd => cmd.Parameters.Add("@NationalID", SqlDbType.NVarChar, 50).Value = nationalId,
                 MapPerson);
 
-        public Task<int> AddPersonAsync(PersonDTO person) =>
+        public Task<int> AddPersonAsync(CreatePersonRequest person) =>
             InsertAsync<int>("SP_AddPerson", cmd => AddParameters(cmd, person), "@PersonID",
                 SqlDbType.Int);
 
-        public Task<bool> UpdatePersonAsync(PersonDTO person) =>
+        public Task<bool> UpdatePersonAsync(int personId, UpdatePersonRequest person) =>
             ExecuteNonQueryAsync("SP_UpdatePerson",
                 cmd =>
                 {
-                    cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = person.PersonID;
-                    AddParameters(cmd, person);
+                    cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId;
+                    cmd.Parameters.Add("@NationalID", SqlDbType.NVarChar, 50).Value = person.NationalID;
+                    cmd.Parameters.Add("@FirstName", SqlDbType.NVarChar, 50).Value = person.FirstName;
+                    cmd.Parameters.Add("@SecondName", SqlDbType.NVarChar, 50).Value = person.SecondName;
+                    cmd.Parameters.Add("@ThirdName", SqlDbType.NVarChar, 50).Value = person.ThirdName;
+                    cmd.Parameters.Add("@LastName", SqlDbType.NVarChar, 50).Value = person.LastName ?? (object)DBNull.Value;
+                    cmd.Parameters.Add("@DateOfBirth", SqlDbType.DateTime).Value = person.DateOfBirth;
+                    cmd.Parameters.Add("@Gender", SqlDbType.TinyInt).Value = person.Gender;
+                    cmd.Parameters.Add("@Address", SqlDbType.NVarChar, 250).Value = person.Address ?? (object)DBNull.Value;
+                    cmd.Parameters.Add("@Phone", SqlDbType.NVarChar, 20).Value = person.Phone;
+                    cmd.Parameters.Add("@Email", SqlDbType.NVarChar, 150).Value = person.Email ?? (object)DBNull.Value;
+                    cmd.Parameters.Add("@ImagePath", SqlDbType.NVarChar, 250).Value = person.ImagePath ?? (object)DBNull.Value;
+                    cmd.Parameters.Add("@CityID", SqlDbType.Int).Value = person.CityID;
                 });
 
         public Task<bool> DeletePersonAsync(int personId) =>

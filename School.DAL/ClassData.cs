@@ -2,7 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
 using School.DAL.Interfaces;
-using School.DTO.ClassesDTOs;
+using School.DTO.ClassesDTOs.Requests;
+using School.DTO.ClassesDTOs.Responses;
 using System.Data;
 
 namespace School.DAL
@@ -13,9 +14,9 @@ namespace School.DAL
 
         #region Helper Methods
 
-        private static ClassDetailsDTO MapClassDetails(SqlDataReader reader)
+        private static ClassResponse MapClassDetails(SqlDataReader reader)
         {
-            return new ClassDetailsDTO
+            return new ClassResponse
             {
                 ClassID = reader.GetInt32(reader.GetOrdinal("ClassID")),
                 GradeID = reader.GetByte(reader.GetOrdinal("GradeID")),
@@ -27,7 +28,7 @@ namespace School.DAL
             };
         }
 
-        private static void AddParameters(SqlCommand command, ClassDTO schoolClass)
+        private static void AddParameters(SqlCommand command, CreateClassRequest schoolClass)
         {
             command.Parameters.Add("@GradeID", SqlDbType.TinyInt).Value = schoolClass.GradeID;
             command.Parameters.Add("@ClassName", SqlDbType.NVarChar).Value = schoolClass.ClassName;
@@ -40,14 +41,14 @@ namespace School.DAL
 
         #region Public Methods
 
-        public Task<List<ClassDetailsDTO>> GetAllClassesAsync() =>
+        public Task<List<ClassResponse>> GetAllClassesAsync() =>
             QueryListAsync("SP_GetAllClasses", null, MapClassDetails);
 
-        public Task<ClassDetailsDTO?> GetClassByIdAsync(int classId) =>
+        public Task<ClassResponse?> GetClassByIdAsync(int classId) =>
             QuerySingleAsync("SP_GetClassByID", cmd => cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId,
                 MapClassDetails);
 
-        public Task<ClassDetailsDTO?> GetClassByDetailsAsync(byte gradeId, string className, string academicYear) =>
+        public Task<ClassResponse?> GetClassByDetailsAsync(byte gradeId, string className, string academicYear) =>
             QuerySingleAsync("SP_GetClassByName",
                 cmd =>
                 {
@@ -57,15 +58,19 @@ namespace School.DAL
                 },
                 MapClassDetails);
 
-        public Task<int> AddClassAsync(ClassDTO schoolClass) =>
+        public Task<int> AddClassAsync(CreateClassRequest schoolClass) =>
             InsertAsync<int>("SP_AddClass", cmd => AddParameters(cmd, schoolClass), "@ClassID", SqlDbType.Int);
 
-        public Task<bool> UpdateClassAsync(ClassDTO schoolClass) =>
+        public Task<bool> UpdateClassAsync(int classId, UpdateClassRequest schoolClass) =>
             ExecuteNonQueryAsync("SP_UpdateClass",
                 cmd =>
                 {
-                    cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = schoolClass.ClassID;
-                    AddParameters(cmd, schoolClass);
+                    cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId;
+                    cmd.Parameters.Add("@GradeID", SqlDbType.TinyInt).Value = schoolClass.GradeID;
+                    cmd.Parameters.Add("@ClassName", SqlDbType.NVarChar).Value = schoolClass.ClassName;
+                    cmd.Parameters.Add("@AcademicYear", SqlDbType.NVarChar).Value = schoolClass.AcademicYear;
+                    cmd.Parameters.Add("@Capacity", SqlDbType.Int).Value = schoolClass.Capacity;
+                    cmd.Parameters.Add("@IsActive", SqlDbType.Bit).Value = schoolClass.IsActive;
                 });
 
         public Task<bool> DeleteClassAsync(int classId) =>

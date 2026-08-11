@@ -2,7 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
 using School.DAL.Interfaces;
-using School.DTO.TeachersDTOs;
+using School.DTO.TeachersDTOs.Requests;
+using School.DTO.TeachersDTOs.Responses;
 using System.Data;
 
 namespace School.DAL
@@ -13,9 +14,9 @@ namespace School.DAL
 
         #region Helper Methods
 
-        private static TeacherDetailsDTO MapTeacherDetails(SqlDataReader reader)
+        private static TeacherResponse MapTeacherDetails(SqlDataReader reader)
         {
-            return new TeacherDetailsDTO
+            return new TeacherResponse
             {
                 TeacherID = reader.GetInt32(reader.GetOrdinal("TeacherID")),
                 PersonID = reader.GetInt32(reader.GetOrdinal("PersonID")),
@@ -38,43 +39,44 @@ namespace School.DAL
             };
         }
 
-        private static void AddParameters(SqlCommand command, TeacherDTO teacher)
+        private static void AddParameters(SqlCommand command, CreateTeacherRequest teacher)
         {
             command.Parameters.Add("@PersonID", SqlDbType.Int).Value = teacher.PersonID;
             command.Parameters.Add("@HireDate", SqlDbType.Date).Value = teacher.HireDate;
             command.Parameters.Add("@Salary", SqlDbType.Decimal).Value = teacher.Salary;
             command.Parameters.Add("@IsActive", SqlDbType.Bit).Value = teacher.IsActive;
         }
-
         #endregion
 
         #region Public Methods
 
-        public Task<List<TeacherDetailsDTO>> GetAllTeachersAsync() =>
+        public Task<List<TeacherResponse>> GetAllTeachersAsync() =>
             QueryListAsync("SP_GetAllTeachers", null, MapTeacherDetails);
 
-        public Task<TeacherDetailsDTO?> GetTeacherByIdAsync(int teacherId) =>
+        public Task<TeacherResponse?> GetTeacherByIdAsync(int teacherId) =>
             QuerySingleAsync("SP_GetTeacherByID", cmd => cmd.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId,
                 MapTeacherDetails);
 
-        public Task<TeacherDetailsDTO?> GetTeacherByPersonIdAsync(int personId) =>
+        public Task<TeacherResponse?> GetTeacherByPersonIdAsync(int personId) =>
             QuerySingleAsync("SP_GetTeacherByPersonID", cmd => cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId,
                 MapTeacherDetails);
 
-        public Task<TeacherDetailsDTO?> GetTeacherByNationalIdAsync(string nationalId) =>
+        public Task<TeacherResponse?> GetTeacherByNationalIdAsync(string nationalId) =>
             QuerySingleAsync("SP_GetTeacherByNationalID", cmd => cmd.Parameters.Add("@NationalID", SqlDbType.NVarChar).Value = nationalId,
                 MapTeacherDetails);
 
-        public Task<int> AddTeacherAsync(TeacherDTO teacher) =>
+        public Task<int> AddTeacherAsync(CreateTeacherRequest teacher) =>
             InsertAsync<int>("SP_AddTeacher", cmd => AddParameters(cmd, teacher), "@TeacherID", SqlDbType.Int);
 
-        public Task<bool> UpdateTeacherAsync(TeacherDTO teacher) =>
+        public Task<bool> UpdateTeacherAsync(int teacherId, UpdateTeacherRequest teacher) =>
             ExecuteNonQueryAsync("SP_UpdateTeacher",
-                cmd =>
-                {
-                    cmd.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacher.TeacherID;
-                    AddParameters(cmd, teacher);
-                });
+         cmd =>
+         {
+             cmd.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId;
+             cmd.Parameters.Add("@HireDate", SqlDbType.Date).Value = teacher.HireDate;
+             cmd.Parameters.Add("@Salary", SqlDbType.Decimal).Value = teacher.Salary;
+             cmd.Parameters.Add("@IsActive", SqlDbType.Bit).Value = teacher.IsActive;
+         });
 
         public Task<bool> DeleteTeacherAsync(int teacherId) =>
             ExecuteNonQueryAsync("SP_DeleteTeacher", cmd => cmd.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId);

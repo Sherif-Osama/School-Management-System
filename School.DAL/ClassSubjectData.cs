@@ -2,7 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
 using School.DAL.Interfaces;
-using School.DTO.AssociationsDTOs.ClassSubjectDTOs;
+using School.DTO.AssociationsDTOs.ClassSubjectDTOs.Requests;
+using School.DTO.AssociationsDTOs.ClassSubjectDTOs.Responses;
 using System.Data;
 
 namespace School.DAL
@@ -13,9 +14,9 @@ namespace School.DAL
 
         #region Helper Methods
 
-        private static ClassSubjectDetailsDTO MapClassSubjectDetails(SqlDataReader reader)
+        private static ClassSubjectResponse MapClassSubjectDetails(SqlDataReader reader)
         {
-            return new ClassSubjectDetailsDTO
+            return new ClassSubjectResponse
             {
                 ClassSubjectID = reader.GetInt32(reader.GetOrdinal("ClassSubjectID")),
                 GradeID = reader.GetByte(reader.GetOrdinal("GradeID")),
@@ -33,7 +34,7 @@ namespace School.DAL
             };
         }
 
-        private static void AddParameters(SqlCommand command, ClassSubjectDTO classSubject)
+        private static void AddParameters(SqlCommand command, CreateClassSubjectRequest classSubject)
         {
             command.Parameters.Add("@ClassID", SqlDbType.Int).Value = classSubject.ClassID;
             command.Parameters.Add("@TeacherID", SqlDbType.Int).Value = classSubject.TeacherID;
@@ -44,26 +45,26 @@ namespace School.DAL
 
         #region Public Methods
 
-        public Task<List<ClassSubjectDetailsDTO>> GetAllClassSubjectsAsync() =>
+        public Task<List<ClassSubjectResponse>> GetAllClassSubjectsAsync() =>
             QueryListAsync("SP_GetAllClassSubjects", null, MapClassSubjectDetails);
 
-        public Task<ClassSubjectDetailsDTO?> GetClassSubjectByIdAsync(int classSubjectId) =>
+        public Task<ClassSubjectResponse?> GetClassSubjectByIdAsync(int classSubjectId) =>
             QuerySingleAsync("SP_GetClassSubjectByID", cmd => cmd.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = classSubjectId,
                 MapClassSubjectDetails);
 
-        public Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsByClassIdAsync(int classId) =>
+        public Task<List<ClassSubjectResponse>> GetClassSubjectsByClassIdAsync(int classId) =>
             QueryListAsync("SP_GetClassSubjectsByClassID", cmd => cmd.Parameters.Add("@ClassID", SqlDbType.Int).Value = classId,
                 MapClassSubjectDetails);
 
-        public Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsByTeacherIdAsync(int teacherId) =>
+        public Task<List<ClassSubjectResponse>> GetClassSubjectsByTeacherIdAsync(int teacherId) =>
             QueryListAsync("SP_GetClassSubjectsByTeacherID", cmd => cmd.Parameters.Add("@TeacherID", SqlDbType.Int).Value = teacherId,
                 MapClassSubjectDetails);
 
-        public Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsBySubjectIdAsync(int subjectId) =>
+        public Task<List<ClassSubjectResponse>> GetClassSubjectsBySubjectIdAsync(int subjectId) =>
             QueryListAsync("SP_GetClassSubjectsBySubjectID", cmd => cmd.Parameters.Add("@SubjectID", SqlDbType.Int).Value = subjectId,
                 MapClassSubjectDetails);
 
-        public Task<ClassSubjectDetailsDTO?> GetClassSubjectByDetailsAsync(int classId, int teacherId, int subjectId) =>
+        public Task<ClassSubjectResponse?> GetClassSubjectByDetailsAsync(int classId, int teacherId, int subjectId) =>
             QuerySingleAsync("SP_GetClassSubjectByDetails",
                 cmd =>
                 {
@@ -73,15 +74,15 @@ namespace School.DAL
                 },
                 MapClassSubjectDetails);
 
-        public Task<int> AddClassSubjectAsync(ClassSubjectDTO classSubject) =>
+        public Task<int> AddClassSubjectAsync(CreateClassSubjectRequest classSubject) =>
             InsertAsync<int>("SP_AddClassSubject", cmd => AddParameters(cmd, classSubject), "@ClassSubjectID", SqlDbType.Int);
 
-        public Task<bool> UpdateClassSubjectAsync(ClassSubjectDTO classSubject) =>
+        public Task<bool> UpdateClassSubjectAsync(int classsubjectId, UpdateClassSubjectRequest classSubject) =>
             ExecuteNonQueryAsync("SP_UpdateClassSubject",
                 cmd =>
                 {
-                    cmd.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = classSubject.ClassSubjectID;
-                    AddParameters(cmd, classSubject);
+                    cmd.Parameters.Add("@ClassSubjectID", SqlDbType.Int).Value = classsubjectId;
+                    cmd.Parameters.Add("@TeacherID", SqlDbType.Int).Value = classSubject.TeacherID;
                 });
 
         public Task<bool> DeleteClassSubjectAsync(int classSubjectId) =>

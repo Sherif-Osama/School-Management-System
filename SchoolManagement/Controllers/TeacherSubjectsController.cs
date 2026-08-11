@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
-using School.DTO.AssociationsDTOs.TeacherSubjectDTOs;
+using School.DTO.AssociationsDTOs.TeacherSubjectDTOs.Requests;
+using School.DTO.AssociationsDTOs.TeacherSubjectDTOs.Responses;
 
 namespace School.API.Controllers
 {
@@ -19,7 +20,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Teachers.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<TeacherSubjectDetailsDTO>>> GetAllTeacherSubjects()
+        public async Task<ActionResult<List<TeacherSubjectResponse>>> GetAllTeacherSubjects()
         {
             return Ok(await _teacherSubjectService.GetAllTeacherSubjectsAsync());
         }
@@ -28,9 +29,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Teachers.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<List<TeacherSubjectDetailsDTO>>> GetSubjectsByTeacherId(int teacherId)
+        public async Task<ActionResult<List<TeacherSubjectResponse>>> GetSubjectsByTeacherId(int teacherId)
         {
-            List<TeacherSubjectDetailsDTO> subjects =
+            List<TeacherSubjectResponse> subjects =
                 await _teacherSubjectService.GetSubjectsByTeacherIdAsync(teacherId);
 
             return Ok(subjects);
@@ -40,9 +41,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Teachers.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<List<TeacherSubjectDetailsDTO>>> GetTeachersBySubjectId(byte subjectId)
+        public async Task<ActionResult<List<TeacherSubjectResponse>>> GetTeachersBySubjectId(byte subjectId)
         {
-            List<TeacherSubjectDetailsDTO> teachers =
+            List<TeacherSubjectResponse> teachers =
                 await _teacherSubjectService.GetTeachersBySubjectIdAsync(subjectId);
 
             return Ok(teachers);
@@ -52,7 +53,7 @@ namespace School.API.Controllers
         [Authorize(Policy = "Teachers.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> AssignSubjectToTeacher(
-            TeacherSubjectDTO relation)
+            TeacherSubjectRequest relation)
         {
             await _teacherSubjectService.AssignSubjectToTeacherAsync(relation);
 
@@ -63,7 +64,7 @@ namespace School.API.Controllers
         [Authorize(Policy = "Teachers.Update")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> RemoveSubjectFromTeacher(
-            TeacherSubjectDTO relation)
+            TeacherSubjectRequest relation)
         {
             await _teacherSubjectService.RemoveSubjectFromTeacherAsync(relation);
 

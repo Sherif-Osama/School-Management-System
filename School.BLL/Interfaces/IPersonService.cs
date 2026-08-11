@@ -1,15 +1,16 @@
-﻿using School.DTO.PersonDTOs;
+﻿using School.DTO.PersonDTOs.Requests;
+using School.DTO.PersonDTOs.Responses;
 
 namespace School.BLL.Interfaces
 {
     public interface IPersonService
     {
-        Task<int> AddPersonAsync(PersonDTO person);
+        Task<int> AddPersonAsync(CreatePersonRequest person);
         Task<bool> DeletePersonAsync(int personId);
-        Task<List<PersonDTO>> GetAllPeopleAsync();
-        Task<PersonDTO?> GetPersonByIdAsync(int personId);
-        Task<PersonDTO?> GetPersonByNationalIDAsync(string nationalId);
+        Task<List<PersonResponse>> GetAllPeopleAsync();
+        Task<PersonResponse?> GetPersonByIdAsync(int personId);
+        Task<PersonResponse?> GetPersonByNationalIDAsync(string nationalId);
         Task<bool> IsPersonExistAsync(int personId);
-        Task<bool> UpdatePersonAsync(PersonDTO person);
+        Task<bool> UpdatePersonAsync(int personId, UpdatePersonRequest person);
     }
 }

@@ -1,7 +1,8 @@
 ﻿using School.BLL.Common;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.ParentsDTOs;
+using School.DTO.ParentsDTOs.Requests;
+using School.DTO.ParentsDTOs.Responses;
 
 namespace School.BLL
 {
@@ -21,7 +22,7 @@ namespace School.BLL
 
         #region Private Helpers
 
-        private static void ValidateParent(ParentDTO parent)
+        private static void ValidateParent(CreateParentRequest parent)
         {
             ArgumentNullException.ThrowIfNull(parent);
 
@@ -38,15 +39,15 @@ namespace School.BLL
 
         #region Public Methods
 
-        public async Task<List<ParentDetailsDTO>> GetAllParentsAsync()
+        public async Task<List<ParentResponse>> GetAllParentsAsync()
         {
             return await _parentData.GetAllParentsAsync();
         }
 
-        public async Task<ParentDetailsDTO?> GetParentByIdAsync(int parentId)
+        public async Task<ParentResponse?> GetParentByIdAsync(int parentId)
         {
             ValidationHelper.ValidateId(parentId);
-            ParentDetailsDTO? parentDetails = await _parentData.GetParentByIdAsync(parentId);
+            ParentResponse? parentDetails = await _parentData.GetParentByIdAsync(parentId);
 
             if (parentDetails == null)
                 throw new KeyNotFoundException($"Parent with ID {parentId} does not exist.");
@@ -54,11 +55,11 @@ namespace School.BLL
             return parentDetails;
         }
 
-        public async Task<ParentDetailsDTO?> GetParentByPersonIdAsync(int personId)
+        public async Task<ParentResponse?> GetParentByPersonIdAsync(int personId)
         {
             ValidationHelper.ValidateId(personId);
 
-            ParentDetailsDTO? parentDetails = await _parentData.GetParentByPersonIdAsync(personId);
+            ParentResponse? parentDetails = await _parentData.GetParentByPersonIdAsync(personId);
 
             if (parentDetails == null)
                 throw new KeyNotFoundException($"Parent with Person ID {personId} does not exist.");
@@ -66,11 +67,11 @@ namespace School.BLL
             return parentDetails;
         }
 
-        public async Task<ParentDetailsDTO?> GetParentByNationalIdAsync(string nationalId)
+        public async Task<ParentResponse?> GetParentByNationalIdAsync(string nationalId)
         {
             nationalId = ValidationHelper.ValidateString(nationalId, nameof(nationalId), MinNationalIdLength, MaxNationalIdLength);
 
-            ParentDetailsDTO? parentDetails = await _parentData.GetParentByNationalIdAsync(nationalId);
+            ParentResponse? parentDetails = await _parentData.GetParentByNationalIdAsync(nationalId);
 
             if (parentDetails == null)
                 throw new KeyNotFoundException($"Parent with National ID {nationalId} does not exist.");
@@ -78,7 +79,7 @@ namespace School.BLL
             return parentDetails;
         }
 
-        public async Task<int> AddParentAsync(ParentDTO parent)
+        public async Task<int> AddParentAsync(CreateParentRequest parent)
         {
             ValidateParent(parent);
 
@@ -94,28 +95,6 @@ namespace School.BLL
                 throw new InvalidOperationException("Failed to add parent.");
 
             return newParentId;
-        }
-
-        public async Task<bool> UpdateParentAsync(ParentDTO parent)
-        {
-            ValidateParent(parent);
-
-            ValidationHelper.ValidateId(parent.ParentID);
-
-            await EnsureHelper.EnsureExistsAsync(_personData.IsPersonExistAsync, parent.PersonID, "Person");
-
-            await EnsureHelper.EnsureExistsAsync(_parentData.IsParentExistAsync, parent.ParentID, "Parent");
-
-            await EnsureHelper.EnsureUniqueAsync(_parentData.GetParentByPersonIdAsync, parent.PersonID, p => p.ParentID, parent.ParentID);
-
-            await EnsurePersonIsNotStudentAsync(parent.PersonID);
-
-            bool isUpdated = await _parentData.UpdateParentAsync(parent);
-
-            if (!isUpdated)
-                throw new InvalidOperationException($"Failed to update parent with ID {parent.ParentID}");
-
-            return isUpdated;
         }
 
         public async Task<bool> DeleteParentAsync(int parentId)

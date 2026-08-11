@@ -2,7 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
 using School.DAL.Interfaces;
-using School.DTO.AssociationsDTOs.UserRoleDTOs;
+using School.DTO.AssociationsDTOs.UserRoleDTOs.Requests;
+using School.DTO.AssociationsDTOs.UserRoleDTOs.Responses;
 using System.Data;
 
 namespace School.DAL
@@ -13,9 +14,9 @@ namespace School.DAL
 
         #region Helper Methods
 
-        private static UserRoleDetailsDTO MapUserRole(SqlDataReader reader)
+        private static UserRoleResponse MapUserRole(SqlDataReader reader)
         {
-            return new UserRoleDetailsDTO
+            return new UserRoleResponse
             {
                 UserID = reader.GetInt32(reader.GetOrdinal("UserID")),
                 Username = reader.GetString(reader.GetOrdinal("Username")),
@@ -32,7 +33,7 @@ namespace School.DAL
             return reader.GetString(reader.GetOrdinal("RoleName"));
         }
 
-        private static void AddParameters(SqlCommand command, UserRoleDTO userRole)
+        private static void AddParameters(SqlCommand command, UserRoleRequest userRole)
         {
             command.Parameters.Add("@UserID", SqlDbType.Int).Value = userRole.UserID;
             command.Parameters.Add("@RoleID", SqlDbType.Int).Value = userRole.RoleID;
@@ -42,10 +43,10 @@ namespace School.DAL
 
         #region Public Methods
 
-        public Task<List<UserRoleDetailsDTO>> GetAllUserRolesAsync() =>
+        public Task<List<UserRoleResponse>> GetAllUserRolesAsync() =>
             QueryListAsync("SP_GetAllUserRoles", null, MapUserRole);
 
-        public Task<UserRoleDetailsDTO?> GetUserRoleAsync(int userId, int roleId) =>
+        public Task<UserRoleResponse?> GetUserRoleAsync(int userId, int roleId) =>
             QuerySingleAsync("SP_GetUserRole",
                 cmd =>
                 {
@@ -54,7 +55,7 @@ namespace School.DAL
                 },
                 MapUserRole);
 
-        public Task<List<UserRoleDetailsDTO>> GetRolesByUserIdAsync(int userId) =>
+        public Task<List<UserRoleResponse>> GetRolesByUserIdAsync(int userId) =>
             QueryListAsync("SP_GetRolesByUserID",
                 cmd =>
                 {
@@ -70,7 +71,7 @@ namespace School.DAL
             cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
         }, MapRoleName);
 
-        public Task<bool> AddUserRoleAsync(UserRoleDTO userRole) =>
+        public Task<bool> AddUserRoleAsync(UserRoleRequest userRole) =>
             ExecuteNonQueryAsync("SP_AddUserRole", cmd => AddParameters(cmd, userRole));
 
         public Task<bool> DeleteUserRoleAsync(int userId, int roleId) =>

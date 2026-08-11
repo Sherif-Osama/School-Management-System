@@ -5,6 +5,7 @@ using School.API.Authorization.Requirements;
 using School.BLL.Authentication;
 using School.BLL.Interfaces;
 using School.DTO.AssociationsDTOs.StudentParentDTOs;
+using School.DTO.AssociationsDTOs.StudentParentDTOs.Requests;
 
 namespace School.API.Controllers
 {
@@ -24,7 +25,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Parents.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<StudentParentDetailsDTO>>> GetAll()
+        public async Task<ActionResult<List<StudentParentResponse>>> GetAll()
         {
             return Ok(await _studentParentService.GetAllStudentParentsAsync());
         }
@@ -33,7 +34,7 @@ namespace School.API.Controllers
         [Authorize(Policy = "Parents.View.Own")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<List<StudentParentDetailsDTO>>> GetParentsByStudentId(int studentId)
+        public async Task<ActionResult<List<StudentParentResponse>>> GetParentsByStudentId(int studentId)
         {
             if (!User.HasClaim(CustomClaimTypes.Permission, "Parents.View.All"))
             {
@@ -51,7 +52,7 @@ namespace School.API.Controllers
         [Authorize(Policy = "Parents.View.Own")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<List<StudentParentDetailsDTO>>> GetStudentsByParentId(int parentId)
+        public async Task<ActionResult<List<StudentParentResponse>>> GetStudentsByParentId(int parentId)
         {
             if (!User.HasClaim(CustomClaimTypes.Permission, "Parents.View.All"))
             {
@@ -68,7 +69,7 @@ namespace School.API.Controllers
         [HttpPost]
         [Authorize(Policy = "Parents.Create")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> Add(StudentParentDTO relation)
+        public async Task<IActionResult> Add(StudentParentRequest relation)
         {
             await _studentParentService.AddStudentParentAsync(relation);
 
@@ -78,7 +79,7 @@ namespace School.API.Controllers
         [HttpDelete]
         [Authorize(Policy = "Parents.Delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public async Task<IActionResult> Delete(StudentParentDTO relation)
+        public async Task<IActionResult> Delete(StudentParentRequest relation)
         {
             await _studentParentService.DeleteStudentParentAsync(relation);
 

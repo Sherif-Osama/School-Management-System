@@ -4,13 +4,13 @@ namespace School.BLL.Interfaces
 {
     public interface IRolePermissionService
     {
-        Task<List<RolePermissionDetailsDTO>> GetAllRolePermissionsAsync();
+        Task<List<RolePermissionResponse>> GetAllRolePermissionsAsync();
 
-        Task<RolePermissionDetailsDTO?> GetRolePermissionAsync(int roleId, int permissionId);
+        Task<RolePermissionResponse?> GetRolePermissionAsync(int roleId, int permissionId);
 
-        Task<List<RolePermissionDetailsDTO>> GetPermissionsByRoleIdAsync(int roleId);
+        Task<List<RolePermissionResponse>> GetPermissionsByRoleIdAsync(int roleId);
 
-        Task<bool> AddRolePermissionAsync(RolePermissionDTO rolePermission);
+        Task<bool> AddRolePermissionAsync(RolePermissionRequest rolePermission);
 
         Task<bool> DeleteRolePermissionAsync(int roleId, int permissionId);
     }

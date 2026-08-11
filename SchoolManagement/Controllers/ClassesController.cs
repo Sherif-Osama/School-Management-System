@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
-using School.DTO.ClassesDTOs;
+using School.DTO.ClassesDTOs.Requests;
+using School.DTO.ClassesDTOs.Responses;
 
 namespace School.API.Controllers
 {
@@ -19,7 +20,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Classes.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<ClassDetailsDTO>>> GetAllClasses()
+        public async Task<ActionResult<List<ClassResponse>>> GetAllClasses()
         {
             return Ok(await _classService.GetAllClassesAsync());
         }
@@ -28,9 +29,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Classes.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ClassDetailsDTO>> GetClassById(int id)
+        public async Task<ActionResult<ClassResponse>> GetClassById(int id)
         {
-            ClassDetailsDTO? schoolClass =
+            ClassResponse? schoolClass =
                 await _classService.GetClassByIdAsync(id);
 
             if (schoolClass == null)
@@ -43,9 +44,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Classes.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ClassDetailsDTO>> GetClassByDetails(byte gradeId, string className, string academicYear)
+        public async Task<ActionResult<ClassResponse>> GetClassByDetails(byte gradeId, string className, string academicYear)
         {
-            ClassDetailsDTO? schoolClass =
+            ClassResponse? schoolClass =
                 await _classService.GetClassByDetailsAsync(
                     gradeId,
                     className,
@@ -60,7 +61,7 @@ namespace School.API.Controllers
         [HttpPost]
         [Authorize(Policy = "Classes.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult<int>> AddClass(ClassDTO classDTO)
+        public async Task<ActionResult<int>> AddClass(CreateClassRequest classDTO)
         {
             int classId =
                 await _classService.AddClassAsync(classDTO);
@@ -71,12 +72,12 @@ namespace School.API.Controllers
                 classId);
         }
 
-        [HttpPut]
+        [HttpPut("{classId:int}")]
         [Authorize(Policy = "Classes.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> UpdateClass(ClassDTO classDTO)
+        public async Task<ActionResult> UpdateClass(int classId, UpdateClassRequest classDTO)
         {
-            await _classService.UpdateClassAsync(classDTO);
+            await _classService.UpdateClassAsync(classId, classDTO);
 
             return Ok();
         }

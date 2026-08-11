@@ -1,15 +1,16 @@
-﻿using School.DTO.ExamTypeDTOs;
+﻿using School.DTO.ExamTypeDTOs.Requests;
+using School.DTO.ExamTypeDTOs.Responses;
 
 namespace School.DAL.Interfaces
 {
     public interface IExamTypeData
     {
-        Task<int> AddExamTypeAsync(ExamTypeDTO examType);
+        Task<int> AddExamTypeAsync(CreateExamTypeRequest examType);
         Task<bool> DeleteExamTypeAsync(int examTypeId);
-        Task<List<ExamTypeDTO>> GetAllExamTypesAsync();
-        Task<ExamTypeDTO?> GetExamTypeByIdAsync(int examTypeId);
-        Task<ExamTypeDTO?> GetExamTypeByNameAsync(string examName);
+        Task<List<ExamTypeResponse>> GetAllExamTypesAsync();
+        Task<ExamTypeResponse?> GetExamTypeByIdAsync(int examTypeId);
+        Task<ExamTypeResponse?> GetExamTypeByNameAsync(string examName);
         Task<bool> IsExamTypeExistAsync(int examTypeId);
-        Task<bool> UpdateExamTypeAsync(ExamTypeDTO examType);
+        Task<bool> UpdateExamTypeAsync(int examTypeId, UpdateExamTypeRequest examType);
     }
 }

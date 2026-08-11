@@ -1,18 +1,19 @@
-﻿using School.DTO.PermissionDTOs;
+﻿using School.DTO.PermissionDTOs.Requests;
+using School.DTO.PermissionDTOs.Responses;
 
 namespace School.DAL.Interfaces
 {
     public interface IPermissionData
     {
-        Task<List<PermissionDTO>> GetAllPermissionsAsync();
+        Task<List<PermissionResponse>> GetAllPermissionsAsync();
 
-        Task<PermissionDTO?> GetPermissionByIdAsync(int permissionId);
+        Task<PermissionResponse?> GetPermissionByIdAsync(int permissionId);
 
-        Task<PermissionDTO?> GetPermissionByNameAsync(string permissionName);
+        Task<PermissionResponse?> GetPermissionByNameAsync(string permissionName);
 
-        Task<int> AddPermissionAsync(PermissionDTO permission);
+        Task<int> AddPermissionAsync(CreatePermissionRequest permission);
 
-        Task<bool> UpdatePermissionAsync(PermissionDTO permission);
+        Task<bool> UpdatePermissionAsync(int permissionId, UpdatePermissionRequest permission);
 
         Task<bool> DeletePermissionAsync(int permissionId);
 

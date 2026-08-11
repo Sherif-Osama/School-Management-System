@@ -1,7 +1,8 @@
 ﻿using School.BLL.Common;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.GradesDTOs;
+using School.DTO.GradesDTOs.Requests;
+using School.DTO.GradesDTOs.Responses;
 
 namespace School.BLL
 {
@@ -16,25 +17,32 @@ namespace School.BLL
         }
 
         #region Private Helpers
-        private static void ValidateGrade(GradeDTO grade)
+        private static void ValidateGrade(CreateGradeRequest grade)
         {
             ArgumentNullException.ThrowIfNull(grade);
 
             grade.GradeName = ValidationHelper.ValidateString(grade.GradeName, nameof(grade.GradeName), MinGradeNameLength, MaxGradeNameLength);
         }
+        private static void ValidateGrade(UpdateGradeRequest grade)
+        {
+            ArgumentNullException.ThrowIfNull(grade);
+
+            grade.GradeName = ValidationHelper.ValidateString(grade.GradeName, nameof(grade.GradeName), MinGradeNameLength, MaxGradeNameLength);
+        }
+
         #endregion
 
         #region Public Methods
-        public async Task<List<GradeDTO>> GetAllGradesAsync()
+        public async Task<List<GradeResponse>> GetAllGradesAsync()
         {
             return await _gradeData.GetAllGradesAsync();
         }
 
-        public async Task<GradeDTO?> GetGradeByIdAsync(byte gradeId)
+        public async Task<GradeResponse?> GetGradeByIdAsync(byte gradeId)
         {
             ValidationHelper.ValidateId(gradeId);
 
-            GradeDTO? grade = await _gradeData.GetGradeByIdAsync(gradeId);
+            GradeResponse? grade = await _gradeData.GetGradeByIdAsync(gradeId);
 
             if (grade == null)
                 throw new KeyNotFoundException($"Grade with ID {gradeId} does not exist.");
@@ -42,11 +50,11 @@ namespace School.BLL
             return grade;
         }
 
-        public async Task<GradeDTO?> GetGradeByNameAsync(string gradeName)
+        public async Task<GradeResponse?> GetGradeByNameAsync(string gradeName)
         {
             gradeName = ValidationHelper.ValidateString(gradeName, nameof(gradeName), MinGradeNameLength, MaxGradeNameLength);
 
-            GradeDTO? gradeDTO = await _gradeData.GetGradeByNameAsync(gradeName);
+            GradeResponse? gradeDTO = await _gradeData.GetGradeByNameAsync(gradeName);
 
             if (gradeDTO == null)
                 throw new KeyNotFoundException($"Grade with name {gradeName} does not exist.");
@@ -54,7 +62,7 @@ namespace School.BLL
             return gradeDTO;
         }
 
-        public async Task<int> AddGradeAsync(GradeDTO grade)
+        public async Task<int> AddGradeAsync(CreateGradeRequest grade)
         {
             ValidateGrade(grade);
 
@@ -67,20 +75,20 @@ namespace School.BLL
             return newGradeId;
         }
 
-        public async Task<bool> UpdateGradeAsync(GradeDTO grade)
+        public async Task<bool> UpdateGradeAsync(byte gradeID, UpdateGradeRequest grade)
         {
             ValidateGrade(grade);
 
-            ValidationHelper.ValidateId(grade.GradeID);
+            ValidationHelper.ValidateId(gradeID);
 
-            await EnsureHelper.EnsureExistsAsync(_gradeData.IsGradeExistAsync, grade.GradeID, "Grade");
+            await EnsureHelper.EnsureExistsAsync(_gradeData.IsGradeExistAsync, gradeID, "Grade");
 
-            await EnsureHelper.EnsureUniqueAsync(_gradeData.GetGradeByNameAsync, grade.GradeName, g => g.GradeID, grade.GradeID);
+            await EnsureHelper.EnsureUniqueAsync(_gradeData.GetGradeByNameAsync, grade.GradeName, g => g.GradeID, gradeID);
 
-            bool isUpdated = await _gradeData.UpdateGradeAsync(grade);
+            bool isUpdated = await _gradeData.UpdateGradeAsync(gradeID, grade);
 
             if (!isUpdated)
-                throw new InvalidOperationException($"Failed to update grade with ID {grade.GradeID}.");
+                throw new InvalidOperationException($"Failed to update grade with ID {gradeID}.");
 
             return isUpdated;
         }

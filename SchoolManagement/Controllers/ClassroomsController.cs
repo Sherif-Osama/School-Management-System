@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
-using School.DTO.ClassroomDTOs;
+using School.DTO.ClassroomDTOs.Requests;
+using School.DTO.ClassroomDTOs.Responses;
 
 namespace School.API.Controllers
 {
@@ -19,7 +20,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Classrooms.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<ClassroomDTO>>> GetAllClassrooms()
+        public async Task<ActionResult<List<ClassroomResponse>>> GetAllClassrooms()
         {
             return Ok(await _classroomService.GetAllClassroomsAsync());
         }
@@ -28,9 +29,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Classrooms.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ClassroomDTO>> GetClassroomById(int id)
+        public async Task<ActionResult<ClassroomResponse>> GetClassroomById(int id)
         {
-            ClassroomDTO? classroom =
+            ClassroomResponse? classroom =
                 await _classroomService.GetClassroomByIdAsync(id);
 
             if (classroom == null)
@@ -43,10 +44,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Classrooms.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ClassroomDTO>> GetClassroomByRoomName(
-            [FromQuery] string roomName)
+        public async Task<ActionResult<ClassroomResponse>> GetClassroomByRoomName([FromQuery] string roomName)
         {
-            ClassroomDTO? classroom =
+            ClassroomResponse? classroom =
                 await _classroomService.GetClassroomByRoomNameAsync(roomName);
 
             if (classroom == null)
@@ -58,7 +58,7 @@ namespace School.API.Controllers
         [HttpPost]
         [Authorize(Policy = "Classrooms.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult<int>> AddClassroom(ClassroomDTO classroom)
+        public async Task<ActionResult<int>> AddClassroom(CreateClassroomRequest classroom)
         {
             int classroomId =
                 await _classroomService.AddClassroomAsync(classroom);
@@ -69,12 +69,12 @@ namespace School.API.Controllers
                 classroomId);
         }
 
-        [HttpPut]
+        [HttpPut("{classroomId:int}")]
         [Authorize(Policy = "Classrooms.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateClassroom(ClassroomDTO classroom)
+        public async Task<IActionResult> UpdateClassroom(int classroomId, UpdateClassroomRequest classroom)
         {
-            await _classroomService.UpdateClassroomAsync(classroom);
+            await _classroomService.UpdateClassroomAsync(classroomId, classroom);
 
             return Ok();
         }

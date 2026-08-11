@@ -1,7 +1,8 @@
 ﻿using School.BLL.Common;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
-using School.DTO.ExamTypeDTOs;
+using School.DTO.ExamTypeDTOs.Requests;
+using School.DTO.ExamTypeDTOs.Responses;
 
 namespace School.BLL
 {
@@ -17,7 +18,13 @@ namespace School.BLL
 
         #region Validation
 
-        private static void ValidateExamType(ExamTypeDTO examType)
+        private static void ValidateExamType(CreateExamTypeRequest examType)
+        {
+            ArgumentNullException.ThrowIfNull(examType);
+
+            examType.ExamName = ValidationHelper.ValidateString(examType.ExamName, nameof(examType.ExamName), MinExamNameLength, MaxExamNameLength);
+        }
+        private static void ValidateExamType(UpdateExamTypeRequest examType)
         {
             ArgumentNullException.ThrowIfNull(examType);
 
@@ -26,16 +33,16 @@ namespace School.BLL
         #endregion
 
         #region Public
-        public Task<List<ExamTypeDTO>> GetAllExamTypesAsync()
+        public Task<List<ExamTypeResponse>> GetAllExamTypesAsync()
         {
             return _examTypeData.GetAllExamTypesAsync();
         }
 
-        public async Task<ExamTypeDTO?> GetExamTypeByIdAsync(int examTypeId)
+        public async Task<ExamTypeResponse?> GetExamTypeByIdAsync(int examTypeId)
         {
             ValidationHelper.ValidateId(examTypeId);
 
-            ExamTypeDTO? examTypeDTO = await _examTypeData.GetExamTypeByIdAsync(examTypeId);
+            ExamTypeResponse? examTypeDTO = await _examTypeData.GetExamTypeByIdAsync(examTypeId);
 
             if (examTypeDTO == null)
                 throw new KeyNotFoundException($"Exam type with ID '{examTypeId}' does not exist.");
@@ -43,11 +50,11 @@ namespace School.BLL
             return examTypeDTO;
         }
 
-        public async Task<ExamTypeDTO?> GetExamTypeByNameAsync(string examName)
+        public async Task<ExamTypeResponse?> GetExamTypeByNameAsync(string examName)
         {
             examName = ValidationHelper.ValidateString(examName, nameof(examName), MinExamNameLength, MaxExamNameLength);
 
-            ExamTypeDTO? examTypeDTO = await _examTypeData.GetExamTypeByNameAsync(examName);
+            ExamTypeResponse? examTypeDTO = await _examTypeData.GetExamTypeByNameAsync(examName);
 
             if (examTypeDTO == null)
                 throw new KeyNotFoundException($"Exam type with name '{examName}' does not exist.");
@@ -55,7 +62,7 @@ namespace School.BLL
             return examTypeDTO;
         }
 
-        public async Task<int> AddExamTypeAsync(ExamTypeDTO examType)
+        public async Task<int> AddExamTypeAsync(CreateExamTypeRequest examType)
         {
             ValidateExamType(examType);
 
@@ -69,18 +76,18 @@ namespace School.BLL
             return newExamTypeId;
         }
 
-        public async Task<bool> UpdateExamTypeAsync(ExamTypeDTO examType)
+        public async Task<bool> UpdateExamTypeAsync(int examTypeID, UpdateExamTypeRequest examType)
         {
             ValidateExamType(examType);
-            ValidationHelper.ValidateId(examType.ExamTypeID);
+            ValidationHelper.ValidateId(examTypeID);
 
-            await EnsureHelper.EnsureExistsAsync(_examTypeData.IsExamTypeExistAsync, examType.ExamTypeID, "Exam Type");
-            await EnsureHelper.EnsureUniqueAsync(_examTypeData.GetExamTypeByNameAsync, examType.ExamName, et => et.ExamTypeID, examType.ExamTypeID);
+            await EnsureHelper.EnsureExistsAsync(_examTypeData.IsExamTypeExistAsync, examTypeID, "Exam Type");
+            await EnsureHelper.EnsureUniqueAsync(_examTypeData.GetExamTypeByNameAsync, examType.ExamName, et => et.ExamTypeID, examTypeID);
 
-            bool isUpdated = await _examTypeData.UpdateExamTypeAsync(examType);
+            bool isUpdated = await _examTypeData.UpdateExamTypeAsync(examTypeID, examType);
 
             if (!isUpdated)
-                throw new InvalidOperationException($"Failed to update exam type with ID '{examType.ExamTypeID}'.");
+                throw new InvalidOperationException($"Failed to update exam type with ID '{examTypeID}'.");
 
             return isUpdated;
         }

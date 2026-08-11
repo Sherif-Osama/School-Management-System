@@ -3,7 +3,8 @@ using Microsoft.Extensions.Configuration;
 using School.DAL.Common;
 using School.DAL.Interfaces;
 using School.DTO.AuthDTOs;
-using School.DTO.UserDTOs;
+using School.DTO.UserDTOs.Requests;
+using School.DTO.UserDTOs.Responses;
 using System.Data;
 
 namespace School.DAL
@@ -14,9 +15,9 @@ namespace School.DAL
 
         #region Helper Methods
 
-        private static UserDetailsDTO MapUserDetails(SqlDataReader reader)
+        private static UserResponse MapUserDetails(SqlDataReader reader)
         {
-            return new UserDetailsDTO
+            return new UserResponse
             {
                 UserID = reader.GetInt32(reader.GetOrdinal("UserID")),
                 PersonID = reader.GetInt32(reader.GetOrdinal("PersonID")),
@@ -51,7 +52,7 @@ namespace School.DAL
             };
         }
 
-        private static void AddParameters(SqlCommand command, UserDTO user)
+        private static void AddParameters(SqlCommand command, CreateUserRequest user)
         {
             command.Parameters.Add("@PersonID", SqlDbType.Int).Value = user.PersonID;
             command.Parameters.Add("@Username", SqlDbType.NVarChar).Value = user.Username.Trim();
@@ -62,22 +63,22 @@ namespace School.DAL
 
         #region Public Methods
 
-        public Task<List<UserDetailsDTO>> GetAllUsersAsync() =>
+        public Task<List<UserResponse>> GetAllUsersAsync() =>
             QueryListAsync("SP_GetAllUsers", null, MapUserDetails);
 
-        public Task<UserDetailsDTO?> GetUserByIdAsync(int userId) =>
+        public Task<UserResponse?> GetUserByIdAsync(int userId) =>
             QuerySingleAsync("SP_GetUserByID", cmd => cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = userId,
                 MapUserDetails);
 
-        public Task<UserDetailsDTO?> GetUserByPersonIdAsync(int personId) =>
+        public Task<UserResponse?> GetUserByPersonIdAsync(int personId) =>
             QuerySingleAsync("SP_GetUserByPersonID", cmd => cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = personId,
                 MapUserDetails);
 
-        public Task<UserDetailsDTO?> GetUserByUsernameAsync(string username) =>
+        public Task<UserResponse?> GetUserByUsernameAsync(string username) =>
             QuerySingleAsync("SP_GetUserByUsername", cmd => cmd.Parameters.Add("@Username", SqlDbType.NVarChar).Value = username.Trim(),
                 MapUserDetails);
 
-        public Task<int> AddUserAsync(UserDTO user) =>
+        public Task<int> AddUserAsync(CreateUserRequest user) =>
             InsertAsync<int>("SP_Add_User",
                 cmd =>
                 {
@@ -86,11 +87,11 @@ namespace School.DAL
                 },
                 "@UserID", SqlDbType.Int);
 
-        public Task<bool> UpdateUserAsync(UpdateUserDTO user) =>
+        public Task<bool> UpdateUserAsync(int userId, UpdateUserRequest user) =>
             ExecuteNonQueryAsync("SP_UpdateUser",
                 cmd =>
                 {
-                    cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = user.UserID;
+                    cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
                     cmd.Parameters.Add("@Username", SqlDbType.NVarChar).Value = user.Username;
                     cmd.Parameters.Add("@IsActive", SqlDbType.Bit).Value = user.IsActive;
                 });

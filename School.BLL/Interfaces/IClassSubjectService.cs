@@ -1,17 +1,18 @@
-﻿using School.DTO.AssociationsDTOs.ClassSubjectDTOs;
+﻿using School.DTO.AssociationsDTOs.ClassSubjectDTOs.Requests;
+using School.DTO.AssociationsDTOs.ClassSubjectDTOs.Responses;
 
 namespace School.BLL.Interfaces
 {
     public interface IClassSubjectService
     {
-        Task<int> AddClassSubjectAsync(ClassSubjectDTO classSubject);
+        Task<int> AddClassSubjectAsync(CreateClassSubjectRequest classSubject);
         Task<bool> DeleteClassSubjectAsync(int classSubjectId);
-        Task<List<ClassSubjectDetailsDTO>> GetAllClassSubjectsAsync();
-        Task<ClassSubjectDetailsDTO?> GetClassSubjectByIdAsync(int classSubjectId);
-        Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsByClassIdAsync(int classId);
-        Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsBySubjectIdAsync(int subjectId);
-        Task<List<ClassSubjectDetailsDTO>> GetClassSubjectsByTeacherIdAsync(int teacherId);
+        Task<List<ClassSubjectResponse>> GetAllClassSubjectsAsync();
+        Task<ClassSubjectResponse?> GetClassSubjectByIdAsync(int classSubjectId);
+        Task<List<ClassSubjectResponse>> GetClassSubjectsByClassIdAsync(int classId);
+        Task<List<ClassSubjectResponse>> GetClassSubjectsBySubjectIdAsync(int subjectId);
+        Task<List<ClassSubjectResponse>> GetClassSubjectsByTeacherIdAsync(int teacherId);
         Task<bool> IsClassSubjectExistAsync(int classSubjectId);
-        Task<bool> UpdateClassSubjectAsync(ClassSubjectDTO classSubject);
+        Task<bool> UpdateClassSubjectAsync(int classsubjectID, UpdateClassSubjectRequest classSubject);
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
 using School.DTO.ExamDTOs;
+using School.DTO.ExamDTOs.Requests;
 
 namespace School.API.Controllers
 {
@@ -19,7 +20,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Exams.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<ExamDetailsDTO>>> GetAllExams()
+        public async Task<ActionResult<List<ExamResponse>>> GetAllExams()
         {
             return Ok(await _examService.GetAllExamsAsync());
         }
@@ -28,9 +29,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Exams.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ExamDetailsDTO>> GetExamById(int id)
+        public async Task<ActionResult<ExamResponse>> GetExamById(int id)
         {
-            ExamDetailsDTO? exam = await _examService.GetExamByIdAsync(id);
+            ExamResponse? exam = await _examService.GetExamByIdAsync(id);
 
             if (exam == null)
                 return NotFound();
@@ -41,7 +42,7 @@ namespace School.API.Controllers
         [HttpGet("Class/{classId:int}")]
         [Authorize(Policy = "Exams.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<ExamDetailsDTO>>> GetExamsByClassId(int classId)
+        public async Task<ActionResult<List<ExamResponse>>> GetExamsByClassId(int classId)
         {
             var ExamDetailsDTOList = await _examService.GetExamsByClassIdAsync(classId);
 
@@ -54,7 +55,7 @@ namespace School.API.Controllers
         [HttpGet("Teacher/{teacherId:int}")]
         [Authorize(Policy = "Exams.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<ExamDetailsDTO>>> GetExamsByTeacherId(int teacherId)
+        public async Task<ActionResult<List<ExamResponse>>> GetExamsByTeacherId(int teacherId)
         {
             var ExamDetailsDTOList = await _examService.GetExamsByTeacherIdAsync(teacherId);
 
@@ -67,7 +68,7 @@ namespace School.API.Controllers
         [HttpGet("Subject/{subjectId:int}")]
         [Authorize(Policy = "Exams.View")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<ExamDetailsDTO>>> GetExamsBySubjectId(int subjectId)
+        public async Task<ActionResult<List<ExamResponse>>> GetExamsBySubjectId(int subjectId)
         {
             var ExamDetailsDTOList = await _examService.GetExamsBySubjectIdAsync(subjectId);
 
@@ -80,7 +81,7 @@ namespace School.API.Controllers
         [HttpPost]
         [Authorize(Policy = "Exams.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult<int>> AddExam(ExamDTO exam)
+        public async Task<ActionResult<int>> AddExam(CreateExamRequest exam)
         {
             int examId = await _examService.AddExamAsync(exam);
 
@@ -90,12 +91,12 @@ namespace School.API.Controllers
                 examId);
         }
 
-        [HttpPut]
+        [HttpPut("{examId:int}")]
         [Authorize(Policy = "Exams.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateExam(ExamDTO exam)
+        public async Task<IActionResult> UpdateExam(int examId, UpdateExamRequest exam)
         {
-            await _examService.UpdateExamAsync(exam);
+            await _examService.UpdateExamAsync(examId, exam);
 
             return Ok();
         }

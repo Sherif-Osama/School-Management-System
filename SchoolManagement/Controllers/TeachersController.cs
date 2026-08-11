@@ -4,7 +4,8 @@ using School.API.Authorization.OwnedResources;
 using School.API.Authorization.Requirements;
 using School.BLL.Authentication;
 using School.BLL.Interfaces;
-using School.DTO.TeachersDTOs;
+using School.DTO.TeachersDTOs.Requests;
+using School.DTO.TeachersDTOs.Responses;
 
 namespace School.API.Controllers
 {
@@ -24,7 +25,7 @@ namespace School.API.Controllers
         [HttpGet]
         [Authorize(Policy = "Teachers.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<TeacherDetailsDTO>>> GetAllTeachers()
+        public async Task<ActionResult<List<TeacherResponse>>> GetAllTeachers()
         {
             return Ok(await _teacherService.GetAllTeachersAsync());
         }
@@ -34,9 +35,9 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<TeacherDetailsDTO>> GetTeacherById(int id)
+        public async Task<ActionResult<TeacherResponse>> GetTeacherById(int id)
         {
-            TeacherDetailsDTO? teacher = await _teacherService.GetTeacherByIdAsync(id);
+            TeacherResponse? teacher = await _teacherService.GetTeacherByIdAsync(id);
 
             if (teacher == null)
                 return NotFound();
@@ -58,7 +59,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<TeacherDetailsDTO>> GetTeacherByPersonId(int personId)
+        public async Task<ActionResult<TeacherResponse>> GetTeacherByPersonId(int personId)
         {
             if (!User.HasClaim(CustomClaimTypes.Permission, "Teachers.View.All"))
             {
@@ -69,7 +70,7 @@ namespace School.API.Controllers
                     return Forbid();
             }
 
-            TeacherDetailsDTO? teacher = await _teacherService.GetTeacherByPersonIdAsync(personId);
+            TeacherResponse? teacher = await _teacherService.GetTeacherByPersonIdAsync(personId);
 
             if (teacher == null)
                 return NotFound();
@@ -81,9 +82,9 @@ namespace School.API.Controllers
         [Authorize(Policy = "Teachers.View.All")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<TeacherDetailsDTO>> GetTeacherByNationalId(string nationalId)
+        public async Task<ActionResult<TeacherResponse>> GetTeacherByNationalId(string nationalId)
         {
-            TeacherDetailsDTO? teacher = await _teacherService.GetTeacherByNationalIdAsync(nationalId);
+            TeacherResponse? teacher = await _teacherService.GetTeacherByNationalIdAsync(nationalId);
 
             if (teacher == null)
                 return NotFound();
@@ -94,9 +95,9 @@ namespace School.API.Controllers
         [HttpPost]
         [Authorize(Policy = "Teachers.Create")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult<int>> AddTeacher(TeacherDTO teacherDTO)
+        public async Task<ActionResult<int>> AddTeacher(CreateTeacherRequest teacher)
         {
-            int teacherId = await _teacherService.AddTeacherAsync(teacherDTO);
+            int teacherId = await _teacherService.AddTeacherAsync(teacher);
 
             return CreatedAtAction(
                 nameof(GetTeacherById),
@@ -104,12 +105,12 @@ namespace School.API.Controllers
                 teacherId);
         }
 
-        [HttpPut]
+        [HttpPut("{id:int}")]
         [Authorize(Policy = "Teachers.Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> UpdateTeacher(TeacherDTO teacherDTO)
+        public async Task<ActionResult> UpdateTeacher(int id, UpdateTeacherRequest teacher)
         {
-            await _teacherService.UpdateTeacherAsync(teacherDTO);
+            await _teacherService.UpdateTeacherAsync(id, teacher);
 
             return Ok();
         }

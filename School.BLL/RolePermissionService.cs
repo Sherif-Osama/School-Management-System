@@ -20,7 +20,7 @@ namespace School.BLL
 
         #region Validation
 
-        private static void ValidateRolePermission(RolePermissionDTO rolePermission)
+        private static void ValidateRolePermission(RolePermissionRequest rolePermission)
         {
             ArgumentNullException.ThrowIfNull(rolePermission);
 
@@ -46,15 +46,15 @@ namespace School.BLL
 
         #region Public
 
-        public Task<List<RolePermissionDetailsDTO>> GetAllRolePermissionsAsync() => _rolePermissionData.GetAllRolePermissionsAsync();
+        public Task<List<RolePermissionResponse>> GetAllRolePermissionsAsync() => _rolePermissionData.GetAllRolePermissionsAsync();
 
 
-        public async Task<RolePermissionDetailsDTO?> GetRolePermissionAsync(int roleId, int permissionId)
+        public async Task<RolePermissionResponse?> GetRolePermissionAsync(int roleId, int permissionId)
         {
             ValidationHelper.ValidateId(roleId);
             ValidationHelper.ValidateId(permissionId);
 
-            RolePermissionDetailsDTO? rolePermission = await _rolePermissionData.GetRolePermissionAsync(roleId, permissionId);
+            RolePermissionResponse? rolePermission = await _rolePermissionData.GetRolePermissionAsync(roleId, permissionId);
 
             if (rolePermission == null)
                 throw new KeyNotFoundException("The role-permission relationship does not exist.");
@@ -62,7 +62,7 @@ namespace School.BLL
             return rolePermission;
         }
 
-        public async Task<List<RolePermissionDetailsDTO>> GetPermissionsByRoleIdAsync(int roleId)
+        public async Task<List<RolePermissionResponse>> GetPermissionsByRoleIdAsync(int roleId)
         {
             ValidationHelper.ValidateId(roleId);
 
@@ -71,7 +71,7 @@ namespace School.BLL
             return await _rolePermissionData.GetPermissionsByRoleIdAsync(roleId);
         }
 
-        public async Task<bool> AddRolePermissionAsync(RolePermissionDTO rolePermission)
+        public async Task<bool> AddRolePermissionAsync(RolePermissionRequest rolePermission)
         {
             ValidateRolePermission(rolePermission);
 
