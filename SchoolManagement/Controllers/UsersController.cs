@@ -113,10 +113,23 @@ namespace School.API.Controllers
         }
 
         [HttpPut("{userId:int}")]
-        [Authorize(Policy = "Users.Update")]
+        [Authorize(Policy = "Users.Update.Own")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateUser(int userId, [FromBody] UpdateUserRequest user)
         {
+            if (!User.HasClaim(CustomClaimTypes.Permission, "Users.Update.All"))
+            {
+                UserResponse? targetUser = await _userService.GetUserByIdAsync(userId);
+
+                if (targetUser is null)
+                    return NotFound();
+
+                var authResult = await _authorizationService.AuthorizeAsync(
+                    User, new PersonOwnedResource(targetUser.PersonID), new OwnershipRequirement());
+                if (!authResult.Succeeded)
+                    return Forbid();
+            }
+
             await _userService.UpdateUserAsync(userId, user);
 
             return Ok();
@@ -128,7 +141,8 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> ChangePassword(int userId, [FromBody] UpdatePasswordRequest changePassword)
         {
-            if (!User.HasClaim(CustomClaimTypes.Permission, "Users.Update"))
+
+            if (!User.HasClaim(CustomClaimTypes.Permission, "Users.Update.All"))
             {
                 UserResponse? targetUser = await _userService.GetUserByIdAsync(userId);
 
@@ -137,7 +151,6 @@ namespace School.API.Controllers
 
                 var authResult = await _authorizationService.AuthorizeAsync(
                     User, new PersonOwnedResource(targetUser.PersonID), new OwnershipRequirement());
-
                 if (!authResult.Succeeded)
                     return Forbid();
             }

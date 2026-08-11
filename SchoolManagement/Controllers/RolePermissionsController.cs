@@ -54,7 +54,7 @@ namespace School.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "Roles.Update")]
+        [Authorize(Policy = "UserRoles.Assign")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> AddRolePermission(RolePermissionRequest rolePermission)
         {
