@@ -8,16 +8,18 @@ namespace School.BLL
 {
     public class UserService : IUserService
     {
+        private readonly IRefreshTokenData _refreshTokenData;
         private readonly IUserData _userData;
         private readonly IPersonData _personData;
         private static int MinPasswordLength => 8;
         private static int MaxPasswordLength => 500;
         private static int MinUsernameLength => 6;
         private static int MaxUsernameLength => 100;
-        public UserService(IUserData userData, IPersonData personData)
+        public UserService(IUserData userData, IPersonData personData, IRefreshTokenData refreshTokenData)
         {
             _userData = userData;
             _personData = personData;
+            _refreshTokenData = refreshTokenData;
         }
         #region Validation
         private static void ValidateUser(CreateUserRequest user)
@@ -149,6 +151,8 @@ namespace School.BLL
 
             if (!isUpdated)
                 throw new InvalidOperationException("Failed to change the password.");
+
+            await _refreshTokenData.RevokeAllRefreshTokensByUserIdAsync(userId);
 
             return isUpdated;
         }

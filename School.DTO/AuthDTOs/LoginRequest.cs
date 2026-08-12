@@ -1,6 +1,6 @@
 ﻿namespace School.DTO.AuthDTOs
 {
-    public class LoginRequestDTO
+    public class LoginRequest
     {
         public required string Username { get; set; }
 

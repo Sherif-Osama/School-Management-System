@@ -1,6 +1,6 @@
 ﻿namespace School.DTO.AuthDTOs
 {
-    public class UserAuthDTO
+    public class UserAuth
     {
         public int UserID { get; set; }
 

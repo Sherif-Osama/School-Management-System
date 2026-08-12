@@ -4,6 +4,8 @@ namespace School.BLL.Interfaces
 {
     public interface IAuthService
     {
-        Task<LoginResponseDTO> LoginAsync(LoginRequestDTO request);
+        Task<LoginResponse> LoginAsync(LoginRequest request);
+        Task<LoginResponse> RefreshTokenAsync(RefreshTokenRequest request);
+        Task RevokeTokenAsync(RefreshTokenRequest request);
     }
 }

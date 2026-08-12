@@ -3,6 +3,7 @@ using School.BLL.Interfaces;
 using School.DTO.AuthDTOs;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace School.BLL.Authentication
@@ -18,7 +19,7 @@ namespace School.BLL.Authentication
 
 
         #region Helpers
-        private static void AddPermissionClaims(UserAuthDTO user, List<Claim> claims)
+        private static void AddPermissionClaims(UserAuth user, List<Claim> claims)
         {
             foreach (string permission in user.Permissions)
             {
@@ -26,7 +27,7 @@ namespace School.BLL.Authentication
             }
         }
 
-        private static void AddRoleClaims(UserAuthDTO user, List<Claim> claims)
+        private static void AddRoleClaims(UserAuth user, List<Claim> claims)
         {
             foreach (string role in user.Roles)
             {
@@ -36,7 +37,7 @@ namespace School.BLL.Authentication
         #endregion
 
         #region Public Methods
-        public LoginResponseDTO GenerateToken(UserAuthDTO user)
+        public LoginResponse GenerateToken(UserAuth user)
         {
             List<Claim> claims =
             [
@@ -62,11 +63,19 @@ namespace School.BLL.Authentication
 
             var securityToken = tokenHandler.CreateToken(tokenDescription);
 
-            return new LoginResponseDTO
+            return new LoginResponse
             {
                 AccessToken = tokenHandler.WriteToken(securityToken),
-                ExpiresAt = securityToken.ValidTo
+                ExpiresAt = securityToken.ValidTo,
+                RefreshToken = string.Empty,
+                RefreshTokenExpiresAt = DateTime.MinValue
             };
+        }
+
+        public string GenerateRefreshToken()
+        {
+            byte[] randomBytes = RandomNumberGenerator.GetBytes(64);
+            return Convert.ToBase64String(randomBytes);
         }
         #endregion
     }

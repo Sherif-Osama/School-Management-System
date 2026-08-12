@@ -15,7 +15,7 @@ namespace School.DAL.Interfaces
         Task<UserResponse?> GetUserByUsernameAsync(string username);
         Task<bool> IsUserExistAsync(int userId);
         Task<bool> UpdatePasswordAsync(int userId, string passwordHash);
-        Task<UserAuthDTO?> GetUserForAuthenticationAsync(string username);
+        Task<UserAuth?> GetUserForAuthenticationAsync(string username);
         Task<bool> UpdateUserAsync(int userId, UpdateUserRequest user);
     }
 }

@@ -4,6 +4,7 @@ namespace School.BLL.Interfaces
 {
     public interface IJwtService
     {
-        LoginResponseDTO GenerateToken(UserAuthDTO user);
+        LoginResponse GenerateToken(UserAuth user);
+        string GenerateRefreshToken();
     }
 }

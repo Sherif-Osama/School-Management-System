@@ -40,9 +40,9 @@ namespace School.DAL
 
         //For user authentication and authorization
         // This method maps the data from the SqlDataReader to a UserAuthDTO object.
-        private static UserAuthDTO MapUserAuth(SqlDataReader reader)
+        private static UserAuth MapUserAuth(SqlDataReader reader)
         {
-            return new UserAuthDTO
+            return new UserAuth
             {
                 UserID = reader.GetInt32(reader.GetOrdinal("UserID")),
                 PersonID = reader.GetInt32(reader.GetOrdinal("PersonID")),
@@ -108,7 +108,7 @@ namespace School.DAL
                     cmd.Parameters.Add("@PasswordHash", SqlDbType.NVarChar).Value = passwordHash;
                 });
 
-        public Task<UserAuthDTO?> GetUserForAuthenticationAsync(string username) =>
+        public Task<UserAuth?> GetUserForAuthenticationAsync(string username) =>
         QuerySingleAsync("SP_GetUserForAuthentication", cmd =>
         {
             cmd.Parameters.Add("@Username", SqlDbType.NVarChar).Value = username.Trim();
