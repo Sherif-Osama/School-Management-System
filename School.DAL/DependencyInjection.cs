@@ -58,6 +58,8 @@ namespace School.DAL
 
             services.AddScoped<IRefreshTokenData, RefreshTokenData>();
 
+            services.AddScoped<ILogData, LogData>();
+
             return services;
         }
     }

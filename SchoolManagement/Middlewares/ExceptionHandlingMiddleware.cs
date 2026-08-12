@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using System.Net;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace School.API.Middlewares
@@ -7,10 +8,12 @@ namespace School.API.Middlewares
     public class ExceptionHandlingMiddleware
     {
         private readonly RequestDelegate _next;
+        private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-        public ExceptionHandlingMiddleware(RequestDelegate next)
+        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
         {
             _next = next;
+            _logger = logger;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -18,6 +21,12 @@ namespace School.API.Middlewares
             try
             {
                 await _next(context);
+
+                if (context.Response.StatusCode == (int)HttpStatusCode.Forbidden)
+                {
+                    _logger.LogWarning("Forbidden access attempt on {Path} by {Username}.",
+                        context.Request.Path, context.User.FindFirstValue(ClaimTypes.Name));
+                }
             }
             catch (ArgumentOutOfRangeException ex)
             {
@@ -39,6 +48,8 @@ namespace School.API.Middlewares
             }
             catch (UnauthorizedAccessException ex)
             {
+                _logger.LogWarning(ex, "Unauthorized access attempt on {Path}.", context.Request.Path);
+
                 await HandleExceptionAsync(
                     context,
                     HttpStatusCode.Unauthorized,
@@ -57,8 +68,10 @@ namespace School.API.Middlewares
                     HttpStatusCode.Conflict,
                     "Cannot delete this record because it is referenced by other records.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Unhandled exception occurred on {Path}.", context.Request.Path);
+
                 await HandleExceptionAsync(
                     context,
                     HttpStatusCode.InternalServerError,

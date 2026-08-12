@@ -1,6 +1,7 @@
 using School.API.Extensions;
 using School.API.Middlewares;
 using School.BLL;
+using School.BLL.Logging;
 namespace SchoolManagement
 {
     public class Program
@@ -14,6 +15,8 @@ namespace SchoolManagement
 
             // Add services to the container.
             builder.Services.AddBLL();
+            builder.Services.AddDatabaseLogging();
+            builder.Logging.AddDatabaseLogger(builder.Configuration);
             //Extension  method to add JWT authentication
             builder.Services.AddJwtAuthentication(builder.Configuration);
             builder.Services.AddPermissionAuthorization();

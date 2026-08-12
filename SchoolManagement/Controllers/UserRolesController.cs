@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
 using School.DTO.AssociationsDTOs.UserRoleDTOs.Requests;
 using School.DTO.AssociationsDTOs.UserRoleDTOs.Responses;
+using System.Security.Claims;
 
 namespace School.API.Controllers
 {
@@ -11,10 +12,11 @@ namespace School.API.Controllers
     public class UserRolesController : ControllerBase
     {
         private readonly IUserRoleService _userRoleService;
-
-        public UserRolesController(IUserRoleService userRoleService)
+        private readonly ILogger<UserRolesController> _logger;
+        public UserRolesController(IUserRoleService userRoleService, ILogger<UserRolesController> logger)
         {
             _userRoleService = userRoleService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -62,6 +64,8 @@ namespace School.API.Controllers
         {
             await _userRoleService.AddUserRoleAsync(userRole);
 
+            _logger.LogWarning("Role {RoleId} was assigned to User {UserId} by {Username}.", userRole.RoleID, userRole.UserID, User.FindFirstValue(ClaimTypes.Name));
+
             return Ok();
         }
 
@@ -71,6 +75,8 @@ namespace School.API.Controllers
         public async Task<IActionResult> DeleteUserRole(int userId, int roleId)
         {
             await _userRoleService.DeleteUserRoleAsync(userId, roleId);
+
+            _logger.LogWarning("Role {RoleId} was removed from User {UserId} by {Username}.", roleId, userId, User.FindFirstValue(ClaimTypes.Name));
 
             return NoContent();
         }

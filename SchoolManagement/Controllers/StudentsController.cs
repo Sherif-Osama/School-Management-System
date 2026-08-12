@@ -6,6 +6,7 @@ using School.BLL.Authentication;
 using School.BLL.Interfaces;
 using School.DTO.StudentsDTOs.Requests;
 using School.DTO.StudentsDTOs.Responses;
+using System.Security.Claims;
 
 namespace School.API.Controllers
 {
@@ -15,11 +16,13 @@ namespace School.API.Controllers
     {
         private readonly IStudentService _studentService;
         private readonly IAuthorizationService _authorizationService;
+        private readonly ILogger<StudentsController> _logger;
 
-        public StudentsController(IStudentService studentService, IAuthorizationService authorizationService)
+        public StudentsController(IStudentService studentService, IAuthorizationService authorizationService, ILogger<StudentsController> logger)
         {
             _studentService = studentService;
             _authorizationService = authorizationService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -107,7 +110,7 @@ namespace School.API.Controllers
         public async Task<IActionResult> DeleteStudent(int id)
         {
             await _studentService.DeleteStudentAsync(id);
-
+            _logger.LogWarning("Student {StudentId} was deleted by {Username}.", id, User.FindFirstValue(ClaimTypes.Name));
             return NoContent();
         }
     }

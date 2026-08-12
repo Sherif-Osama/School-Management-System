@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using School.BLL.Interfaces;
 using School.DTO.AssociationsDTOs.RolePermissionDTOs;
+using System.Security.Claims;
 
 namespace School.API.Controllers
 {
@@ -10,10 +11,12 @@ namespace School.API.Controllers
     public class RolePermissionsController : ControllerBase
     {
         private readonly IRolePermissionService _rolePermissionService;
+        private readonly ILogger<RolePermissionsController> _logger;
 
-        public RolePermissionsController(IRolePermissionService rolePermissionService)
+        public RolePermissionsController(IRolePermissionService rolePermissionService, ILogger<RolePermissionsController> logger)
         {
             _rolePermissionService = rolePermissionService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -60,6 +63,9 @@ namespace School.API.Controllers
         {
             await _rolePermissionService.AddRolePermissionAsync(rolePermission);
 
+            _logger.LogWarning("Permission {PermissionId} was granted to Role {RoleId} by {Username}.",
+            rolePermission.PermissionID, rolePermission.RoleID, User.FindFirstValue(ClaimTypes.Name));
+
             return Ok();
         }
 
@@ -69,7 +75,8 @@ namespace School.API.Controllers
         public async Task<IActionResult> DeleteRolePermission(int roleId, int permissionId)
         {
             await _rolePermissionService.DeleteRolePermissionAsync(roleId, permissionId);
-
+            _logger.LogWarning("Permission {PermissionId} was revoked from Role {RoleId} by {Username}.",
+            permissionId, roleId, User.FindFirstValue(ClaimTypes.Name));
             return NoContent();
         }
     }
