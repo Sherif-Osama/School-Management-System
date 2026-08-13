@@ -17,8 +17,7 @@ namespace School.BLL.Logging
             _minLevel = minLevel;
         }
 
-        public ILogger CreateLogger(string categoryName) =>
-            _loggers.GetOrAdd(categoryName, name => new DatabaseLogger(name, _channel, _minLevel));
+        public ILogger CreateLogger(string categoryName) => _loggers.GetOrAdd(categoryName, name => new DatabaseLogger(name, _channel, _minLevel));
 
         public void Dispose() => _loggers.Clear();
     }
