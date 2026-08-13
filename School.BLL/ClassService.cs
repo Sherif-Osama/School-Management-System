@@ -77,7 +77,7 @@ namespace School.BLL
             return await _classData.GetAllClassesAsync();
         }
 
-        public async Task<ClassResponse?> GetClassByIdAsync(int classId)
+        public async Task<ClassResponse> GetClassByIdAsync(int classId)
         {
             ValidationHelper.ValidateId(classId);
 
@@ -89,7 +89,7 @@ namespace School.BLL
             return schoolClass;
         }
 
-        public async Task<ClassResponse?> GetClassByDetailsAsync(byte gradeId, string className, string academicYear)
+        public async Task<ClassResponse> GetClassByDetailsAsync(byte gradeId, string className, string academicYear)
         {
             ValidationHelper.ValidateId(gradeId);
 

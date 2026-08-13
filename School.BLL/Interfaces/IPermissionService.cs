@@ -7,9 +7,9 @@ namespace School.BLL.Interfaces
     {
         Task<List<PermissionResponse>> GetAllPermissionsAsync();
 
-        Task<PermissionResponse?> GetPermissionByIdAsync(int permissionId);
+        Task<PermissionResponse> GetPermissionByIdAsync(int permissionId);
 
-        Task<PermissionResponse?> GetPermissionByNameAsync(string permissionName);
+        Task<PermissionResponse> GetPermissionByNameAsync(string permissionName);
 
         Task<int> AddPermissionAsync(CreatePermissionRequest permission);
 

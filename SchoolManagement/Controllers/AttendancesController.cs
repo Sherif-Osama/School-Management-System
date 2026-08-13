@@ -37,10 +37,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<AttendanceResponse>> GetAttendanceById(int id)
         {
-            AttendanceResponse? attendance = await _attendanceService.GetAttendanceByIdAsync(id);
-
-            if (attendance == null)
-                return NotFound();
+            AttendanceResponse attendance = await _attendanceService.GetAttendanceByIdAsync(id);
 
             if (!User.HasClaim(CustomClaimTypes.Permission, "Attendance.View.All"))
             {

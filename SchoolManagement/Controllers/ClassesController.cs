@@ -31,11 +31,8 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ClassResponse>> GetClassById(int id)
         {
-            ClassResponse? schoolClass =
+            ClassResponse schoolClass =
                 await _classService.GetClassByIdAsync(id);
-
-            if (schoolClass == null)
-                return NotFound();
 
             return Ok(schoolClass);
         }
@@ -46,14 +43,11 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ClassResponse>> GetClassByDetails(byte gradeId, string className, string academicYear)
         {
-            ClassResponse? schoolClass =
+            ClassResponse schoolClass =
                 await _classService.GetClassByDetailsAsync(
                     gradeId,
                     className,
                     academicYear);
-
-            if (schoolClass == null)
-                return NotFound();
 
             return Ok(schoolClass);
         }

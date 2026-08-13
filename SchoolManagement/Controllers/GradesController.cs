@@ -31,10 +31,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<GradeResponse>> GetGradeById(byte id)
         {
-            GradeResponse? grade = await _gradeService.GetGradeByIdAsync(id);
-
-            if (grade == null)
-                return NotFound();
+            GradeResponse grade = await _gradeService.GetGradeByIdAsync(id);
 
             return Ok(grade);
         }
@@ -45,10 +42,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<GradeResponse>> GetGradeByName(string name)
         {
-            GradeResponse? grade = await _gradeService.GetGradeByNameAsync(name);
-
-            if (grade == null)
-                return NotFound();
+            GradeResponse grade = await _gradeService.GetGradeByNameAsync(name);
 
             return Ok(grade);
         }

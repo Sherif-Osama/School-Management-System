@@ -37,7 +37,7 @@ namespace School.BLL
             return await _subjectData.GetAllSubjectsAsync();
         }
 
-        public async Task<SubjectResponse?> GetSubjectByIdAsync(int subjectId)
+        public async Task<SubjectResponse> GetSubjectByIdAsync(int subjectId)
         {
             ValidationHelper.ValidateId(subjectId);
 
@@ -49,7 +49,7 @@ namespace School.BLL
             return subject;
         }
 
-        public async Task<SubjectResponse?> GetSubjectByNameAsync(string subjectName)
+        public async Task<SubjectResponse> GetSubjectByNameAsync(string subjectName)
         {
             subjectName = ValidationHelper.ValidateString(subjectName, nameof(subjectName), MinSubjectNameLength, MaxSubjectNameLength);
 

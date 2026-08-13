@@ -21,7 +21,7 @@ namespace School.BLL
             return _cityData.GetAllCitiesAsync();
         }
 
-        public async Task<CityDTO?> GetCityByIdAsync(int cityId)
+        public async Task<CityDTO> GetCityByIdAsync(int cityId)
         {
             ValidationHelper.ValidateId(cityId);
 
@@ -33,7 +33,7 @@ namespace School.BLL
             return city;
         }
 
-        public async Task<CityDTO?> GetCityByNameAsync(string cityName)
+        public async Task<CityDTO> GetCityByNameAsync(string cityName)
         {
             cityName = ValidationHelper.ValidateString(cityName, nameof(cityName), minCityNameLength, maxCityNameLength);
 

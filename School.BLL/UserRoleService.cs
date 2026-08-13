@@ -46,7 +46,7 @@ namespace School.BLL
         #region Public
         public Task<List<UserRoleResponse>> GetAllUserRolesAsync() => _userRoleData.GetAllUserRolesAsync();
 
-        public async Task<UserRoleResponse?> GetUserRoleAsync(int userId, int roleId)
+        public async Task<UserRoleResponse> GetUserRoleAsync(int userId, int roleId)
         {
             ValidationHelper.ValidateId(userId);
             ValidationHelper.ValidateId(roleId);

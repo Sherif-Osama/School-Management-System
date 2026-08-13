@@ -31,10 +31,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<AttendanceStatusResponse>> GetAttendanceStatusById(int id)
         {
-            AttendanceStatusResponse? status = await _attendanceStatusService.GetAttendanceStatusByIdAsync(id);
-
-            if (status == null)
-                return NotFound();
+            AttendanceStatusResponse status = await _attendanceStatusService.GetAttendanceStatusByIdAsync(id);
 
             return Ok(status);
         }
@@ -45,11 +42,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<AttendanceStatusResponse>> GetAttendanceStatusByName(string statusName)
         {
-            AttendanceStatusResponse? status = await _attendanceStatusService.GetAttendanceStatusByNameAsync(statusName);
-
-            if (status == null)
-                return NotFound();
-
+            AttendanceStatusResponse status = await _attendanceStatusService.GetAttendanceStatusByNameAsync(statusName);
             return Ok(status);
         }
 

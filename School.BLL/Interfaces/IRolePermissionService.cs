@@ -6,7 +6,7 @@ namespace School.BLL.Interfaces
     {
         Task<List<RolePermissionResponse>> GetAllRolePermissionsAsync();
 
-        Task<RolePermissionResponse?> GetRolePermissionAsync(int roleId, int permissionId);
+        Task<RolePermissionResponse> GetRolePermissionAsync(int roleId, int permissionId);
 
         Task<List<RolePermissionResponse>> GetPermissionsByRoleIdAsync(int roleId);
 

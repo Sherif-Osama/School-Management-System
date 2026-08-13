@@ -31,11 +31,8 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ClassroomResponse>> GetClassroomById(int id)
         {
-            ClassroomResponse? classroom =
+            ClassroomResponse classroom =
                 await _classroomService.GetClassroomByIdAsync(id);
-
-            if (classroom == null)
-                return NotFound();
 
             return Ok(classroom);
         }
@@ -46,11 +43,8 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ClassroomResponse>> GetClassroomByRoomName([FromQuery] string roomName)
         {
-            ClassroomResponse? classroom =
+            ClassroomResponse classroom =
                 await _classroomService.GetClassroomByRoomNameAsync(roomName);
-
-            if (classroom == null)
-                return NotFound();
 
             return Ok(classroom);
         }

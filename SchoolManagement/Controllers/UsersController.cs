@@ -40,10 +40,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<UserResponse>> GetUserById(int id)
         {
-            UserResponse? user = await _userService.GetUserByIdAsync(id);
-
-            if (user == null)
-                return NotFound();
+            UserResponse user = await _userService.GetUserByIdAsync(id);
 
             if (!User.HasClaim(CustomClaimTypes.Permission, "Users.View.All"))
             {
@@ -64,10 +61,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<UserResponse>> GetUserByUsername([FromQuery] string username)
         {
-            UserResponse? user = await _userService.GetUserByUsernameAsync(username);
-
-            if (user == null)
-                return NotFound();
+            UserResponse user = await _userService.GetUserByUsernameAsync(username);
 
             if (!User.HasClaim(CustomClaimTypes.Permission, "Users.View.All"))
             {
@@ -97,9 +91,7 @@ namespace School.API.Controllers
                     return Forbid();
             }
 
-            UserResponse? user = await _userService.GetUserByPersonIdAsync(personId);
-            if (user is null)
-                return NotFound("User not found.");
+            UserResponse user = await _userService.GetUserByPersonIdAsync(personId);
 
             return Ok(user);
         }
@@ -122,10 +114,7 @@ namespace School.API.Controllers
         {
             if (!User.HasClaim(CustomClaimTypes.Permission, "Users.Update.All"))
             {
-                UserResponse? targetUser = await _userService.GetUserByIdAsync(userId);
-
-                if (targetUser is null)
-                    return NotFound();
+                UserResponse targetUser = await _userService.GetUserByIdAsync(userId);
 
                 var authResult = await _authorizationService.AuthorizeAsync(
                     User, new PersonOwnedResource(targetUser.PersonID), new OwnershipRequirement());
@@ -147,10 +136,7 @@ namespace School.API.Controllers
 
             if (!User.HasClaim(CustomClaimTypes.Permission, "Users.Update.All"))
             {
-                UserResponse? targetUser = await _userService.GetUserByIdAsync(userId);
-
-                if (targetUser is null)
-                    return NotFound();
+                UserResponse targetUser = await _userService.GetUserByIdAsync(userId);
 
                 var authResult = await _authorizationService.AuthorizeAsync(
                     User, new PersonOwnedResource(targetUser.PersonID), new OwnershipRequirement());

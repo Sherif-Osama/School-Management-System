@@ -31,7 +31,7 @@ namespace School.BLL
             return _attendanceStatusData.GetAllAttendanceStatusesAsync();
         }
 
-        public async Task<AttendanceStatusResponse?> GetAttendanceStatusByIdAsync(int statusId)
+        public async Task<AttendanceStatusResponse> GetAttendanceStatusByIdAsync(int statusId)
         {
             ValidationHelper.ValidateId(statusId);
 
@@ -43,7 +43,7 @@ namespace School.BLL
             return attendance;
         }
 
-        public async Task<AttendanceStatusResponse?> GetAttendanceStatusByNameAsync(string statusName)
+        public async Task<AttendanceStatusResponse> GetAttendanceStatusByNameAsync(string statusName)
         {
             statusName = ValidationHelper.ValidateString(statusName, nameof(statusName), MinStatusNameLength, MaxStatusNameLength);
 

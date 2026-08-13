@@ -38,7 +38,7 @@ namespace School.BLL
             return await _gradeData.GetAllGradesAsync();
         }
 
-        public async Task<GradeResponse?> GetGradeByIdAsync(byte gradeId)
+        public async Task<GradeResponse> GetGradeByIdAsync(byte gradeId)
         {
             ValidationHelper.ValidateId(gradeId);
 
@@ -50,7 +50,7 @@ namespace School.BLL
             return grade;
         }
 
-        public async Task<GradeResponse?> GetGradeByNameAsync(string gradeName)
+        public async Task<GradeResponse> GetGradeByNameAsync(string gradeName)
         {
             gradeName = ValidationHelper.ValidateString(gradeName, nameof(gradeName), MinGradeNameLength, MaxGradeNameLength);
 

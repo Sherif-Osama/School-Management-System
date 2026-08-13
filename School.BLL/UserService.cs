@@ -56,7 +56,7 @@ namespace School.BLL
             return _userData.GetAllUsersAsync();
         }
 
-        public async Task<UserResponse?> GetUserByIdAsync(int userId)
+        public async Task<UserResponse> GetUserByIdAsync(int userId)
         {
             ValidationHelper.ValidateId(userId);
 
@@ -68,7 +68,7 @@ namespace School.BLL
             return user;
         }
 
-        public async Task<UserResponse?> GetUserByUsernameAsync(string username)
+        public async Task<UserResponse> GetUserByUsernameAsync(string username)
         {
             username = ValidationHelper.ValidateString(username, nameof(username), MinUsernameLength, MaxUsernameLength);
 
@@ -80,7 +80,7 @@ namespace School.BLL
             return user;
         }
 
-        public async Task<UserResponse?> GetUserByPersonIdAsync(int personId)
+        public async Task<UserResponse> GetUserByPersonIdAsync(int personId)
         {
             ValidationHelper.ValidateId(personId);
 

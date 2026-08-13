@@ -37,10 +37,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<ParentResponse>> GetParentById(int id)
         {
-            ParentResponse? parent = await _parentService.GetParentByIdAsync(id);
-
-            if (parent == null)
-                return NotFound();
+            ParentResponse parent = await _parentService.GetParentByIdAsync(id);
 
             if (!User.HasClaim(CustomClaimTypes.Permission, "Parents.View.All"))
             {
@@ -61,10 +58,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<ParentResponse>> GetParentByPersonId(int personId)
         {
-            ParentResponse? parent = await _parentService.GetParentByPersonIdAsync(personId);
-
-            if (parent == null)
-                return NotFound();
+            ParentResponse parent = await _parentService.GetParentByPersonIdAsync(personId);
 
             if (!User.HasClaim(CustomClaimTypes.Permission, "Parents.View.All"))
             {
@@ -84,10 +78,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ParentResponse>> GetParentByNationalId(string nationalId)
         {
-            ParentResponse? parent = await _parentService.GetParentByNationalIdAsync(nationalId);
-
-            if (parent == null)
-                return NotFound();
+            ParentResponse parent = await _parentService.GetParentByNationalIdAsync(nationalId);
 
             return Ok(parent);
         }

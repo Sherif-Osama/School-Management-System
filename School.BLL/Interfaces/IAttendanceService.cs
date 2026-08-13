@@ -8,7 +8,7 @@ namespace School.BLL.Interfaces
         Task<int> AddAttendanceAsync(CreateAttendanceRequest attendance);
         Task<bool> DeleteAttendanceAsync(int attendanceId);
         Task<List<AttendanceResponse>> GetAllAttendancesAsync();
-        Task<AttendanceResponse?> GetAttendanceByIdAsync(int attendanceId);
+        Task<AttendanceResponse> GetAttendanceByIdAsync(int attendanceId);
         Task<List<AttendanceResponse>> GetAttendancesByClassIdAsync(int classId);
         Task<List<AttendanceResponse>> GetAttendancesByDateAsync(DateOnly attendanceDate);
         Task<List<AttendanceResponse>> GetAttendancesByStatusIdAsync(int statusId);

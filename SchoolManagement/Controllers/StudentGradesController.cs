@@ -37,10 +37,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<StudentGradeResponse>> GetStudentGradeById(int id)
         {
-            StudentGradeResponse? studentGrade = await _studentGradeService.GetStudentGradeByIdAsync(id);
-
-            if (studentGrade == null)
-                return NotFound();
+            StudentGradeResponse studentGrade = await _studentGradeService.GetStudentGradeByIdAsync(id);
 
             if (!User.HasClaim(CustomClaimTypes.Permission, "Grades.View.All"))
             {

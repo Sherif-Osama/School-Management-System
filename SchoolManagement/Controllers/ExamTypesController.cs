@@ -31,10 +31,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ExamTypeResponse>> GetExamTypeById(int id)
         {
-            ExamTypeResponse? examType = await _examTypeService.GetExamTypeByIdAsync(id);
-
-            if (examType == null)
-                return NotFound();
+            ExamTypeResponse examType = await _examTypeService.GetExamTypeByIdAsync(id);
 
             return Ok(examType);
         }
@@ -45,10 +42,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ExamTypeResponse>> GetExamTypeByName(string examName)
         {
-            ExamTypeResponse? examType = await _examTypeService.GetExamTypeByNameAsync(examName);
-
-            if (examType == null)
-                return NotFound();
+            ExamTypeResponse examType = await _examTypeService.GetExamTypeByNameAsync(examName);
 
             return Ok(examType);
         }

@@ -8,7 +8,7 @@ namespace School.BLL.Interfaces
         Task<int> AddStudentGradeAsync(CreateStudentGradeRequest studentGrade);
         Task<bool> DeleteStudentGradeAsync(int studentGradeId);
         Task<List<StudentGradeResponse>> GetAllStudentGradesAsync();
-        Task<StudentGradeResponse?> GetStudentGradeByIdAsync(int studentGradeId);
+        Task<StudentGradeResponse> GetStudentGradeByIdAsync(int studentGradeId);
         Task<List<StudentGradeResponse>> GetStudentGradesByClassIdAsync(int classId);
         Task<List<StudentGradeResponse>> GetStudentGradesByExamIdAsync(int examId);
         Task<List<StudentGradeResponse>> GetStudentGradesByStudentIdAsync(int studentId);

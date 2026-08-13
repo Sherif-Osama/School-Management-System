@@ -8,7 +8,7 @@ namespace School.BLL.Interfaces
         Task<int> AddScheduleAsync(CreateScheduleRequest schedule);
         Task<bool> DeleteScheduleAsync(int scheduleId);
         Task<List<ScheduleResponse>> GetAllSchedulesAsync();
-        Task<ScheduleResponse?> GetScheduleByIdAsync(int scheduleId);
+        Task<ScheduleResponse> GetScheduleByIdAsync(int scheduleId);
         Task<List<ScheduleResponse>> GetSchedulesByClassIdAsync(int classId);
         Task<List<ScheduleResponse>> GetSchedulesByClassroomIdAsync(int classroomId);
         Task<List<ScheduleResponse>> GetSchedulesByClassSubjectIdAsync(int classSubjectId);

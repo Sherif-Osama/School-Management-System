@@ -8,9 +8,9 @@ namespace School.BLL.Interfaces
         Task<int> AddTeacherAsync(CreateTeacherRequest teacher);
         Task<bool> DeleteTeacherAsync(int teacherId);
         Task<List<TeacherResponse>> GetAllTeachersAsync();
-        Task<TeacherResponse?> GetTeacherByIdAsync(int teacherId);
-        Task<TeacherResponse?> GetTeacherByNationalIdAsync(string nationalId);
-        Task<TeacherResponse?> GetTeacherByPersonIdAsync(int personId);
+        Task<TeacherResponse> GetTeacherByIdAsync(int teacherId);
+        Task<TeacherResponse> GetTeacherByNationalIdAsync(string nationalId);
+        Task<TeacherResponse> GetTeacherByPersonIdAsync(int personId);
         Task<bool> IsTeacherExistAsync(int teacherId);
         Task<bool> UpdateTeacherAsync(int teacherId, UpdateTeacherRequest teacher);
     }

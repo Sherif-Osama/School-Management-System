@@ -31,7 +31,7 @@ namespace SchoolManagement.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<CountryDTO>> GetCountryById(int countryId)
         {
-            CountryDTO? country = await _countryService.GetCountryByIdAsync(countryId);
+            CountryDTO country = await _countryService.GetCountryByIdAsync(countryId);
             return Ok(country);
         }
 
@@ -41,7 +41,7 @@ namespace SchoolManagement.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<CountryDTO>> GetCountryByName(string countryName)
         {
-            CountryDTO? country = await _countryService.GetCountryByNameAsync(countryName);
+            CountryDTO country = await _countryService.GetCountryByNameAsync(countryName);
             return Ok(country);
         }
     }

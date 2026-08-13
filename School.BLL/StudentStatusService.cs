@@ -36,7 +36,7 @@ namespace School.BLL
             return await _studentStatusData.GetAllStudentStatusesAsync();
         }
 
-        public async Task<StudentStatusResponse?> GetStudentStatusByIdAsync(int statusId)
+        public async Task<StudentStatusResponse> GetStudentStatusByIdAsync(int statusId)
         {
             ValidationHelper.ValidateId(statusId);
 
@@ -48,7 +48,7 @@ namespace School.BLL
             return status;
         }
 
-        public async Task<StudentStatusResponse?> GetStudentStatusByNameAsync(string statusName)
+        public async Task<StudentStatusResponse> GetStudentStatusByNameAsync(string statusName)
         {
             statusName = ValidationHelper.ValidateString(statusName, nameof(statusName), MinStatusNameLength, MaxStatusNameLength);
 

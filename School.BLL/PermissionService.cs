@@ -51,7 +51,7 @@ namespace School.BLL
             return _permissionData.GetAllPermissionsAsync();
         }
 
-        public async Task<PermissionResponse?> GetPermissionByIdAsync(int permissionId)
+        public async Task<PermissionResponse> GetPermissionByIdAsync(int permissionId)
         {
             ValidationHelper.ValidateId(permissionId);
 
@@ -63,7 +63,7 @@ namespace School.BLL
             return permission;
         }
 
-        public async Task<PermissionResponse?> GetPermissionByNameAsync(string permissionName)
+        public async Task<PermissionResponse> GetPermissionByNameAsync(string permissionName)
         {
             permissionName = ValidationHelper.ValidateString(permissionName, nameof(permissionName), MinPermissionNameLength, MaxPermissionNameLength);
 

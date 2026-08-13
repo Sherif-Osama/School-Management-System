@@ -31,11 +31,8 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ScheduleResponse>> GetScheduleById(int id)
         {
-            ScheduleResponse? schedule =
+            ScheduleResponse schedule =
                 await _scheduleService.GetScheduleByIdAsync(id);
-
-            if (schedule is null)
-                return NotFound();
 
             return Ok(schedule);
         }

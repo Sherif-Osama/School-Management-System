@@ -89,7 +89,7 @@ namespace School.BLL
         #region Public Methods
         public Task<List<ClassSubjectResponse>> GetAllClassSubjectsAsync() => _classSubjectData.GetAllClassSubjectsAsync();
 
-        public async Task<ClassSubjectResponse?> GetClassSubjectByIdAsync(int classSubjectId)
+        public async Task<ClassSubjectResponse> GetClassSubjectByIdAsync(int classSubjectId)
         {
             ValidationHelper.ValidateId(classSubjectId);
 

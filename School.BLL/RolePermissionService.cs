@@ -49,7 +49,7 @@ namespace School.BLL
         public Task<List<RolePermissionResponse>> GetAllRolePermissionsAsync() => _rolePermissionData.GetAllRolePermissionsAsync();
 
 
-        public async Task<RolePermissionResponse?> GetRolePermissionAsync(int roleId, int permissionId)
+        public async Task<RolePermissionResponse> GetRolePermissionAsync(int roleId, int permissionId)
         {
             ValidationHelper.ValidateId(roleId);
             ValidationHelper.ValidateId(permissionId);

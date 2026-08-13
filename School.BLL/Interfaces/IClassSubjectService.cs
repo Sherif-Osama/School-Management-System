@@ -8,7 +8,7 @@ namespace School.BLL.Interfaces
         Task<int> AddClassSubjectAsync(CreateClassSubjectRequest classSubject);
         Task<bool> DeleteClassSubjectAsync(int classSubjectId);
         Task<List<ClassSubjectResponse>> GetAllClassSubjectsAsync();
-        Task<ClassSubjectResponse?> GetClassSubjectByIdAsync(int classSubjectId);
+        Task<ClassSubjectResponse> GetClassSubjectByIdAsync(int classSubjectId);
         Task<List<ClassSubjectResponse>> GetClassSubjectsByClassIdAsync(int classId);
         Task<List<ClassSubjectResponse>> GetClassSubjectsBySubjectIdAsync(int subjectId);
         Task<List<ClassSubjectResponse>> GetClassSubjectsByTeacherIdAsync(int teacherId);

@@ -40,10 +40,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<StudentResponse>> GetStudentById(int id)
         {
-            StudentResponse? student = await _studentService.GetStudentByIdAsync(id);
-
-            if (student == null)
-                return NotFound();
+            StudentResponse student = await _studentService.GetStudentByIdAsync(id);
 
             if (!User.HasClaim(CustomClaimTypes.Permission, "Students.View.All"))
             {
@@ -64,10 +61,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<StudentResponse>> GetStudentByPersonId(int personId)
         {
-            StudentResponse? student = await _studentService.GetStudentByPersonIdAsync(personId);
-
-            if (student == null)
-                return NotFound();
+            StudentResponse student = await _studentService.GetStudentByPersonIdAsync(personId);
 
             if (!User.HasClaim(CustomClaimTypes.Permission, "Students.View.All"))
             {

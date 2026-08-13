@@ -33,11 +33,8 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<RolePermissionResponse>> GetRolePermission(int roleId, int permissionId)
         {
-            RolePermissionResponse? rolePermission =
+            RolePermissionResponse rolePermission =
                 await _rolePermissionService.GetRolePermissionAsync(roleId, permissionId);
-
-            if (rolePermission == null)
-                return NotFound();
 
             return Ok(rolePermission);
         }

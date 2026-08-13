@@ -1,4 +1,5 @@
 ﻿using School.BLL.Common;
+using School.BLL.Enums;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.ExamDTOs;
@@ -13,7 +14,6 @@ namespace School.BLL
         private readonly IStudentGradeData _studentGradeData;
         private readonly IStudentData _studentData;
         private readonly IExamData _examData;
-
         public StudentGradeService(IStudentGradeData studentGradeData, IStudentData studentData, IExamData examData)
         {
             _studentGradeData = studentGradeData;
@@ -66,7 +66,7 @@ namespace School.BLL
 
         private static void EnsureStudentIsActive(StudentResponse student)
         {
-            if (student.StatusID != 1) // Assuming 1 is the ID for active student status
+            if (student.StatusID != (int)StudentStatus.Active)
                 throw new InvalidOperationException(
                     $"Cannot record a grade for student {student.StudentID}: status is '{student.StatusName}', not 'Active'.");
         }
@@ -112,7 +112,7 @@ namespace School.BLL
             return _studentGradeData.GetAllStudentGradesAsync();
         }
 
-        public async Task<StudentGradeResponse?> GetStudentGradeByIdAsync(int studentGradeId)
+        public async Task<StudentGradeResponse> GetStudentGradeByIdAsync(int studentGradeId)
         {
             ValidationHelper.ValidateId(studentGradeId);
 

@@ -37,10 +37,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<TeacherResponse>> GetTeacherById(int id)
         {
-            TeacherResponse? teacher = await _teacherService.GetTeacherByIdAsync(id);
-
-            if (teacher == null)
-                return NotFound();
+            TeacherResponse teacher = await _teacherService.GetTeacherByIdAsync(id);
 
             if (!User.HasClaim(CustomClaimTypes.Permission, "Teachers.View.All"))
             {
@@ -70,10 +67,7 @@ namespace School.API.Controllers
                     return Forbid();
             }
 
-            TeacherResponse? teacher = await _teacherService.GetTeacherByPersonIdAsync(personId);
-
-            if (teacher == null)
-                return NotFound();
+            TeacherResponse teacher = await _teacherService.GetTeacherByPersonIdAsync(personId);
 
             return Ok(teacher);
         }
@@ -84,10 +78,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<TeacherResponse>> GetTeacherByNationalId(string nationalId)
         {
-            TeacherResponse? teacher = await _teacherService.GetTeacherByNationalIdAsync(nationalId);
-
-            if (teacher == null)
-                return NotFound();
+            TeacherResponse teacher = await _teacherService.GetTeacherByNationalIdAsync(nationalId);
 
             return Ok(teacher);
         }

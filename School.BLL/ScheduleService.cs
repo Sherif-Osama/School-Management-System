@@ -94,7 +94,7 @@ namespace School.BLL
             return _scheduleData.GetAllSchedulesAsync();
         }
 
-        public async Task<ScheduleResponse?> GetScheduleByIdAsync(int scheduleId)
+        public async Task<ScheduleResponse> GetScheduleByIdAsync(int scheduleId)
         {
             ValidationHelper.ValidateId(scheduleId);
             ScheduleResponse? scheduleDetails = await _scheduleData.GetScheduleByIdAsync(scheduleId);

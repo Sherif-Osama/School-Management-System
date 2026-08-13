@@ -31,10 +31,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ExamResponse>> GetExamById(int id)
         {
-            ExamResponse? exam = await _examService.GetExamByIdAsync(id);
-
-            if (exam == null)
-                return NotFound();
+            ExamResponse exam = await _examService.GetExamByIdAsync(id);
 
             return Ok(exam);
         }

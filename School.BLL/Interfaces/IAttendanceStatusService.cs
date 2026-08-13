@@ -8,8 +8,8 @@ namespace School.BLL.Interfaces
         Task<int> AddAttendanceStatusAsync(AttendanceStatusRequest status);
         Task<bool> DeleteAttendanceStatusAsync(int statusId);
         Task<List<AttendanceStatusResponse>> GetAllAttendanceStatusesAsync();
-        Task<AttendanceStatusResponse?> GetAttendanceStatusByIdAsync(int statusId);
-        Task<AttendanceStatusResponse?> GetAttendanceStatusByNameAsync(string statusName);
+        Task<AttendanceStatusResponse> GetAttendanceStatusByIdAsync(int statusId);
+        Task<AttendanceStatusResponse> GetAttendanceStatusByNameAsync(string statusName);
         Task<bool> UpdateAttendanceStatusAsync(int statusId, AttendanceStatusRequest status);
     }
 }

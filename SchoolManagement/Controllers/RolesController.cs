@@ -31,10 +31,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<RoleResponse>> GetRoleById(int id)
         {
-            RoleResponse? role = await _roleService.GetRoleByIdAsync(id);
-
-            if (role == null)
-                return NotFound();
+            RoleResponse role = await _roleService.GetRoleByIdAsync(id);
 
             return Ok(role);
         }
@@ -45,10 +42,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<RoleResponse>> GetRoleByName(string roleName)
         {
-            RoleResponse? role = await _roleService.GetRoleByNameAsync(roleName);
-
-            if (role == null)
-                return NotFound();
+            RoleResponse role = await _roleService.GetRoleByNameAsync(roleName);
 
             return Ok(role);
         }

@@ -44,7 +44,7 @@ namespace School.BLL
             return await _parentData.GetAllParentsAsync();
         }
 
-        public async Task<ParentResponse?> GetParentByIdAsync(int parentId)
+        public async Task<ParentResponse> GetParentByIdAsync(int parentId)
         {
             ValidationHelper.ValidateId(parentId);
             ParentResponse? parentDetails = await _parentData.GetParentByIdAsync(parentId);
@@ -55,7 +55,7 @@ namespace School.BLL
             return parentDetails;
         }
 
-        public async Task<ParentResponse?> GetParentByPersonIdAsync(int personId)
+        public async Task<ParentResponse> GetParentByPersonIdAsync(int personId)
         {
             ValidationHelper.ValidateId(personId);
 
@@ -67,7 +67,7 @@ namespace School.BLL
             return parentDetails;
         }
 
-        public async Task<ParentResponse?> GetParentByNationalIdAsync(string nationalId)
+        public async Task<ParentResponse> GetParentByNationalIdAsync(string nationalId)
         {
             nationalId = ValidationHelper.ValidateString(nationalId, nameof(nationalId), MinNationalIdLength, MaxNationalIdLength);
 

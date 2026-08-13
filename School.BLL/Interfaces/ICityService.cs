@@ -5,7 +5,7 @@ namespace School.BLL.Interfaces
     public interface ICityService
     {
         Task<List<CityDTO>> GetAllCitiesAsync();
-        Task<CityDTO?> GetCityByIdAsync(int cityId);
-        Task<CityDTO?> GetCityByNameAsync(string cityName);
+        Task<CityDTO> GetCityByIdAsync(int cityId);
+        Task<CityDTO> GetCityByNameAsync(string cityName);
     }
 }

@@ -38,7 +38,7 @@ namespace School.BLL
             return _examTypeData.GetAllExamTypesAsync();
         }
 
-        public async Task<ExamTypeResponse?> GetExamTypeByIdAsync(int examTypeId)
+        public async Task<ExamTypeResponse> GetExamTypeByIdAsync(int examTypeId)
         {
             ValidationHelper.ValidateId(examTypeId);
 
@@ -50,7 +50,7 @@ namespace School.BLL
             return examTypeDTO;
         }
 
-        public async Task<ExamTypeResponse?> GetExamTypeByNameAsync(string examName)
+        public async Task<ExamTypeResponse> GetExamTypeByNameAsync(string examName)
         {
             examName = ValidationHelper.ValidateString(examName, nameof(examName), MinExamNameLength, MaxExamNameLength);
 

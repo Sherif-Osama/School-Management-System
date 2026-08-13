@@ -9,7 +9,8 @@ namespace School.API.Extensions
     {
         public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
-            var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>()!;
+            var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>() ??
+                throw new InvalidOperationException("JWT configuration is missing.");
 
             services.AddSingleton(jwtSettings);
 

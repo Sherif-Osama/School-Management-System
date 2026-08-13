@@ -109,7 +109,7 @@ namespace School.BLL
             return _attendanceData.GetAllAttendancesAsync();
         }
 
-        public async Task<AttendanceResponse?> GetAttendanceByIdAsync(int attendanceId)
+        public async Task<AttendanceResponse> GetAttendanceByIdAsync(int attendanceId)
         {
             ValidationHelper.ValidateId(attendanceId);
 

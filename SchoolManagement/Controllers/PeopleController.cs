@@ -34,9 +34,6 @@ namespace School.API.Controllers
         {
             var person = await _personService.GetPersonByIdAsync(id);
 
-            if (person == null)
-                return NotFound();
-
             return Ok(person);
         }
 
@@ -47,9 +44,6 @@ namespace School.API.Controllers
         public async Task<ActionResult<PersonResponse>> GetPersonByNationalId(string nationalId)
         {
             var person = await _personService.GetPersonByNationalIDAsync(nationalId);
-
-            if (person == null)
-                return NotFound();
 
             return Ok(person);
         }

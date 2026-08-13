@@ -31,7 +31,7 @@ namespace SchoolManagement.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<CityDTO>> GetCityById(int cityId)
         {
-            CityDTO? city = await _cityService.GetCityByIdAsync(cityId);
+            CityDTO city = await _cityService.GetCityByIdAsync(cityId);
             return Ok(city);
         }
 

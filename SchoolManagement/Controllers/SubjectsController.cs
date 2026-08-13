@@ -31,10 +31,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<SubjectResponse>> GetSubjectById(int id)
         {
-            SubjectResponse? subject = await _subjectService.GetSubjectByIdAsync(id);
-
-            if (subject == null)
-                return NotFound();
+            SubjectResponse subject = await _subjectService.GetSubjectByIdAsync(id);
 
             return Ok(subject);
         }
@@ -45,10 +42,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<SubjectResponse>> GetSubjectByName(string name)
         {
-            SubjectResponse? subject = await _subjectService.GetSubjectByNameAsync(name);
-
-            if (subject == null)
-                return NotFound();
+            SubjectResponse subject = await _subjectService.GetSubjectByNameAsync(name);
 
             return Ok(subject);
         }

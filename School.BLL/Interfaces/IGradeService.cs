@@ -8,8 +8,8 @@ namespace School.BLL.Interfaces
         Task<int> AddGradeAsync(CreateGradeRequest grade);
         Task<bool> DeleteGradeAsync(byte gradeId);
         Task<List<GradeResponse>> GetAllGradesAsync();
-        Task<GradeResponse?> GetGradeByIdAsync(byte gradeId);
-        Task<GradeResponse?> GetGradeByNameAsync(string gradeName);
+        Task<GradeResponse> GetGradeByIdAsync(byte gradeId);
+        Task<GradeResponse> GetGradeByNameAsync(string gradeName);
         Task<bool> IsGradeExistAsync(byte gradeId);
         Task<bool> UpdateGradeAsync(byte gradeID, UpdateGradeRequest grade);
     }

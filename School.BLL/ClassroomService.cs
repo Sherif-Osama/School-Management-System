@@ -53,7 +53,7 @@ namespace School.BLL
             return _classroomData.GetAllClassroomsAsync();
         }
 
-        public async Task<ClassroomResponse?> GetClassroomByIdAsync(int classroomId)
+        public async Task<ClassroomResponse> GetClassroomByIdAsync(int classroomId)
         {
             ValidationHelper.ValidateId(classroomId);
 
@@ -65,7 +65,7 @@ namespace School.BLL
             return classroom;
         }
 
-        public async Task<ClassroomResponse?> GetClassroomByRoomNameAsync(string roomName)
+        public async Task<ClassroomResponse> GetClassroomByRoomNameAsync(string roomName)
         {
             roomName = ValidationHelper.ValidateString(roomName, nameof(roomName), MinRoomNameLength, MaxRoomNameLength);
 

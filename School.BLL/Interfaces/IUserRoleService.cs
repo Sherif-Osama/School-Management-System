@@ -7,7 +7,7 @@ namespace School.BLL.Interfaces
     {
         Task<List<UserRoleResponse>> GetAllUserRolesAsync();
 
-        Task<UserRoleResponse?> GetUserRoleAsync(int userId, int roleId);
+        Task<UserRoleResponse> GetUserRoleAsync(int userId, int roleId);
 
         Task<List<UserRoleResponse>> GetRolesByUserIdAsync(int userId);
 

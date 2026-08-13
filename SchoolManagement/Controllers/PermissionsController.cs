@@ -31,10 +31,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<PermissionResponse>> GetPermissionById(int id)
         {
-            PermissionResponse? permission = await _permissionService.GetPermissionByIdAsync(id);
-
-            if (permission == null)
-                return NotFound();
+            PermissionResponse permission = await _permissionService.GetPermissionByIdAsync(id);
 
             return Ok(permission);
         }
@@ -45,10 +42,7 @@ namespace School.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<PermissionResponse>> GetPermissionByName(string permissionName)
         {
-            PermissionResponse? permission = await _permissionService.GetPermissionByNameAsync(permissionName);
-
-            if (permission == null)
-                return NotFound();
+            PermissionResponse permission = await _permissionService.GetPermissionByNameAsync(permissionName);
 
             return Ok(permission);
         }

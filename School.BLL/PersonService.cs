@@ -75,7 +75,7 @@ namespace School.BLL
             return await _personData.GetAllPeopleAsync();
         }
 
-        public async Task<PersonResponse?> GetPersonByIdAsync(int personId)
+        public async Task<PersonResponse> GetPersonByIdAsync(int personId)
         {
             ValidationHelper.ValidateId(personId);
 
@@ -87,7 +87,7 @@ namespace School.BLL
             return personDTO;
         }
 
-        public async Task<PersonResponse?> GetPersonByNationalIDAsync(string nationalId)
+        public async Task<PersonResponse> GetPersonByNationalIDAsync(string nationalId)
         {
             nationalId = ValidationHelper.ValidateString(nationalId, nameof(nationalId), MinNationalIdLength, MaxNationalIdLength);
 

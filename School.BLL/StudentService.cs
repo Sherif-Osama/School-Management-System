@@ -85,7 +85,7 @@ namespace School.BLL
             return await _studentData.GetAllStudentsAsync();
         }
 
-        public async Task<StudentResponse?> GetStudentByIdAsync(int studentId)
+        public async Task<StudentResponse> GetStudentByIdAsync(int studentId)
         {
             ValidationHelper.ValidateId(studentId);
 
@@ -97,7 +97,7 @@ namespace School.BLL
             return student;
         }
 
-        public async Task<StudentResponse?> GetStudentByPersonIdAsync(int personId)
+        public async Task<StudentResponse> GetStudentByPersonIdAsync(int personId)
         {
             ValidationHelper.ValidateId(personId);
 

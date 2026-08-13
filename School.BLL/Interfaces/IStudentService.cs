@@ -8,8 +8,8 @@ namespace School.BLL.Interfaces
         Task<int> AddStudentAsync(CreateStudentRequest student);
         Task<bool> DeleteStudentAsync(int studentId);
         Task<List<StudentResponse>> GetAllStudentsAsync();
-        Task<StudentResponse?> GetStudentByIdAsync(int studentId);
-        Task<StudentResponse?> GetStudentByPersonIdAsync(int personId);
+        Task<StudentResponse> GetStudentByIdAsync(int studentId);
+        Task<StudentResponse> GetStudentByPersonIdAsync(int personId);
         Task<bool> UpdateStudentAsync(int studentId, UpdateStudentRequest student);
     }
 }

@@ -8,8 +8,8 @@ namespace School.BLL.Interfaces
         Task<int> AddClassroomAsync(CreateClassroomRequest classroom);
         Task<bool> DeleteClassroomAsync(int classroomId);
         Task<List<ClassroomResponse>> GetAllClassroomsAsync();
-        Task<ClassroomResponse?> GetClassroomByIdAsync(int classroomId);
-        Task<ClassroomResponse?> GetClassroomByRoomNameAsync(string roomName);
+        Task<ClassroomResponse> GetClassroomByIdAsync(int classroomId);
+        Task<ClassroomResponse> GetClassroomByRoomNameAsync(string roomName);
         Task<bool> IsClassroomExistAsync(int classroomId);
         Task<bool> UpdateClassroomAsync(int classroomId, UpdateClassroomRequest classroom);
     }

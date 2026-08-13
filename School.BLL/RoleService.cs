@@ -50,7 +50,7 @@ namespace School.BLL
             return await _roleData.GetAllRolesAsync();
         }
 
-        public async Task<RoleResponse?> GetRoleByIdAsync(int roleId)
+        public async Task<RoleResponse> GetRoleByIdAsync(int roleId)
         {
             ValidationHelper.ValidateId(roleId);
 
@@ -62,7 +62,7 @@ namespace School.BLL
             return role;
         }
 
-        public async Task<RoleResponse?> GetRoleByNameAsync(string roleName)
+        public async Task<RoleResponse> GetRoleByNameAsync(string roleName)
         {
             roleName = ValidationHelper.ValidateString(roleName, nameof(roleName), MinRoleNameLength, MaxRoleNameLength);
 

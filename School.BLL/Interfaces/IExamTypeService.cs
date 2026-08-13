@@ -8,8 +8,8 @@ namespace School.BLL.Interfaces
         Task<int> AddExamTypeAsync(CreateExamTypeRequest examType);
         Task<bool> DeleteExamTypeAsync(int examTypeId);
         Task<List<ExamTypeResponse>> GetAllExamTypesAsync();
-        Task<ExamTypeResponse?> GetExamTypeByIdAsync(int examTypeId);
-        Task<ExamTypeResponse?> GetExamTypeByNameAsync(string examName);
+        Task<ExamTypeResponse> GetExamTypeByIdAsync(int examTypeId);
+        Task<ExamTypeResponse> GetExamTypeByNameAsync(string examName);
         Task<bool> UpdateExamTypeAsync(int examTypeId, UpdateExamTypeRequest examType);
     }
 }

@@ -21,7 +21,7 @@ namespace School.BLL
             return _countryData.GetAllCountriesAsync();
         }
 
-        public async Task<CountryDTO?> GetCountryByIdAsync(int countryId)
+        public async Task<CountryDTO> GetCountryByIdAsync(int countryId)
         {
             ValidationHelper.ValidateId(countryId);
 
@@ -33,7 +33,7 @@ namespace School.BLL
             return country;
         }
 
-        public async Task<CountryDTO?> GetCountryByNameAsync(string countryName)
+        public async Task<CountryDTO> GetCountryByNameAsync(string countryName)
         {
             countryName = ValidationHelper.ValidateString(countryName, nameof(countryName), MinCountryNameLength, MaxCountryNameLength);
 

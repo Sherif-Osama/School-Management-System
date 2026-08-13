@@ -118,7 +118,7 @@ namespace School.BLL
             return await _examData.GetAllExamsAsync();
         }
 
-        public async Task<ExamResponse?> GetExamByIdAsync(int examId)
+        public async Task<ExamResponse> GetExamByIdAsync(int examId)
         {
             ValidationHelper.ValidateId(examId);
 
