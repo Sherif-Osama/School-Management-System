@@ -23,9 +23,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="D:\SchoolManagement\School.BLL\School.BLL.csproj" />
-    <ProjectReference Include="D:\SchoolManagement\School.DAL\School.DAL.csproj" />
-    <ProjectReference Include="D:\SchoolManagement\School.DTO\School.DTO.csproj" />
+    <ProjectReference Include="..\..\src\School.BLL\School.BLL.csproj" />
+    <ProjectReference Include="..\..\src\School.DAL\School.DAL.csproj" />
+    <ProjectReference Include="..\..\src\School.DTO\School.DTO.csproj" />
   </ItemGroup>
 
 </Project>
