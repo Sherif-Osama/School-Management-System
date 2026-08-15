@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="src/School.API/School.API.csproj" />
+  <Project Path="src/School.BLL/School.BLL.csproj" />
+  <Project Path="src/School.DAL/School.DAL.csproj" />
+  <Project Path="src/School.DTO/School.DTO.csproj" />
+  <Project Path="tests/School.Tests/School.Tests.csproj" />
+</Solution>
