@@ -1,4 +1,5 @@
 ﻿using School.BLL.Common;
+using School.BLL.Enums;
 using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.AttendanceDTOs.Requests;
@@ -31,6 +32,7 @@ namespace School.BLL
             ValidationHelper.ValidateId(attendance.StatusID);
             ValidateAttendanceDate(attendance.AttendanceDate);
         }
+
         private static void ValidateAttendance(UpdateAttendanceRequest attendance)
         {
             ArgumentNullException.ThrowIfNull(attendance);
@@ -62,7 +64,7 @@ namespace School.BLL
 
         private static void EnsureStudentIsActive(StudentResponse student)
         {
-            if (student.StatusID != 1) // Assuming 1 represents the "Active" status
+            if (student.StatusID != (int)StudentStatus.Active)
                 throw new InvalidOperationException($"Cannot record attendance for student {student.StudentID}: status is '{student.StatusName}', not Active '.");
         }
 
@@ -86,9 +88,8 @@ namespace School.BLL
         {
             DateOnly enrollmentDate = DateOnly.FromDateTime(student.EnrollmentDate);
 
-            if (attendanceDate < enrollmentDate)
-                throw new ArgumentException(
-                    $"AttendanceDate cannot be before the student's enrollment date ({enrollmentDate:yyyy-MM-dd}).",
+            if (attendanceDate < enrollmentDate) throw new ArgumentException(
+                $"AttendanceDate cannot be before the student's enrollment date ({enrollmentDate:yyyy-MM-dd}).",
                     nameof(attendanceDate));
         }
 

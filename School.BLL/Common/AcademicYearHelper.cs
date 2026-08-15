@@ -2,7 +2,7 @@
 
 namespace School.BLL.Common
 {
-    internal class AcademicYearHelper
+    public class AcademicYearHelper
     {
         public static (DateOnly Start, DateOnly End) GetAcademicYearRange(string academicYear)
         {
