@@ -48,10 +48,6 @@ namespace School.Tests.Services
             _jwtServiceMock.Setup(j => j.GenerateRefreshToken()).Returns("fake-refresh-token");
         }
 
-        #region Helpers
-
-        #endregion
-
         #region LoginAsync — Input validation
         [Fact]
         public async Task LoginAsync_Throws_WhenUsernameIsEmpty()

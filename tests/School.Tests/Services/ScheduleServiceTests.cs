@@ -47,7 +47,7 @@ namespace School.Tests.Services
         }
         #endregion
 
-        #region AddScheduleAsync — Input validation
+        #region AddScheduleAsync
         [Theory]
         [InlineData(0)]
         [InlineData(6)]

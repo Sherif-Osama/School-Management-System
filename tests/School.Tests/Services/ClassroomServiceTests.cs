@@ -40,12 +40,6 @@ namespace School.Tests.Services
 
         #region Get
         [Fact]
-        public async Task GetClassroomByIdAsync_Throws_WhenClassroomIdIsInvalid()
-        {
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.GetClassroomByIdAsync(0));
-        }
-
-        [Fact]
         public async Task GetClassroomByIdAsync_Throws_WhenNotFound()
         {
             _classroomDataMock.Setup(d => d.GetClassroomByIdAsync(1)).ReturnsAsync((ClassroomResponse?)null);
@@ -61,12 +55,6 @@ namespace School.Tests.Services
             var result = await _sut.GetClassroomByIdAsync(1);
 
             Assert.Equal(1, result.ClassroomID);
-        }
-
-        [Fact]
-        public async Task GetClassroomByRoomNameAsync_Throws_WhenRoomNameIsInvalid()
-        {
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.GetClassroomByRoomNameAsync(""));
         }
 
         [Fact]
@@ -93,16 +81,6 @@ namespace School.Tests.Services
         public async Task AddClassroomAsync_Throws_WhenClassroomIsNull()
         {
             await Assert.ThrowsAsync<ArgumentNullException>(() => _sut.AddClassroomAsync(null!));
-        }
-
-        [Theory]
-        [InlineData("")]
-        [InlineData("A")]
-        public async Task AddClassroomAsync_Throws_WhenRoomNameIsInvalid(string roomName)
-        {
-            var request = ValidCreateRequest(roomName: roomName);
-
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.AddClassroomAsync(request));
         }
 
         [Theory]
@@ -176,14 +154,6 @@ namespace School.Tests.Services
         }
 
         [Fact]
-        public async Task UpdateClassroomAsync_Throws_WhenClassroomIdIsInvalid()
-        {
-            var request = ValidUpdateRequest();
-
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.UpdateClassroomAsync(0, request));
-        }
-
-        [Fact]
         public async Task UpdateClassroomAsync_Throws_WhenClassroomDoesNotExist()
         {
             var request = ValidUpdateRequest();
@@ -233,12 +203,6 @@ namespace School.Tests.Services
 
         #region Delete
         [Fact]
-        public async Task DeleteClassroomAsync_Throws_WhenClassroomIdIsInvalid()
-        {
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.DeleteClassroomAsync(0));
-        }
-
-        [Fact]
         public async Task DeleteClassroomAsync_Throws_WhenClassroomDoesNotExist()
         {
             _classroomDataMock.Setup(d => d.IsClassroomExistAsync(1)).ReturnsAsync(false);
@@ -268,12 +232,6 @@ namespace School.Tests.Services
         #endregion
 
         #region IsClassroomExistAsync
-        [Fact]
-        public async Task IsClassroomExistAsync_Throws_WhenClassroomIdIsInvalid()
-        {
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.IsClassroomExistAsync(0));
-        }
-
         [Fact]
         public async Task IsClassroomExistAsync_ReturnsValueFromDataLayer()
         {

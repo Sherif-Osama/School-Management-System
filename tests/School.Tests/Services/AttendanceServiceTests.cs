@@ -18,9 +18,6 @@ namespace School.Tests.Services
 
         private readonly AttendanceService _sut;
 
-        // Fixed reference date used everywhere instead of DateTime.Today, so these tests stay
-        // deterministic and don't silently break once "today" drifts outside the mocked class's
-        // 2025-2026 academic year window (1 Sep 2025 - 31 Aug 2026).
         private static readonly DateOnly ReferenceDate = new(2026, 3, 15);
 
         public AttendanceServiceTests()

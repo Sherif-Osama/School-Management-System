@@ -1,8 +1,8 @@
 ﻿using Moq;
 using School.BLL;
 using School.DAL.Interfaces;
-using School.DTO.AttendanceStatusDTOs.Requests;
 using School.DTO.AttendanceStatusDTOs.Responses;
+using School.Tests.TestHelpers;
 using Xunit;
 namespace School.Tests.Services
 {
@@ -16,19 +16,6 @@ namespace School.Tests.Services
         {
             _sut = new AttendanceStatusService(_attendanceStatusDataMock.Object);
         }
-
-        #region Helpers
-        private static AttendanceStatusRequest ValidRequest(string statusName = "Present") => new()
-        {
-            StatusName = statusName
-        };
-
-        private static AttendanceStatusResponse ValidResponse(int statusId = 1, string statusName = "Present") => new()
-        {
-            StatusID = statusId,
-            StatusName = statusName
-        };
-        #endregion
 
         #region Get
         [Fact]
@@ -48,7 +35,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetAttendanceStatusByIdAsync_ReturnsStatus_WhenFound()
         {
-            _attendanceStatusDataMock.Setup(d => d.GetAttendanceStatusByIdAsync(1)).ReturnsAsync(ValidResponse(1));
+            _attendanceStatusDataMock.Setup(d => d.GetAttendanceStatusByIdAsync(1)).ReturnsAsync(TestDataBuilders.ValidAttendanceStatusResponse(1));
 
             var result = await _sut.GetAttendanceStatusByIdAsync(1);
 
@@ -72,7 +59,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetAttendanceStatusByNameAsync_ReturnsStatus_WhenFound()
         {
-            _attendanceStatusDataMock.Setup(d => d.GetAttendanceStatusByNameAsync("Present")).ReturnsAsync(ValidResponse(statusName: "Present"));
+            _attendanceStatusDataMock.Setup(d => d.GetAttendanceStatusByNameAsync("Present")).ReturnsAsync(TestDataBuilders.ValidAttendanceStatusResponse(statusName: "Present"));
 
             var result = await _sut.GetAttendanceStatusByNameAsync("Present");
 
@@ -92,7 +79,7 @@ namespace School.Tests.Services
         [InlineData("A")]
         public async Task AddAttendanceStatusAsync_Throws_WhenStatusNameIsInvalid(string statusName)
         {
-            var request = ValidRequest(statusName);
+            var request = TestDataBuilders.ValidAttendanceStatusRequest(statusName);
 
             await Assert.ThrowsAsync<ArgumentException>(() => _sut.AddAttendanceStatusAsync(request));
         }
@@ -100,9 +87,9 @@ namespace School.Tests.Services
         [Fact]
         public async Task AddAttendanceStatusAsync_Throws_WhenStatusNameAlreadyExists()
         {
-            var request = ValidRequest("Present");
+            var request = TestDataBuilders.ValidAttendanceStatusRequest("Present");
 
-            _attendanceStatusDataMock.Setup(d => d.GetAttendanceStatusByNameAsync("Present")).ReturnsAsync(ValidResponse(5, "Present"));
+            _attendanceStatusDataMock.Setup(d => d.GetAttendanceStatusByNameAsync("Present")).ReturnsAsync(TestDataBuilders.ValidAttendanceStatusResponse(5, "Present"));
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.AddAttendanceStatusAsync(request));
         }
@@ -110,7 +97,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task AddAttendanceStatusAsync_Throws_WhenDataLayerFailsToInsert()
         {
-            var request = ValidRequest("Present");
+            var request = TestDataBuilders.ValidAttendanceStatusRequest("Present");
 
             _attendanceStatusDataMock.Setup(d => d.GetAttendanceStatusByNameAsync("Present")).ReturnsAsync((AttendanceStatusResponse?)null);
             _attendanceStatusDataMock.Setup(d => d.AddAttendanceStatusAsync(request)).ReturnsAsync(0);
@@ -121,7 +108,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task AddAttendanceStatusAsync_ReturnsNewId_WhenStatusIsAdded()
         {
-            var request = ValidRequest("Present");
+            var request = TestDataBuilders.ValidAttendanceStatusRequest("Present");
 
             _attendanceStatusDataMock.Setup(d => d.GetAttendanceStatusByNameAsync("Present")).ReturnsAsync((AttendanceStatusResponse?)null);
             _attendanceStatusDataMock.Setup(d => d.AddAttendanceStatusAsync(request)).ReturnsAsync(3);
@@ -142,7 +129,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task UpdateAttendanceStatusAsync_Throws_WhenStatusIdIsInvalid()
         {
-            var request = ValidRequest();
+            var request = TestDataBuilders.ValidAttendanceStatusRequest();
 
             await Assert.ThrowsAsync<ArgumentException>(() => _sut.UpdateAttendanceStatusAsync(0, request));
         }
@@ -150,7 +137,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task UpdateAttendanceStatusAsync_Throws_WhenStatusDoesNotExist()
         {
-            var request = ValidRequest();
+            var request = TestDataBuilders.ValidAttendanceStatusRequest();
 
             _attendanceStatusDataMock.Setup(d => d.IsAttendanceStatusExistAsync(1)).ReturnsAsync(false);
 
@@ -160,10 +147,10 @@ namespace School.Tests.Services
         [Fact]
         public async Task UpdateAttendanceStatusAsync_Throws_WhenNameBelongsToAnotherStatus()
         {
-            var request = ValidRequest("Present");
+            var request = TestDataBuilders.ValidAttendanceStatusRequest("Present");
 
             _attendanceStatusDataMock.Setup(d => d.IsAttendanceStatusExistAsync(1)).ReturnsAsync(true);
-            _attendanceStatusDataMock.Setup(d => d.GetAttendanceStatusByNameAsync("Present")).ReturnsAsync(ValidResponse(2, "Present"));
+            _attendanceStatusDataMock.Setup(d => d.GetAttendanceStatusByNameAsync("Present")).ReturnsAsync(TestDataBuilders.ValidAttendanceStatusResponse(2, "Present"));
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.UpdateAttendanceStatusAsync(1, request));
         }
@@ -171,10 +158,10 @@ namespace School.Tests.Services
         [Fact]
         public async Task UpdateAttendanceStatusAsync_AllowsKeepingItsOwnName_WhenExcludedFromUniquenessCheck()
         {
-            var request = ValidRequest("Present");
+            var request = TestDataBuilders.ValidAttendanceStatusRequest("Present");
 
             _attendanceStatusDataMock.Setup(d => d.IsAttendanceStatusExistAsync(1)).ReturnsAsync(true);
-            _attendanceStatusDataMock.Setup(d => d.GetAttendanceStatusByNameAsync("Present")).ReturnsAsync(ValidResponse(1, "Present"));
+            _attendanceStatusDataMock.Setup(d => d.GetAttendanceStatusByNameAsync("Present")).ReturnsAsync(TestDataBuilders.ValidAttendanceStatusResponse(1, "Present"));
             _attendanceStatusDataMock.Setup(d => d.UpdateAttendanceStatusAsync(1, request)).ReturnsAsync(true);
 
             bool result = await _sut.UpdateAttendanceStatusAsync(1, request);
@@ -185,7 +172,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task UpdateAttendanceStatusAsync_Throws_WhenDataLayerFailsToUpdate()
         {
-            var request = ValidRequest("Present");
+            var request = TestDataBuilders.ValidAttendanceStatusRequest("Present");
 
             _attendanceStatusDataMock.Setup(d => d.IsAttendanceStatusExistAsync(1)).ReturnsAsync(true);
             _attendanceStatusDataMock.Setup(d => d.GetAttendanceStatusByNameAsync("Present")).ReturnsAsync((AttendanceStatusResponse?)null);
