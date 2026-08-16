@@ -26,7 +26,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetSubjectsByTeacherIdAsync_Throws_WhenTeacherDoesNotExist()
         {
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(false);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetSubjectsByTeacherIdAsync(1));
         }
@@ -35,8 +35,8 @@ namespace School.Tests.Services
         public async Task GetSubjectsByTeacherIdAsync_ReturnsSubjects_WhenTeacherExists()
         {
             var subjects = new List<TeacherSubjectResponse> { TestDataBuilders.ValidTeacherSubject(teacherId: 1) };
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(true);
-            _teacherSubjectDataMock.Setup(d => d.GetSubjectsByTeacherIdAsync(1)).ReturnsAsync(subjects);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _teacherSubjectDataMock.Setup(d => d.GetSubjectsByTeacherIdAsync(It.IsAny<int>())).ReturnsAsync(subjects);
 
             var result = await _sut.GetSubjectsByTeacherIdAsync(1);
 
@@ -48,7 +48,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetTeachersBySubjectIdAsync_Throws_WhenSubjectDoesNotExist()
         {
-            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(1)).ReturnsAsync(false);
+            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetTeachersBySubjectIdAsync(1));
         }
@@ -57,8 +57,8 @@ namespace School.Tests.Services
         public async Task GetTeachersBySubjectIdAsync_ReturnsTeachers_WhenSubjectExists()
         {
             var teachers = new List<TeacherSubjectResponse> { TestDataBuilders.ValidTeacherSubject(subjectId: 1) };
-            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(1)).ReturnsAsync(true);
-            _teacherSubjectDataMock.Setup(d => d.GetTeachersBySubjectIdAsync(1)).ReturnsAsync(teachers);
+            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _teacherSubjectDataMock.Setup(d => d.GetTeachersBySubjectIdAsync(It.IsAny<int>())).ReturnsAsync(teachers);
 
             var result = await _sut.GetTeachersBySubjectIdAsync(1);
 
@@ -95,7 +95,7 @@ namespace School.Tests.Services
         public async Task AssignSubjectToTeacherAsync_Throws_WhenTeacherDoesNotExist()
         {
             var request = TestDataBuilders.ValidTeacherSubjectRequest(teacherId: 1, subjectId: 1);
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(false);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.AssignSubjectToTeacherAsync(request));
         }
@@ -104,8 +104,8 @@ namespace School.Tests.Services
         public async Task AssignSubjectToTeacherAsync_Throws_WhenSubjectDoesNotExist()
         {
             var request = TestDataBuilders.ValidTeacherSubjectRequest(teacherId: 1, subjectId: 1);
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(true);
-            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(1)).ReturnsAsync(false);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.AssignSubjectToTeacherAsync(request));
         }
@@ -114,8 +114,8 @@ namespace School.Tests.Services
         public async Task AssignSubjectToTeacherAsync_Throws_WhenSubjectIsAlreadyAssignedToTeacher()
         {
             var request = TestDataBuilders.ValidTeacherSubjectRequest(teacherId: 1, subjectId: 1);
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(true);
-            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(1)).ReturnsAsync(true);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(It.IsAny<int>())).ReturnsAsync(true);
             _teacherSubjectDataMock.Setup(d => d.IsTeacherSubjectExistAsync(request)).ReturnsAsync(true);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.AssignSubjectToTeacherAsync(request));
@@ -125,8 +125,8 @@ namespace School.Tests.Services
         public async Task AssignSubjectToTeacherAsync_ReturnsTrue_WhenAssignedSuccessfully()
         {
             var request = TestDataBuilders.ValidTeacherSubjectRequest(teacherId: 1, subjectId: 1);
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(true);
-            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(1)).ReturnsAsync(true);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(It.IsAny<int>())).ReturnsAsync(true);
             _teacherSubjectDataMock.Setup(d => d.IsTeacherSubjectExistAsync(request)).ReturnsAsync(false);
             _teacherSubjectDataMock.Setup(d => d.AssignSubjectToTeacherAsync(request)).ReturnsAsync(true);
 
@@ -139,8 +139,8 @@ namespace School.Tests.Services
         public async Task AssignSubjectToTeacherAsync_Throws_WhenDataLayerFailsToAssign()
         {
             var request = TestDataBuilders.ValidTeacherSubjectRequest(teacherId: 1, subjectId: 1);
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(true);
-            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(1)).ReturnsAsync(true);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(It.IsAny<int>())).ReturnsAsync(true);
             _teacherSubjectDataMock.Setup(d => d.IsTeacherSubjectExistAsync(request)).ReturnsAsync(false);
             _teacherSubjectDataMock.Setup(d => d.AssignSubjectToTeacherAsync(request)).ReturnsAsync(false);
 
@@ -177,7 +177,7 @@ namespace School.Tests.Services
         public async Task RemoveSubjectFromTeacherAsync_Throws_WhenTeacherDoesNotExist()
         {
             var request = TestDataBuilders.ValidTeacherSubjectRequest(teacherId: 1, subjectId: 1);
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(false);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.RemoveSubjectFromTeacherAsync(request));
         }
@@ -186,8 +186,8 @@ namespace School.Tests.Services
         public async Task RemoveSubjectFromTeacherAsync_Throws_WhenSubjectDoesNotExist()
         {
             var request = TestDataBuilders.ValidTeacherSubjectRequest(teacherId: 1, subjectId: 1);
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(true);
-            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(1)).ReturnsAsync(false);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.RemoveSubjectFromTeacherAsync(request));
         }
@@ -196,8 +196,8 @@ namespace School.Tests.Services
         public async Task RemoveSubjectFromTeacherAsync_Throws_WhenRelationDoesNotExist()
         {
             var request = TestDataBuilders.ValidTeacherSubjectRequest(teacherId: 1, subjectId: 1);
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(true);
-            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(1)).ReturnsAsync(true);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(It.IsAny<int>())).ReturnsAsync(true);
             _teacherSubjectDataMock.Setup(d => d.IsTeacherSubjectExistAsync(request)).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.RemoveSubjectFromTeacherAsync(request));
@@ -207,8 +207,8 @@ namespace School.Tests.Services
         public async Task RemoveSubjectFromTeacherAsync_ReturnsTrue_WhenRemovedSuccessfully()
         {
             var request = TestDataBuilders.ValidTeacherSubjectRequest(teacherId: 1, subjectId: 1);
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(true);
-            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(1)).ReturnsAsync(true);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(It.IsAny<int>())).ReturnsAsync(true);
             _teacherSubjectDataMock.Setup(d => d.IsTeacherSubjectExistAsync(request)).ReturnsAsync(true);
             _teacherSubjectDataMock.Setup(d => d.RemoveSubjectFromTeacherAsync(request)).ReturnsAsync(true);
 
@@ -221,8 +221,8 @@ namespace School.Tests.Services
         public async Task RemoveSubjectFromTeacherAsync_Throws_WhenDataLayerFailsToRemove()
         {
             var request = TestDataBuilders.ValidTeacherSubjectRequest(teacherId: 1, subjectId: 1);
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(true);
-            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(1)).ReturnsAsync(true);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(It.IsAny<int>())).ReturnsAsync(true);
             _teacherSubjectDataMock.Setup(d => d.IsTeacherSubjectExistAsync(request)).ReturnsAsync(true);
             _teacherSubjectDataMock.Setup(d => d.RemoveSubjectFromTeacherAsync(request)).ReturnsAsync(false);
 

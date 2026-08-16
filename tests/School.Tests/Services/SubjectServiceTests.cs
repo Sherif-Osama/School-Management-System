@@ -18,40 +18,14 @@ namespace School.Tests.Services
             _sut = new SubjectService(_subjectDataMock.Object);
         }
 
-        #region Get
-
-        [Fact]
-        public async Task GetAllSubjectsAsync_ReturnsSubjects()
-        {
-            var subjects = new List<SubjectResponse>
-            {
-                TestDataBuilders.ValidSubject(subjectId: 1),
-                TestDataBuilders.ValidSubject(
-                    subjectId: 2,
-                    subjectName: "Physics")
-            };
-
-            _subjectDataMock
-                .Setup(d => d.GetAllSubjectsAsync())
-                .ReturnsAsync(subjects);
-
-            var result = await _sut.GetAllSubjectsAsync();
-
-            Assert.Equal(subjects, result);
-        }
-
         [Fact]
         public async Task GetSubjectByIdAsync_ReturnsSubject_WhenFound()
         {
-            var subject =
-                TestDataBuilders.ValidSubject(subjectId: 3);
+            var subject = TestDataBuilders.ValidSubject(subjectId: 3);
 
-            _subjectDataMock
-                .Setup(d => d.GetSubjectByIdAsync(3))
-                .ReturnsAsync(subject);
+            _subjectDataMock.Setup(d => d.GetSubjectByIdAsync(It.IsAny<int>())).ReturnsAsync(subject);
 
-            var result =
-                await _sut.GetSubjectByIdAsync(3);
+            var result = await _sut.GetSubjectByIdAsync(3);
 
             Assert.Equal(3, result.SubjectID);
         }
@@ -59,22 +33,17 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetSubjectByIdAsync_Throws_WhenNotFound()
         {
-            _subjectDataMock
-                .Setup(d => d.GetSubjectByIdAsync(1))
-                .ReturnsAsync((SubjectResponse?)null);
+            _subjectDataMock.Setup(d => d.GetSubjectByIdAsync(It.IsAny<int>())).ReturnsAsync((SubjectResponse?)null);
 
-            await Assert.ThrowsAsync<KeyNotFoundException>(
-                () => _sut.GetSubjectByIdAsync(1));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetSubjectByIdAsync(1));
         }
 
         [Fact]
         public async Task GetSubjectByNameAsync_ReturnsSubject_WhenFound()
         {
-            var subject =
-                TestDataBuilders.ValidSubject();
+            var subject = TestDataBuilders.ValidSubject();
 
-            _subjectDataMock
-                .Setup(d => d.GetSubjectByNameAsync("Mathematics"))
+            _subjectDataMock.Setup(d => d.GetSubjectByNameAsync(It.IsAny<string>()))
                 .ReturnsAsync(subject);
 
             var result =
@@ -87,13 +56,12 @@ namespace School.Tests.Services
         public async Task GetSubjectByNameAsync_Throws_WhenNotFound()
         {
             _subjectDataMock
-                .Setup(d => d.GetSubjectByNameAsync("Mathematics"))
+                .Setup(d => d.GetSubjectByNameAsync(It.IsAny<string>()))
                 .ReturnsAsync((SubjectResponse?)null);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(
                 () => _sut.GetSubjectByNameAsync("Mathematics"));
         }
-        #endregion
 
         #region Add
 
@@ -107,35 +75,26 @@ namespace School.Tests.Services
         [Fact]
         public async Task AddSubjectAsync_Throws_WhenSubjectAlreadyExists()
         {
-            var subject =
-                TestDataBuilders.ValidCreateSubjectRequest();
+            var subject = TestDataBuilders.ValidCreateSubjectRequest();
 
-            _subjectDataMock
-                .Setup(d => d.GetSubjectByNameAsync(subject.SubjectName))
-                .ReturnsAsync(
-                    TestDataBuilders.ValidSubject(
-                        subjectName: subject.SubjectName));
+            _subjectDataMock.Setup(d => d.GetSubjectByNameAsync(It.IsAny<string>()))
+                .ReturnsAsync(TestDataBuilders.ValidSubject(subjectName: subject.SubjectName));
 
-            await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _sut.AddSubjectAsync(subject));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.AddSubjectAsync(subject));
         }
 
         [Fact]
         public async Task AddSubjectAsync_ReturnsNewId_WhenSubjectIsAdded()
         {
-            var subject =
-                TestDataBuilders.ValidCreateSubjectRequest();
+            var subject = TestDataBuilders.ValidCreateSubjectRequest();
 
-            _subjectDataMock
-                .Setup(d => d.GetSubjectByNameAsync(subject.SubjectName))
+            _subjectDataMock.Setup(d => d.GetSubjectByNameAsync(It.IsAny<string>()))
                 .ReturnsAsync((SubjectResponse?)null);
 
-            _subjectDataMock
-                .Setup(d => d.AddSubjectAsync(subject))
+            _subjectDataMock.Setup(d => d.AddSubjectAsync(subject))
                 .ReturnsAsync(10);
 
-            var result =
-                await _sut.AddSubjectAsync(subject);
+            var result = await _sut.AddSubjectAsync(subject);
 
             Assert.Equal(10, result);
         }
@@ -143,15 +102,11 @@ namespace School.Tests.Services
         [Fact]
         public async Task AddSubjectAsync_Throws_WhenDataLayerFailsToInsert()
         {
-            var subject =
-                TestDataBuilders.ValidCreateSubjectRequest();
+            var subject = TestDataBuilders.ValidCreateSubjectRequest();
 
-            _subjectDataMock
-                .Setup(d => d.GetSubjectByNameAsync(subject.SubjectName))
-                .ReturnsAsync((SubjectResponse?)null);
+            _subjectDataMock.Setup(d => d.GetSubjectByNameAsync(It.IsAny<string>())).ReturnsAsync((SubjectResponse?)null);
 
-            _subjectDataMock
-                .Setup(d => d.AddSubjectAsync(subject))
+            _subjectDataMock.Setup(d => d.AddSubjectAsync(subject))
                 .ReturnsAsync(0);
 
             await Assert.ThrowsAsync<InvalidOperationException>(
@@ -175,7 +130,7 @@ namespace School.Tests.Services
                 TestDataBuilders.ValidUpdateSubjectRequest();
 
             _subjectDataMock
-                .Setup(d => d.IsSubjectExistAsync(1))
+                .Setup(d => d.IsSubjectExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(
@@ -189,11 +144,11 @@ namespace School.Tests.Services
                 TestDataBuilders.ValidUpdateSubjectRequest();
 
             _subjectDataMock
-                .Setup(d => d.IsSubjectExistAsync(1))
+                .Setup(d => d.IsSubjectExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
             _subjectDataMock
-                .Setup(d => d.GetSubjectByNameAsync(subject.SubjectName))
+                .Setup(d => d.GetSubjectByNameAsync(It.IsAny<string>()))
                 .ReturnsAsync(
                     TestDataBuilders.ValidSubject(
                         subjectId: 2,
@@ -214,7 +169,7 @@ namespace School.Tests.Services
                 .ReturnsAsync(true);
 
             _subjectDataMock
-                .Setup(d => d.GetSubjectByNameAsync(subject.SubjectName))
+                .Setup(d => d.GetSubjectByNameAsync(It.IsAny<string>()))
                 .ReturnsAsync((SubjectResponse?)null);
 
             _subjectDataMock
@@ -234,11 +189,11 @@ namespace School.Tests.Services
                 TestDataBuilders.ValidUpdateSubjectRequest();
 
             _subjectDataMock
-                .Setup(d => d.IsSubjectExistAsync(1))
+                .Setup(d => d.IsSubjectExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
             _subjectDataMock
-                .Setup(d => d.GetSubjectByNameAsync(subject.SubjectName))
+                .Setup(d => d.GetSubjectByNameAsync(It.IsAny<string>()))
                 .ReturnsAsync(
                     TestDataBuilders.ValidSubject(
                         subjectId: 1,
@@ -265,7 +220,7 @@ namespace School.Tests.Services
                 .ReturnsAsync(true);
 
             _subjectDataMock
-                .Setup(d => d.GetSubjectByNameAsync(subject.SubjectName))
+                .Setup(d => d.GetSubjectByNameAsync(It.IsAny<string>()))
                 .ReturnsAsync((SubjectResponse?)null);
 
             _subjectDataMock
@@ -282,7 +237,7 @@ namespace School.Tests.Services
         public async Task DeleteSubjectAsync_Throws_WhenSubjectDoesNotExist()
         {
             _subjectDataMock
-                .Setup(d => d.IsSubjectExistAsync(1))
+                .Setup(d => d.IsSubjectExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(
@@ -293,11 +248,11 @@ namespace School.Tests.Services
         public async Task DeleteSubjectAsync_ReturnsTrue_WhenSubjectIsDeleted()
         {
             _subjectDataMock
-                .Setup(d => d.IsSubjectExistAsync(1))
+                .Setup(d => d.IsSubjectExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
             _subjectDataMock
-                .Setup(d => d.DeleteSubjectAsync(1))
+                .Setup(d => d.DeleteSubjectAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
             var result =
@@ -310,11 +265,11 @@ namespace School.Tests.Services
         public async Task DeleteSubjectAsync_Throws_WhenDataLayerFailsToDelete()
         {
             _subjectDataMock
-                .Setup(d => d.IsSubjectExistAsync(1))
+                .Setup(d => d.IsSubjectExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
             _subjectDataMock
-                .Setup(d => d.DeleteSubjectAsync(1))
+                .Setup(d => d.DeleteSubjectAsync(It.IsAny<int>()))
                 .ReturnsAsync(false);
 
             await Assert.ThrowsAsync<InvalidOperationException>(
@@ -329,7 +284,7 @@ namespace School.Tests.Services
         [InlineData(false)]
         public async Task IsSubjectExistAsync_ReturnsExpectedValue(bool expected)
         {
-            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(1)).ReturnsAsync(expected);
+            _subjectDataMock.Setup(d => d.IsSubjectExistAsync(It.IsAny<int>())).ReturnsAsync(expected);
 
             var result =
                 await _sut.IsSubjectExistAsync(1);

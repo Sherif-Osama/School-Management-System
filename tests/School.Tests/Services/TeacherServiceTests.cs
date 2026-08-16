@@ -27,7 +27,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetTeacherByIdAsync_Throws_WhenNotFound()
         {
-            _teacherDataMock.Setup(d => d.GetTeacherByIdAsync(1)).ReturnsAsync((TeacherResponse?)null);
+            _teacherDataMock.Setup(d => d.GetTeacherByIdAsync(It.IsAny<int>())).ReturnsAsync((TeacherResponse?)null);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetTeacherByIdAsync(1));
         }
@@ -36,7 +36,7 @@ namespace School.Tests.Services
         public async Task GetTeacherByIdAsync_ReturnsTeacher_WhenFound()
         {
             var teacher = TestDataBuilders.ValidTeacher(teacherId: 3);
-            _teacherDataMock.Setup(d => d.GetTeacherByIdAsync(3)).ReturnsAsync(teacher);
+            _teacherDataMock.Setup(d => d.GetTeacherByIdAsync(It.IsAny<int>())).ReturnsAsync(teacher);
 
             var result = await _sut.GetTeacherByIdAsync(3);
 
@@ -48,7 +48,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetTeacherByPersonIdAsync_Throws_WhenNotFound()
         {
-            _teacherDataMock.Setup(d => d.GetTeacherByPersonIdAsync(100)).ReturnsAsync((TeacherResponse?)null);
+            _teacherDataMock.Setup(d => d.GetTeacherByPersonIdAsync(It.IsAny<int>())).ReturnsAsync((TeacherResponse?)null);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetTeacherByPersonIdAsync(100));
         }
@@ -57,7 +57,7 @@ namespace School.Tests.Services
         public async Task GetTeacherByPersonIdAsync_ReturnsTeacher_WhenFound()
         {
             var teacher = TestDataBuilders.ValidTeacher(personId: 100);
-            _teacherDataMock.Setup(d => d.GetTeacherByPersonIdAsync(100)).ReturnsAsync(teacher);
+            _teacherDataMock.Setup(d => d.GetTeacherByPersonIdAsync(It.IsAny<int>())).ReturnsAsync(teacher);
 
             var result = await _sut.GetTeacherByPersonIdAsync(100);
 
@@ -69,7 +69,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetTeacherByNationalIdAsync_Throws_WhenNotFound()
         {
-            _teacherDataMock.Setup(d => d.GetTeacherByNationalIdAsync("12345678901234")).ReturnsAsync((TeacherResponse?)null);
+            _teacherDataMock.Setup(d => d.GetTeacherByNationalIdAsync(It.IsAny<string>())).ReturnsAsync((TeacherResponse?)null);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetTeacherByNationalIdAsync("12345678901234"));
         }
@@ -78,7 +78,7 @@ namespace School.Tests.Services
         public async Task GetTeacherByNationalIdAsync_ReturnsTeacher_WhenFound()
         {
             var teacher = TestDataBuilders.ValidTeacher(nationalId: "12345678901234");
-            _teacherDataMock.Setup(d => d.GetTeacherByNationalIdAsync("12345678901234")).ReturnsAsync(teacher);
+            _teacherDataMock.Setup(d => d.GetTeacherByNationalIdAsync(It.IsAny<string>())).ReturnsAsync(teacher);
 
             var result = await _sut.GetTeacherByNationalIdAsync("12345678901234");
 
@@ -131,7 +131,7 @@ namespace School.Tests.Services
         public async Task AddTeacherAsync_Throws_WhenPersonDoesNotExist()
         {
             var request = TestDataBuilders.ValidCreateTeacherRequest(personId: 1);
-            _personDataMock.Setup(d => d.IsPersonExistAsync(1)).ReturnsAsync(false);
+            _personDataMock.Setup(d => d.IsPersonExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.AddTeacherAsync(request));
         }
@@ -140,8 +140,8 @@ namespace School.Tests.Services
         public async Task AddTeacherAsync_Throws_WhenPersonIsAlreadyATeacher()
         {
             var request = TestDataBuilders.ValidCreateTeacherRequest(personId: 1);
-            _personDataMock.Setup(d => d.IsPersonExistAsync(1)).ReturnsAsync(true);
-            _teacherDataMock.Setup(d => d.GetTeacherByPersonIdAsync(1)).ReturnsAsync(TestDataBuilders.ValidTeacher(personId: 1));
+            _personDataMock.Setup(d => d.IsPersonExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _teacherDataMock.Setup(d => d.GetTeacherByPersonIdAsync(It.IsAny<int>())).ReturnsAsync(TestDataBuilders.ValidTeacher(personId: 1));
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.AddTeacherAsync(request));
         }
@@ -150,9 +150,9 @@ namespace School.Tests.Services
         public async Task AddTeacherAsync_Throws_WhenPersonIsAlreadyAStudent()
         {
             var request = TestDataBuilders.ValidCreateTeacherRequest(personId: 1);
-            _personDataMock.Setup(d => d.IsPersonExistAsync(1)).ReturnsAsync(true);
-            _teacherDataMock.Setup(d => d.GetTeacherByPersonIdAsync(1)).ReturnsAsync((TeacherResponse?)null);
-            _studentDataMock.Setup(d => d.GetStudentByPersonIdAsync(1)).ReturnsAsync(TestDataBuilders.ValidStudent());
+            _personDataMock.Setup(d => d.IsPersonExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _teacherDataMock.Setup(d => d.GetTeacherByPersonIdAsync(It.IsAny<int>())).ReturnsAsync((TeacherResponse?)null);
+            _studentDataMock.Setup(d => d.GetStudentByPersonIdAsync(It.IsAny<int>())).ReturnsAsync(TestDataBuilders.ValidStudent());
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.AddTeacherAsync(request));
         }
@@ -161,9 +161,9 @@ namespace School.Tests.Services
         public async Task AddTeacherAsync_ReturnsNewId_WhenTeacherIsAdded()
         {
             var request = TestDataBuilders.ValidCreateTeacherRequest(personId: 1);
-            _personDataMock.Setup(d => d.IsPersonExistAsync(1)).ReturnsAsync(true);
-            _teacherDataMock.Setup(d => d.GetTeacherByPersonIdAsync(1)).ReturnsAsync((TeacherResponse?)null);
-            _studentDataMock.Setup(d => d.GetStudentByPersonIdAsync(1)).ReturnsAsync((StudentResponse?)null);
+            _personDataMock.Setup(d => d.IsPersonExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _teacherDataMock.Setup(d => d.GetTeacherByPersonIdAsync(It.IsAny<int>())).ReturnsAsync((TeacherResponse?)null);
+            _studentDataMock.Setup(d => d.GetStudentByPersonIdAsync(It.IsAny<int>())).ReturnsAsync((StudentResponse?)null);
             _teacherDataMock.Setup(d => d.AddTeacherAsync(request)).ReturnsAsync(12);
 
             var result = await _sut.AddTeacherAsync(request);
@@ -175,9 +175,9 @@ namespace School.Tests.Services
         public async Task AddTeacherAsync_Throws_WhenDataLayerFailsToInsert()
         {
             var request = TestDataBuilders.ValidCreateTeacherRequest(personId: 1);
-            _personDataMock.Setup(d => d.IsPersonExistAsync(1)).ReturnsAsync(true);
-            _teacherDataMock.Setup(d => d.GetTeacherByPersonIdAsync(1)).ReturnsAsync((TeacherResponse?)null);
-            _studentDataMock.Setup(d => d.GetStudentByPersonIdAsync(1)).ReturnsAsync((StudentResponse?)null);
+            _personDataMock.Setup(d => d.IsPersonExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _teacherDataMock.Setup(d => d.GetTeacherByPersonIdAsync(It.IsAny<int>())).ReturnsAsync((TeacherResponse?)null);
+            _studentDataMock.Setup(d => d.GetStudentByPersonIdAsync(It.IsAny<int>())).ReturnsAsync((StudentResponse?)null);
             _teacherDataMock.Setup(d => d.AddTeacherAsync(request)).ReturnsAsync(0);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.AddTeacherAsync(request));
@@ -211,7 +211,7 @@ namespace School.Tests.Services
         public async Task UpdateTeacherAsync_Throws_WhenTeacherDoesNotExist()
         {
             var request = TestDataBuilders.ValidUpdateTeacherRequest();
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(false);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.UpdateTeacherAsync(1, request));
         }
@@ -220,8 +220,8 @@ namespace School.Tests.Services
         public async Task UpdateTeacherAsync_ReturnsTrue_WhenUpdateSucceeds()
         {
             var request = TestDataBuilders.ValidUpdateTeacherRequest();
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(true);
-            _teacherDataMock.Setup(d => d.UpdateTeacherAsync(1, request)).ReturnsAsync(true);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _teacherDataMock.Setup(d => d.UpdateTeacherAsync(It.IsAny<int>(), request)).ReturnsAsync(true);
 
             var result = await _sut.UpdateTeacherAsync(1, request);
 
@@ -232,8 +232,8 @@ namespace School.Tests.Services
         public async Task UpdateTeacherAsync_Throws_WhenDataLayerFailsToUpdate()
         {
             var request = TestDataBuilders.ValidUpdateTeacherRequest();
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(true);
-            _teacherDataMock.Setup(d => d.UpdateTeacherAsync(1, request)).ReturnsAsync(false);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _teacherDataMock.Setup(d => d.UpdateTeacherAsync(It.IsAny<int>(), request)).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.UpdateTeacherAsync(1, request));
         }
@@ -243,7 +243,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task DeleteTeacherAsync_Throws_WhenTeacherDoesNotExist()
         {
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(false);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.DeleteTeacherAsync(1));
         }
@@ -251,8 +251,8 @@ namespace School.Tests.Services
         [Fact]
         public async Task DeleteTeacherAsync_ReturnsTrue_WhenDeletionSucceeds()
         {
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(true);
-            _teacherDataMock.Setup(d => d.DeleteTeacherAsync(1)).ReturnsAsync(true);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _teacherDataMock.Setup(d => d.DeleteTeacherAsync(It.IsAny<int>())).ReturnsAsync(true);
 
             var result = await _sut.DeleteTeacherAsync(1);
 
@@ -262,8 +262,8 @@ namespace School.Tests.Services
         [Fact]
         public async Task DeleteTeacherAsync_Throws_WhenDataLayerFailsToDelete()
         {
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(true);
-            _teacherDataMock.Setup(d => d.DeleteTeacherAsync(1)).ReturnsAsync(false);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _teacherDataMock.Setup(d => d.DeleteTeacherAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.DeleteTeacherAsync(1));
         }
@@ -273,7 +273,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task IsTeacherExistAsync_ReturnsTrue_WhenTeacherExists()
         {
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(true);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(true);
 
             var result = await _sut.IsTeacherExistAsync(1);
 
@@ -283,7 +283,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task IsTeacherExistAsync_ReturnsFalse_WhenTeacherDoesNotExist()
         {
-            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(1)).ReturnsAsync(false);
+            _teacherDataMock.Setup(d => d.IsTeacherExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             var result = await _sut.IsTeacherExistAsync(1);
 

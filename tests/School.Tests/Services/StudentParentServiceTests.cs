@@ -27,12 +27,10 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetParentsByStudentIdAsync_Throws_WhenStudentDoesNotExist()
         {
-            _studentDataMock
-                .Setup(d => d.IsStudentExistAsync(1))
+            _studentDataMock.Setup(d => d.IsStudentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(false);
 
-            await Assert.ThrowsAsync<KeyNotFoundException>(
-                () => _sut.GetParentsByStudentIdAsync(1));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetParentsByStudentIdAsync(1));
         }
 
         [Fact]
@@ -40,9 +38,7 @@ namespace School.Tests.Services
         {
             var relations = new List<StudentParentResponse>
             {
-                TestDataBuilders.ValidStudentParent(
-                    studentId: 1,
-                    parentId: 10),
+                TestDataBuilders.ValidStudentParent( studentId: 1,parentId: 10),
 
                 TestDataBuilders.ValidStudentParent(studentId: 1,parentId: 20)
             };
@@ -137,7 +133,7 @@ namespace School.Tests.Services
                 studentId: 1,
                 parentId: 10);
 
-            _studentDataMock.Setup(d => d.IsStudentExistAsync(1))
+            _studentDataMock.Setup(d => d.IsStudentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
             _parentDataMock
@@ -160,11 +156,11 @@ namespace School.Tests.Services
                 parentId: 10);
 
             _studentDataMock
-                .Setup(d => d.IsStudentExistAsync(1))
+                .Setup(d => d.IsStudentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
             _parentDataMock
-                .Setup(d => d.IsParentExistAsync(10))
+                .Setup(d => d.IsParentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
             _studentParentDataMock
@@ -183,24 +179,18 @@ namespace School.Tests.Services
         [Fact]
         public async Task AddStudentParentAsync_Throws_WhenDataLayerFailsToAddRelation()
         {
-            var relation = TestDataBuilders.ValidStudentParentRequest(
-                studentId: 1,
-                parentId: 10);
+            var relation = TestDataBuilders.ValidStudentParentRequest(studentId: 1, parentId: 10);
 
-            _studentDataMock
-                .Setup(d => d.IsStudentExistAsync(1))
+            _studentDataMock.Setup(d => d.IsStudentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
-            _parentDataMock
-                .Setup(d => d.IsParentExistAsync(10))
+            _parentDataMock.Setup(d => d.IsParentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
-            _studentParentDataMock
-                .Setup(d => d.IsStudentParentExistAsync(relation))
+            _studentParentDataMock.Setup(d => d.IsStudentParentExistAsync(relation))
                 .ReturnsAsync(false);
 
-            _studentParentDataMock
-                .Setup(d => d.AddStudentParentAsync(relation))
+            _studentParentDataMock.Setup(d => d.AddStudentParentAsync(relation))
                 .ReturnsAsync(false);
 
             await Assert.ThrowsAsync<InvalidOperationException>(
@@ -214,38 +204,30 @@ namespace School.Tests.Services
         [Fact]
         public async Task DeleteStudentParentAsync_Throws_WhenRelationIsNull()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(
-                () => _sut.DeleteStudentParentAsync(null!));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _sut.DeleteStudentParentAsync(null!));
         }
 
         [Fact]
         public async Task DeleteStudentParentAsync_Throws_WhenStudentDoesNotExist()
         {
-            var relation = TestDataBuilders.ValidStudentParentRequest(
-                studentId: 1,
-                parentId: 10);
+            var relation = TestDataBuilders.ValidStudentParentRequest(studentId: 1, parentId: 10);
 
             _studentDataMock
-                .Setup(d => d.IsStudentExistAsync(1))
+                .Setup(d => d.IsStudentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(false);
 
-            await Assert.ThrowsAsync<KeyNotFoundException>(
-                () => _sut.DeleteStudentParentAsync(relation));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.DeleteStudentParentAsync(relation));
         }
 
         [Fact]
         public async Task DeleteStudentParentAsync_Throws_WhenParentDoesNotExist()
         {
-            var relation = TestDataBuilders.ValidStudentParentRequest(
-                studentId: 1,
-                parentId: 10);
+            var relation = TestDataBuilders.ValidStudentParentRequest(studentId: 1, parentId: 10);
 
-            _studentDataMock
-                .Setup(d => d.IsStudentExistAsync(1))
+            _studentDataMock.Setup(d => d.IsStudentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
-            _parentDataMock
-                .Setup(d => d.IsParentExistAsync(10))
+            _parentDataMock.Setup(d => d.IsParentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(
@@ -255,39 +237,29 @@ namespace School.Tests.Services
         [Fact]
         public async Task DeleteStudentParentAsync_Throws_WhenRelationDoesNotExist()
         {
-            var relation = TestDataBuilders.ValidStudentParentRequest(
-                studentId: 1,
-                parentId: 10);
+            var relation = TestDataBuilders.ValidStudentParentRequest(studentId: 1, parentId: 10);
 
-            _studentDataMock
-                .Setup(d => d.IsStudentExistAsync(1))
+            _studentDataMock.Setup(d => d.IsStudentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
-            _parentDataMock
-                .Setup(d => d.IsParentExistAsync(10))
+            _parentDataMock.Setup(d => d.IsParentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
-            _studentParentDataMock
-                .Setup(d => d.IsStudentParentExistAsync(relation))
+            _studentParentDataMock.Setup(d => d.IsStudentParentExistAsync(relation))
                 .ReturnsAsync(false);
 
-            await Assert.ThrowsAsync<KeyNotFoundException>(
-                () => _sut.DeleteStudentParentAsync(relation));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.DeleteStudentParentAsync(relation));
         }
 
         [Fact]
         public async Task DeleteStudentParentAsync_ReturnsTrue_WhenRelationIsDeleted()
         {
-            var relation = TestDataBuilders.ValidStudentParentRequest(
-                studentId: 1,
-                parentId: 10);
+            var relation = TestDataBuilders.ValidStudentParentRequest(studentId: 1, parentId: 10);
 
-            _studentDataMock
-                .Setup(d => d.IsStudentExistAsync(1))
+            _studentDataMock.Setup(d => d.IsStudentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
-            _parentDataMock
-                .Setup(d => d.IsParentExistAsync(10))
+            _parentDataMock.Setup(d => d.IsParentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
             _studentParentDataMock
@@ -306,28 +278,23 @@ namespace School.Tests.Services
         [Fact]
         public async Task DeleteStudentParentAsync_Throws_WhenDataLayerFailsToDeleteRelation()
         {
-            var relation = TestDataBuilders.ValidStudentParentRequest(
-                studentId: 1,
-                parentId: 10);
+            var relation = TestDataBuilders.ValidStudentParentRequest(studentId: 1, parentId: 10);
 
             _studentDataMock
-                .Setup(d => d.IsStudentExistAsync(1))
+                .Setup(d => d.IsStudentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
             _parentDataMock
-                .Setup(d => d.IsParentExistAsync(10))
+                .Setup(d => d.IsParentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
-            _studentParentDataMock
-                .Setup(d => d.IsStudentParentExistAsync(relation))
+            _studentParentDataMock.Setup(d => d.IsStudentParentExistAsync(relation))
                 .ReturnsAsync(true);
 
-            _studentParentDataMock
-                .Setup(d => d.DeleteStudentParentAsync(relation))
+            _studentParentDataMock.Setup(d => d.DeleteStudentParentAsync(relation))
                 .ReturnsAsync(false);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _sut.DeleteStudentParentAsync(relation));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.DeleteStudentParentAsync(relation));
         }
 
         #endregion

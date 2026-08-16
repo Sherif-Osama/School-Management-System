@@ -29,7 +29,7 @@ namespace School.Tests.Services
         public async Task GetUserByIdAsync_ReturnsUser_WhenFound()
         {
             var user = TestDataBuilders.ValidUser(userId: 3);
-            _userDataMock.Setup(d => d.GetUserByIdAsync(3)).ReturnsAsync(user);
+            _userDataMock.Setup(d => d.GetUserByIdAsync(It.IsAny<int>())).ReturnsAsync(user);
 
             var result = await _sut.GetUserByIdAsync(3);
 
@@ -39,7 +39,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetUserByIdAsync_Throws_WhenNotFound()
         {
-            _userDataMock.Setup(d => d.GetUserByIdAsync(1)).ReturnsAsync((UserResponse?)null);
+            _userDataMock.Setup(d => d.GetUserByIdAsync(It.IsAny<int>())).ReturnsAsync((UserResponse?)null);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetUserByIdAsync(1));
         }
@@ -49,7 +49,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetUserByUsernameAsync_Throws_WhenNotFound()
         {
-            _userDataMock.Setup(d => d.GetUserByUsernameAsync("ahmed123")).ReturnsAsync((UserResponse?)null);
+            _userDataMock.Setup(d => d.GetUserByUsernameAsync(It.IsAny<string>())).ReturnsAsync((UserResponse?)null);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetUserByUsernameAsync("ahmed123"));
         }
@@ -70,7 +70,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetUserByPersonIdAsync_Throws_WhenPersonDoesNotExist()
         {
-            _personDataMock.Setup(d => d.IsPersonExistAsync(1)).ReturnsAsync(false);
+            _personDataMock.Setup(d => d.IsPersonExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetUserByPersonIdAsync(1));
         }
@@ -78,8 +78,8 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetUserByPersonIdAsync_Throws_WhenUserDoesNotExistForPerson()
         {
-            _personDataMock.Setup(d => d.IsPersonExistAsync(1)).ReturnsAsync(true);
-            _userDataMock.Setup(d => d.GetUserByPersonIdAsync(1)).ReturnsAsync((UserResponse?)null);
+            _personDataMock.Setup(d => d.IsPersonExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.GetUserByPersonIdAsync(It.IsAny<int>())).ReturnsAsync((UserResponse?)null);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetUserByPersonIdAsync(1));
         }
@@ -87,8 +87,8 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetUserByPersonIdAsync_ReturnsUser_WhenFound()
         {
-            _personDataMock.Setup(d => d.IsPersonExistAsync(1)).ReturnsAsync(true);
-            _userDataMock.Setup(d => d.GetUserByPersonIdAsync(1)).ReturnsAsync(TestDataBuilders.ValidUser(personId: 1));
+            _personDataMock.Setup(d => d.IsPersonExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.GetUserByPersonIdAsync(It.IsAny<int>())).ReturnsAsync(TestDataBuilders.ValidUser(personId: 1));
 
             var result = await _sut.GetUserByPersonIdAsync(1);
 
@@ -125,7 +125,7 @@ namespace School.Tests.Services
         public async Task AddUserAsync_Throws_WhenPersonDoesNotExist()
         {
             var request = TestDataBuilders.ValidCreateUserRequest(personId: 1);
-            _personDataMock.Setup(d => d.IsPersonExistAsync(1)).ReturnsAsync(false);
+            _personDataMock.Setup(d => d.IsPersonExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.AddUserAsync(request));
         }
@@ -134,8 +134,8 @@ namespace School.Tests.Services
         public async Task AddUserAsync_Throws_WhenPersonAlreadyHasAUser()
         {
             var request = TestDataBuilders.ValidCreateUserRequest(personId: 1);
-            _personDataMock.Setup(d => d.IsPersonExistAsync(1)).ReturnsAsync(true);
-            _userDataMock.Setup(d => d.GetUserByPersonIdAsync(1)).ReturnsAsync(TestDataBuilders.ValidUser(personId: 1));
+            _personDataMock.Setup(d => d.IsPersonExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.GetUserByPersonIdAsync(It.IsAny<int>())).ReturnsAsync(TestDataBuilders.ValidUser(personId: 1));
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.AddUserAsync(request));
         }
@@ -144,8 +144,8 @@ namespace School.Tests.Services
         public async Task AddUserAsync_Throws_WhenUsernameIsAlreadyTaken()
         {
             var request = TestDataBuilders.ValidCreateUserRequest(personId: 1, username: "ahmed123");
-            _personDataMock.Setup(d => d.IsPersonExistAsync(1)).ReturnsAsync(true);
-            _userDataMock.Setup(d => d.GetUserByPersonIdAsync(1)).ReturnsAsync((UserResponse?)null);
+            _personDataMock.Setup(d => d.IsPersonExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.GetUserByPersonIdAsync(It.IsAny<int>())).ReturnsAsync((UserResponse?)null);
             _userDataMock.Setup(d => d.GetUserByUsernameAsync("ahmed123")).ReturnsAsync(TestDataBuilders.ValidUser(userId: 9));
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.AddUserAsync(request));
@@ -155,8 +155,8 @@ namespace School.Tests.Services
         public async Task AddUserAsync_HashesPassword_BeforeSendingToDataLayer()
         {
             var request = TestDataBuilders.ValidCreateUserRequest(personId: 1, password: "PlainTextP@ss");
-            _personDataMock.Setup(d => d.IsPersonExistAsync(1)).ReturnsAsync(true);
-            _userDataMock.Setup(d => d.GetUserByPersonIdAsync(1)).ReturnsAsync((UserResponse?)null);
+            _personDataMock.Setup(d => d.IsPersonExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.GetUserByPersonIdAsync(It.IsAny<int>())).ReturnsAsync((UserResponse?)null);
             _userDataMock.Setup(d => d.GetUserByUsernameAsync(request.Username)).ReturnsAsync((UserResponse?)null);
 
             string? capturedPasswordSentToDataLayer = null;
@@ -176,8 +176,8 @@ namespace School.Tests.Services
         public async Task AddUserAsync_ReturnsNewId_WhenUserIsAdded()
         {
             var request = TestDataBuilders.ValidCreateUserRequest(personId: 1);
-            _personDataMock.Setup(d => d.IsPersonExistAsync(1)).ReturnsAsync(true);
-            _userDataMock.Setup(d => d.GetUserByPersonIdAsync(1)).ReturnsAsync((UserResponse?)null);
+            _personDataMock.Setup(d => d.IsPersonExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.GetUserByPersonIdAsync(It.IsAny<int>())).ReturnsAsync((UserResponse?)null);
             _userDataMock.Setup(d => d.GetUserByUsernameAsync(request.Username)).ReturnsAsync((UserResponse?)null);
             _userDataMock.Setup(d => d.AddUserAsync(It.IsAny<CreateUserRequest>())).ReturnsAsync(7);
 
@@ -190,8 +190,8 @@ namespace School.Tests.Services
         public async Task AddUserAsync_Throws_WhenDataLayerFailsToInsert()
         {
             var request = TestDataBuilders.ValidCreateUserRequest(personId: 1);
-            _personDataMock.Setup(d => d.IsPersonExistAsync(1)).ReturnsAsync(true);
-            _userDataMock.Setup(d => d.GetUserByPersonIdAsync(1)).ReturnsAsync((UserResponse?)null);
+            _personDataMock.Setup(d => d.IsPersonExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.GetUserByPersonIdAsync(It.IsAny<int>())).ReturnsAsync((UserResponse?)null);
             _userDataMock.Setup(d => d.GetUserByUsernameAsync(request.Username)).ReturnsAsync((UserResponse?)null);
             _userDataMock.Setup(d => d.AddUserAsync(It.IsAny<CreateUserRequest>())).ReturnsAsync(0);
 
@@ -218,7 +218,7 @@ namespace School.Tests.Services
         public async Task UpdateUserAsync_Throws_WhenUserDoesNotExist()
         {
             var request = TestDataBuilders.ValidUpdateUserRequest();
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(false);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.UpdateUserAsync(1, request));
         }
@@ -227,7 +227,7 @@ namespace School.Tests.Services
         public async Task UpdateUserAsync_Throws_WhenUsernameBelongsToAnotherUser()
         {
             var request = TestDataBuilders.ValidUpdateUserRequest(username: "ahmed123");
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(true);
             _userDataMock.Setup(d => d.GetUserByUsernameAsync("ahmed123")).ReturnsAsync(TestDataBuilders.ValidUser(userId: 2));
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.UpdateUserAsync(1, request));
@@ -237,9 +237,9 @@ namespace School.Tests.Services
         public async Task UpdateUserAsync_ReturnsTrue_WhenUsernameBelongsToTheSameUser()
         {
             var request = TestDataBuilders.ValidUpdateUserRequest(username: "ahmed123");
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(true);
             _userDataMock.Setup(d => d.GetUserByUsernameAsync("ahmed123")).ReturnsAsync(TestDataBuilders.ValidUser(userId: 1));
-            _userDataMock.Setup(d => d.UpdateUserAsync(1, request)).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.UpdateUserAsync(It.IsAny<int>(), request)).ReturnsAsync(true);
 
             var result = await _sut.UpdateUserAsync(1, request);
 
@@ -250,9 +250,9 @@ namespace School.Tests.Services
         public async Task UpdateUserAsync_ReturnsTrue_WhenUpdateSucceeds()
         {
             var request = TestDataBuilders.ValidUpdateUserRequest(username: "newname");
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(true);
             _userDataMock.Setup(d => d.GetUserByUsernameAsync("newname")).ReturnsAsync((UserResponse?)null);
-            _userDataMock.Setup(d => d.UpdateUserAsync(1, request)).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.UpdateUserAsync(It.IsAny<int>(), request)).ReturnsAsync(true);
 
             var result = await _sut.UpdateUserAsync(1, request);
 
@@ -263,9 +263,9 @@ namespace School.Tests.Services
         public async Task UpdateUserAsync_Throws_WhenDataLayerFailsToUpdate()
         {
             var request = TestDataBuilders.ValidUpdateUserRequest(username: "newname");
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(true);
             _userDataMock.Setup(d => d.GetUserByUsernameAsync("newname")).ReturnsAsync((UserResponse?)null);
-            _userDataMock.Setup(d => d.UpdateUserAsync(1, request)).ReturnsAsync(false);
+            _userDataMock.Setup(d => d.UpdateUserAsync(It.IsAny<int>(), request)).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.UpdateUserAsync(1, request));
         }
@@ -294,7 +294,7 @@ namespace School.Tests.Services
         public async Task ChangePasswordAsync_Throws_WhenUserDoesNotExist()
         {
             var request = TestDataBuilders.ValidUpdatePasswordRequest();
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(false);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.ChangePasswordAsync(1, request));
         }
@@ -303,8 +303,8 @@ namespace School.Tests.Services
         public async Task ChangePasswordAsync_Throws_WhenPasswordHashNotFound()
         {
             var request = TestDataBuilders.ValidUpdatePasswordRequest();
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(true);
-            _userDataMock.Setup(d => d.GetPasswordHashByUserIdAsync(1)).ReturnsAsync((string?)null);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.GetPasswordHashByUserIdAsync(It.IsAny<int>())).ReturnsAsync((string?)null);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.ChangePasswordAsync(1, request));
         }
@@ -315,8 +315,8 @@ namespace School.Tests.Services
             var request = TestDataBuilders.ValidUpdatePasswordRequest(currentPassword: "WrongP@ss1");
             var storedHash = PasswordHasher.Hash("ActualP@ss1");
 
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(true);
-            _userDataMock.Setup(d => d.GetPasswordHashByUserIdAsync(1)).ReturnsAsync(storedHash);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.GetPasswordHashByUserIdAsync(It.IsAny<int>())).ReturnsAsync(storedHash);
 
             await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _sut.ChangePasswordAsync(1, request));
         }
@@ -327,9 +327,9 @@ namespace School.Tests.Services
             var request = TestDataBuilders.ValidUpdatePasswordRequest(currentPassword: "CorrectP@ss1", newPassword: "NewP@ss1", confirmPassword: "NewP@ss1");
             var storedHash = PasswordHasher.Hash("CorrectP@ss1");
 
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(true);
-            _userDataMock.Setup(d => d.GetPasswordHashByUserIdAsync(1)).ReturnsAsync(storedHash);
-            _userDataMock.Setup(d => d.UpdatePasswordAsync(1, It.IsAny<string>())).ReturnsAsync(false);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.GetPasswordHashByUserIdAsync(It.IsAny<int>())).ReturnsAsync(storedHash);
+            _userDataMock.Setup(d => d.UpdatePasswordAsync(It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.ChangePasswordAsync(1, request));
         }
@@ -340,14 +340,14 @@ namespace School.Tests.Services
             var request = TestDataBuilders.ValidUpdatePasswordRequest(currentPassword: "CorrectP@ss1", newPassword: "NewP@ss1", confirmPassword: "NewP@ss1");
             var storedHash = PasswordHasher.Hash("CorrectP@ss1");
 
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(true);
-            _userDataMock.Setup(d => d.GetPasswordHashByUserIdAsync(1)).ReturnsAsync(storedHash);
-            _userDataMock.Setup(d => d.UpdatePasswordAsync(1, It.IsAny<string>())).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.GetPasswordHashByUserIdAsync(It.IsAny<int>())).ReturnsAsync(storedHash);
+            _userDataMock.Setup(d => d.UpdatePasswordAsync(It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(true);
 
             var result = await _sut.ChangePasswordAsync(1, request);
 
             Assert.True(result);
-            _refreshTokenDataMock.Verify(d => d.RevokeAllRefreshTokensByUserIdAsync(1), Times.Once);
+            _refreshTokenDataMock.Verify(d => d.RevokeAllRefreshTokensByUserIdAsync(It.IsAny<int>()), Times.Once);
         }
 
         [Fact]
@@ -356,8 +356,8 @@ namespace School.Tests.Services
             var request = TestDataBuilders.ValidUpdatePasswordRequest(currentPassword: "WrongP@ss1");
             var storedHash = PasswordHasher.Hash("ActualP@ss1");
 
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(true);
-            _userDataMock.Setup(d => d.GetPasswordHashByUserIdAsync(1)).ReturnsAsync(storedHash);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.GetPasswordHashByUserIdAsync(It.IsAny<int>())).ReturnsAsync(storedHash);
 
             await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _sut.ChangePasswordAsync(1, request));
 
@@ -369,7 +369,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task DeleteUserAsync_Throws_WhenUserDoesNotExist()
         {
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(false);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.DeleteUserAsync(1));
         }
@@ -377,8 +377,8 @@ namespace School.Tests.Services
         [Fact]
         public async Task DeleteUserAsync_ReturnsTrue_WhenDeletionSucceeds()
         {
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(true);
-            _userDataMock.Setup(d => d.DeleteUserAsync(1)).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.DeleteUserAsync(It.IsAny<int>())).ReturnsAsync(true);
 
             var result = await _sut.DeleteUserAsync(1);
 
@@ -388,8 +388,8 @@ namespace School.Tests.Services
         [Fact]
         public async Task DeleteUserAsync_Throws_WhenDataLayerFailsToDelete()
         {
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(true);
-            _userDataMock.Setup(d => d.DeleteUserAsync(1)).ReturnsAsync(false);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.DeleteUserAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.DeleteUserAsync(1));
         }

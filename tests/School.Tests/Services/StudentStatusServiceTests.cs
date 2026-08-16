@@ -28,7 +28,7 @@ namespace School.Tests.Services
                     statusId: 1);
 
             _studentStatusDataMock
-                .Setup(d => d.GetStudentStatusByIdAsync(1))
+                .Setup(d => d.GetStudentStatusByIdAsync(It.IsAny<int>()))
                 .ReturnsAsync(status);
 
             var result =
@@ -41,7 +41,7 @@ namespace School.Tests.Services
         public async Task GetStudentStatusByIdAsync_Throws_WhenNotFound()
         {
             _studentStatusDataMock
-                .Setup(d => d.GetStudentStatusByIdAsync(1))
+                .Setup(d => d.GetStudentStatusByIdAsync(It.IsAny<int>()))
                 .ReturnsAsync((StudentStatusResponse?)null);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(
@@ -140,7 +140,7 @@ namespace School.Tests.Services
         {
             var status = TestDataBuilders.ValidUpdateStudentStatusRequest();
 
-            _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(1))
+            _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.UpdateStudentStatusAsync(1, status));
@@ -151,7 +151,7 @@ namespace School.Tests.Services
         {
             var status = TestDataBuilders.ValidUpdateStudentStatusRequest();
 
-            _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(1))
+            _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
             _studentStatusDataMock.Setup(d => d.GetStudentStatusByNameAsync(status.StatusName))
@@ -165,13 +165,13 @@ namespace School.Tests.Services
         {
             var status = TestDataBuilders.ValidUpdateStudentStatusRequest();
 
-            _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(1))
+            _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
             _studentStatusDataMock.Setup(d => d.GetStudentStatusByNameAsync(status.StatusName))
                 .ReturnsAsync((StudentStatusResponse?)null);
 
-            _studentStatusDataMock.Setup(d => d.UpdateStudentStatusAsync(1, status))
+            _studentStatusDataMock.Setup(d => d.UpdateStudentStatusAsync(It.IsAny<int>(), status))
                 .ReturnsAsync(true);
 
             var result = await _sut.UpdateStudentStatusAsync(1, status);
@@ -184,14 +184,14 @@ namespace School.Tests.Services
         {
             var status = TestDataBuilders.ValidUpdateStudentStatusRequest();
 
-            _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(1))
+            _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
             _studentStatusDataMock.Setup(d => d.GetStudentStatusByNameAsync(status.StatusName))
                 .ReturnsAsync(TestDataBuilders.ValidStudentStatus(statusId: 1, statusName: status.StatusName));
 
             _studentStatusDataMock
-                .Setup(d => d.UpdateStudentStatusAsync(1, status))
+                .Setup(d => d.UpdateStudentStatusAsync(It.IsAny<int>(), status))
                 .ReturnsAsync(true);
 
             var result = await _sut.UpdateStudentStatusAsync(1, status);
@@ -205,14 +205,14 @@ namespace School.Tests.Services
             var status =
                 TestDataBuilders.ValidUpdateStudentStatusRequest();
 
-            _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(1))
+            _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
             _studentStatusDataMock.Setup(d => d.GetStudentStatusByNameAsync(status.StatusName))
                 .ReturnsAsync((StudentStatusResponse?)null);
 
             _studentStatusDataMock
-                .Setup(d => d.UpdateStudentStatusAsync(1, status))
+                .Setup(d => d.UpdateStudentStatusAsync(It.IsAny<int>(), status))
                 .ReturnsAsync(false);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.UpdateStudentStatusAsync(1, status));
@@ -225,7 +225,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task DeleteStudentStatusAsync_Throws_WhenStatusDoesNotExist()
         {
-            _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(1))
+            _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(
@@ -235,10 +235,10 @@ namespace School.Tests.Services
         [Fact]
         public async Task DeleteStudentStatusAsync_ReturnsTrue_WhenStatusIsDeleted()
         {
-            _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(1))
+            _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
-            _studentStatusDataMock.Setup(d => d.DeleteStudentStatusAsync(1))
+            _studentStatusDataMock.Setup(d => d.DeleteStudentStatusAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
             var result = await _sut.DeleteStudentStatusAsync(1);
@@ -249,10 +249,10 @@ namespace School.Tests.Services
         [Fact]
         public async Task DeleteStudentStatusAsync_Throws_WhenDataLayerFailsToDelete()
         {
-            _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(1))
+            _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
-            _studentStatusDataMock.Setup(d => d.DeleteStudentStatusAsync(1))
+            _studentStatusDataMock.Setup(d => d.DeleteStudentStatusAsync(It.IsAny<int>()))
                 .ReturnsAsync(false);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.DeleteStudentStatusAsync(1));

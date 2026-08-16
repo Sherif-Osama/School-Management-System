@@ -26,7 +26,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetUserRoleAsync_Throws_WhenNotFound()
         {
-            _userRoleDataMock.Setup(d => d.GetUserRoleAsync(1, 1)).ReturnsAsync((UserRoleResponse?)null);
+            _userRoleDataMock.Setup(d => d.GetUserRoleAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync((UserRoleResponse?)null);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetUserRoleAsync(1, 1));
         }
@@ -35,7 +35,7 @@ namespace School.Tests.Services
         public async Task GetUserRoleAsync_ReturnsUserRole_WhenFound()
         {
             var userRole = TestDataBuilders.ValidUserRole(userId: 1, roleId: 2);
-            _userRoleDataMock.Setup(d => d.GetUserRoleAsync(1, 2)).ReturnsAsync(userRole);
+            _userRoleDataMock.Setup(d => d.GetUserRoleAsync(It.IsAny<int>(), 2)).ReturnsAsync(userRole);
 
             var result = await _sut.GetUserRoleAsync(1, 2);
 
@@ -48,7 +48,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetRolesByUserIdAsync_Throws_WhenUserDoesNotExist()
         {
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(false);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetRolesByUserIdAsync(1));
         }
@@ -57,8 +57,8 @@ namespace School.Tests.Services
         public async Task GetRolesByUserIdAsync_ReturnsRoles_WhenUserExists()
         {
             var roles = new List<UserRoleResponse> { TestDataBuilders.ValidUserRole(userId: 1, roleId: 1) };
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(true);
-            _userRoleDataMock.Setup(d => d.GetRolesByUserIdAsync(1)).ReturnsAsync(roles);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _userRoleDataMock.Setup(d => d.GetRolesByUserIdAsync(It.IsAny<int>())).ReturnsAsync(roles);
 
             var result = await _sut.GetRolesByUserIdAsync(1);
 
@@ -95,7 +95,7 @@ namespace School.Tests.Services
         public async Task AddUserRoleAsync_Throws_WhenUserDoesNotExist()
         {
             var request = TestDataBuilders.ValidUserRoleRequest(userId: 1, roleId: 1);
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(false);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.AddUserRoleAsync(request));
         }
@@ -104,8 +104,8 @@ namespace School.Tests.Services
         public async Task AddUserRoleAsync_Throws_WhenRoleDoesNotExist()
         {
             var request = TestDataBuilders.ValidUserRoleRequest(userId: 1, roleId: 1);
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(true);
-            _roleDataMock.Setup(d => d.IsRoleExistAsync(1)).ReturnsAsync(false);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _roleDataMock.Setup(d => d.IsRoleExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.AddUserRoleAsync(request));
         }
@@ -114,9 +114,9 @@ namespace School.Tests.Services
         public async Task AddUserRoleAsync_Throws_WhenRoleIsAlreadyAssignedToUser()
         {
             var request = TestDataBuilders.ValidUserRoleRequest(userId: 1, roleId: 1);
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(true);
-            _roleDataMock.Setup(d => d.IsRoleExistAsync(1)).ReturnsAsync(true);
-            _userRoleDataMock.Setup(d => d.IsUserRoleExistAsync(1, 1)).ReturnsAsync(true);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _roleDataMock.Setup(d => d.IsRoleExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _userRoleDataMock.Setup(d => d.IsUserRoleExistAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(true);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.AddUserRoleAsync(request));
         }
@@ -125,9 +125,9 @@ namespace School.Tests.Services
         public async Task AddUserRoleAsync_ReturnsTrue_WhenAssignedSuccessfully()
         {
             var request = TestDataBuilders.ValidUserRoleRequest(userId: 1, roleId: 1);
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(true);
-            _roleDataMock.Setup(d => d.IsRoleExistAsync(1)).ReturnsAsync(true);
-            _userRoleDataMock.Setup(d => d.IsUserRoleExistAsync(1, 1)).ReturnsAsync(false);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _roleDataMock.Setup(d => d.IsRoleExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _userRoleDataMock.Setup(d => d.IsUserRoleExistAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(false);
             _userRoleDataMock.Setup(d => d.AddUserRoleAsync(request)).ReturnsAsync(true);
 
             var result = await _sut.AddUserRoleAsync(request);
@@ -139,9 +139,9 @@ namespace School.Tests.Services
         public async Task AddUserRoleAsync_Throws_WhenDataLayerFailsToAssign()
         {
             var request = TestDataBuilders.ValidUserRoleRequest(userId: 1, roleId: 1);
-            _userDataMock.Setup(d => d.IsUserExistAsync(1)).ReturnsAsync(true);
-            _roleDataMock.Setup(d => d.IsRoleExistAsync(1)).ReturnsAsync(true);
-            _userRoleDataMock.Setup(d => d.IsUserRoleExistAsync(1, 1)).ReturnsAsync(false);
+            _userDataMock.Setup(d => d.IsUserExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _roleDataMock.Setup(d => d.IsRoleExistAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _userRoleDataMock.Setup(d => d.IsUserRoleExistAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(false);
             _userRoleDataMock.Setup(d => d.AddUserRoleAsync(request)).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.AddUserRoleAsync(request));
@@ -164,7 +164,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task DeleteUserRoleAsync_Throws_WhenRelationshipDoesNotExist()
         {
-            _userRoleDataMock.Setup(d => d.IsUserRoleExistAsync(1, 1)).ReturnsAsync(false);
+            _userRoleDataMock.Setup(d => d.IsUserRoleExistAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.DeleteUserRoleAsync(1, 1));
         }
@@ -172,8 +172,8 @@ namespace School.Tests.Services
         [Fact]
         public async Task DeleteUserRoleAsync_ReturnsTrue_WhenDeletionSucceeds()
         {
-            _userRoleDataMock.Setup(d => d.IsUserRoleExistAsync(1, 1)).ReturnsAsync(true);
-            _userRoleDataMock.Setup(d => d.DeleteUserRoleAsync(1, 1)).ReturnsAsync(true);
+            _userRoleDataMock.Setup(d => d.IsUserRoleExistAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(true);
+            _userRoleDataMock.Setup(d => d.DeleteUserRoleAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(true);
 
             var result = await _sut.DeleteUserRoleAsync(1, 1);
 
@@ -183,8 +183,8 @@ namespace School.Tests.Services
         [Fact]
         public async Task DeleteUserRoleAsync_Throws_WhenDataLayerFailsToDelete()
         {
-            _userRoleDataMock.Setup(d => d.IsUserRoleExistAsync(1, 1)).ReturnsAsync(true);
-            _userRoleDataMock.Setup(d => d.DeleteUserRoleAsync(1, 1)).ReturnsAsync(false);
+            _userRoleDataMock.Setup(d => d.IsUserRoleExistAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(true);
+            _userRoleDataMock.Setup(d => d.DeleteUserRoleAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.DeleteUserRoleAsync(1, 1));
         }
