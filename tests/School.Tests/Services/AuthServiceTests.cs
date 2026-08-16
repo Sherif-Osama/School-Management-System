@@ -5,6 +5,8 @@ using School.DAL.Interfaces;
 using School.DTO.AuthDTOs;
 using School.DTO.UserDTOs.Responses;
 using School.Tests.TestHelpers;
+using System.Security.Cryptography;
+using System.Text;
 using Xunit;
 
 namespace School.Tests.Services
@@ -115,15 +117,27 @@ namespace School.Tests.Services
         public async Task LoginAsync_PersistsTheIssuedRefreshToken()
         {
             var user = TestDataBuilders.MakeUserAuth("ahmed", "correct-password");
-            var request = new LoginRequest { Username = "ahmed", Password = "correct-password" };
-            _userDataMock.Setup(d => d.GetUserForAuthenticationAsync("ahmed")).ReturnsAsync(user);
-            _userRoleDataMock.Setup(d => d.GetRoleNamesByUserIdAsync(user.UserID)).ReturnsAsync(["Admin"]);
-            _rolePermissionDataMock.Setup(d => d.GetPermissionNamesByUserIdAsync(user.UserID)).ReturnsAsync(["Students.View.All"]);
+
+            var request = new LoginRequest
+            {
+                Username = "ahmed",
+                Password = "correct-password"
+            };
+
+            _userDataMock.Setup(d => d.GetUserForAuthenticationAsync("ahmed"))
+                .ReturnsAsync(user);
+
+            _userRoleDataMock.Setup(d => d.GetRoleNamesByUserIdAsync(user.UserID))
+                .ReturnsAsync(["Admin"]);
+
+            _rolePermissionDataMock.Setup(d => d.GetPermissionNamesByUserIdAsync(user.UserID))
+                .ReturnsAsync(["Students.View.All"]);
 
             await _sut.LoginAsync(request);
 
-            _refreshTokenDataMock.Verify(d => d.AddRefreshTokenAsync(
-                user.UserID, "fake-refresh-token", It.IsAny<DateTime>()), Times.Once);
+            string expectedHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes("fake-refresh-token")));
+
+            _refreshTokenDataMock.Verify(d => d.AddRefreshTokenAsync(user.UserID, expectedHash, It.IsAny<DateTime>()), Times.Once);
         }
         #endregion
 
@@ -175,7 +189,11 @@ namespace School.Tests.Services
         [Fact]
         public async Task RefreshTokenAsync_RevokesTheOldToken_BeforeIssuingANewOne()
         {
-            var request = new RefreshTokenRequest { RefreshToken = "valid-token" };
+            var request = new RefreshTokenRequest
+            {
+                RefreshToken = "valid-token"
+            };
+
             var storedToken = new RefreshToken
             {
                 RefreshTokenID = 1,
@@ -184,28 +202,38 @@ namespace School.Tests.Services
                 ExpiresAt = DateTime.Now.AddDays(5),
                 CreatedAt = DateTime.Now.AddDays(-1)
             };
-            _refreshTokenDataMock.Setup(d => d.GetRefreshTokenByTokenAsync("valid-token")).ReturnsAsync(storedToken);
-            _userDataMock.Setup(d => d.GetUserByIdAsync(1)).ReturnsAsync(new UserResponse
-            {
-                UserID = 1,
-                PersonID = 100,
-                NationalID = "12345678901234",
-                FirstName = "Ahmed",
-                SecondName = "Mohamed",
-                ThirdName = "Ali",
-                DateOfBirth = new DateTime(1990, 1, 1),
-                Gender = 1,
-                Phone = "01000000000",
-                CityID = 1,
-                Username = "ahmed",
-                IsActive = true
-            });
-            _userRoleDataMock.Setup(d => d.GetRoleNamesByUserIdAsync(1)).ReturnsAsync(["Admin"]);
-            _rolePermissionDataMock.Setup(d => d.GetPermissionNamesByUserIdAsync(1)).ReturnsAsync(["Students.View.All"]);
+
+            string tokenHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes("valid-token")));
+
+            _refreshTokenDataMock.Setup(d => d.GetRefreshTokenByTokenAsync(tokenHash))
+                .ReturnsAsync(storedToken);
+
+            _userDataMock.Setup(d => d.GetUserByIdAsync(1))
+                .ReturnsAsync(new UserResponse
+                {
+                    UserID = 1,
+                    PersonID = 100,
+                    NationalID = "12345678901234",
+                    FirstName = "Ahmed",
+                    SecondName = "Mohamed",
+                    ThirdName = "Ali",
+                    DateOfBirth = new DateTime(1990, 1, 1),
+                    Gender = 1,
+                    Phone = "01000000000",
+                    CityID = 1,
+                    Username = "ahmed",
+                    IsActive = true
+                });
+
+            _userRoleDataMock.Setup(d => d.GetRoleNamesByUserIdAsync(1))
+                .ReturnsAsync(["Admin"]);
+
+            _rolePermissionDataMock.Setup(d => d.GetPermissionNamesByUserIdAsync(1))
+                .ReturnsAsync(["Students.View.All"]);
 
             await _sut.RefreshTokenAsync(request);
 
-            _refreshTokenDataMock.Verify(d => d.RevokeRefreshTokenAsync("valid-token"), Times.Once);
+            _refreshTokenDataMock.Verify(d => d.RevokeRefreshTokenAsync(tokenHash), Times.Once);
         }
 
         [Fact]
@@ -245,11 +273,16 @@ namespace School.Tests.Services
         [Fact]
         public async Task RevokeTokenAsync_CallsDataLayer_WithTheGivenToken()
         {
-            var request = new RefreshTokenRequest { RefreshToken = "some-token" };
+            var request = new RefreshTokenRequest
+            {
+                RefreshToken = "some-token"
+            };
+
+            string tokenHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes("some-token")));
 
             await _sut.RevokeTokenAsync(request);
 
-            _refreshTokenDataMock.Verify(d => d.RevokeRefreshTokenAsync("some-token"), Times.Once);
+            _refreshTokenDataMock.Verify(d => d.RevokeRefreshTokenAsync(tokenHash), Times.Once);
         }
         #endregion
     }

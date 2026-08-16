@@ -3,6 +3,8 @@ using School.BLL.Interfaces;
 using School.DAL.Interfaces;
 using School.DTO.AuthDTOs;
 using School.DTO.UserDTOs.Responses;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace School.BLL.Authentication
 {
@@ -70,14 +72,24 @@ namespace School.BLL.Authentication
             LoginResponse response = _jwtService.GenerateToken(user);
 
             string refreshToken = _jwtService.GenerateRefreshToken();
+
             DateTime refreshTokenExpiresAt = DateTime.Now.AddDays(_jwtSettings.RefreshTokenExpireDays);
 
-            await _refreshTokenData.AddRefreshTokenAsync(user.UserID, refreshToken, refreshTokenExpiresAt);
+            string refreshTokenHash = HashRefreshToken(refreshToken);
+
+            await _refreshTokenData.AddRefreshTokenAsync(user.UserID, refreshTokenHash, refreshTokenExpiresAt);
 
             response.RefreshToken = refreshToken;
             response.RefreshTokenExpiresAt = refreshTokenExpiresAt;
 
             return response;
+        }
+        private static string HashRefreshToken(string refreshToken)
+        {
+            byte[] hash = SHA256.HashData(
+                Encoding.UTF8.GetBytes(refreshToken));
+
+            return Convert.ToHexString(hash);
         }
         #endregion
 
@@ -108,12 +120,16 @@ namespace School.BLL.Authentication
         {
             string token = ValidateRefreshTokenRequest(request);
 
-            RefreshToken? storedToken = await _refreshTokenData.GetRefreshTokenByTokenAsync(token);
+            string tokenHash = HashRefreshToken(token);
+
+            RefreshToken? storedToken = await _refreshTokenData.GetRefreshTokenByTokenAsync(tokenHash);
 
             if (storedToken == null || storedToken.RevokedAt != null || storedToken.ExpiresAt <= DateTime.Now)
+            {
                 throw new UnauthorizedAccessException("Invalid or expired refresh token.");
+            }
 
-            await _refreshTokenData.RevokeRefreshTokenAsync(token);
+            await _refreshTokenData.RevokeRefreshTokenAsync(tokenHash);
 
             UserAuth user = await BuildUserAuthAsync(storedToken.UserID);
 
@@ -124,7 +140,9 @@ namespace School.BLL.Authentication
         {
             string token = ValidateRefreshTokenRequest(request);
 
-            await _refreshTokenData.RevokeRefreshTokenAsync(token);
+            string tokenHash = HashRefreshToken(token);
+
+            await _refreshTokenData.RevokeRefreshTokenAsync(tokenHash);
         }
         #endregion
     }
