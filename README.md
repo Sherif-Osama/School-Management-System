@@ -95,7 +95,7 @@ Application logs are persisted to the database without blocking request handling
 
 ## Testing
 
-The BLL is covered by a dedicated **`School.Tests`** project using **xUnit** and **Moq**, with **497 test cases** across 26 test classes.
+The BLL is covered by a dedicated **`School.Tests`** project using **xUnit** and **Moq**, with **524 test cases** across 26 test classes.
 
 - **24 service test classes** — one per BLL service (`StudentServiceTests`, `ScheduleServiceTests`, `AttendanceServiceTests`, `AuthServiceTests`, `RolePermissionServiceTests`, and so on) plus **2 test classes for the shared `Common` helpers** (`EnsureHelperTests`, `ValidationHelperTests`).
 - Each service is tested in true isolation: its DAL dependencies are mocked via `Moq`, so no test touches a real database or stored procedure.
