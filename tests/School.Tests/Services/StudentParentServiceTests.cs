@@ -108,8 +108,7 @@ namespace School.Tests.Services
             _studentDataMock.Setup(d => d.IsStudentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(false);
 
-            await Assert.ThrowsAsync<KeyNotFoundException>(
-                () => _sut.AddStudentParentAsync(relation));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.AddStudentParentAsync(relation));
         }
 
         [Fact]
@@ -129,23 +128,18 @@ namespace School.Tests.Services
         [Fact]
         public async Task AddStudentParentAsync_Throws_WhenRelationAlreadyExists()
         {
-            var relation = TestDataBuilders.ValidStudentParentRequest(
-                studentId: 1,
-                parentId: 10);
+            var relation = TestDataBuilders.ValidStudentParentRequest(studentId: 1, parentId: 10);
 
             _studentDataMock.Setup(d => d.IsStudentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
-            _parentDataMock
-                .Setup(d => d.IsParentExistAsync(10))
+            _parentDataMock.Setup(d => d.IsParentExistAsync(10))
                 .ReturnsAsync(true);
 
-            _studentParentDataMock
-                .Setup(d => d.IsStudentParentExistAsync(relation))
+            _studentParentDataMock.Setup(d => d.IsStudentParentExistAsync(relation))
                 .ReturnsAsync(true);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _sut.AddStudentParentAsync(relation));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.AddStudentParentAsync(relation));
         }
 
         [Fact]
@@ -155,20 +149,16 @@ namespace School.Tests.Services
                 studentId: 1,
                 parentId: 10);
 
-            _studentDataMock
-                .Setup(d => d.IsStudentExistAsync(It.IsAny<int>()))
+            _studentDataMock.Setup(d => d.IsStudentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
-            _parentDataMock
-                .Setup(d => d.IsParentExistAsync(It.IsAny<int>()))
+            _parentDataMock.Setup(d => d.IsParentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
-            _studentParentDataMock
-                .Setup(d => d.IsStudentParentExistAsync(relation))
+            _studentParentDataMock.Setup(d => d.IsStudentParentExistAsync(relation))
                 .ReturnsAsync(false);
 
-            _studentParentDataMock
-                .Setup(d => d.AddStudentParentAsync(relation))
+            _studentParentDataMock.Setup(d => d.AddStudentParentAsync(relation))
                 .ReturnsAsync(true);
 
             var result = await _sut.AddStudentParentAsync(relation);
@@ -193,8 +183,7 @@ namespace School.Tests.Services
             _studentParentDataMock.Setup(d => d.AddStudentParentAsync(relation))
                 .ReturnsAsync(false);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _sut.AddStudentParentAsync(relation));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.AddStudentParentAsync(relation));
         }
 
         #endregion
@@ -212,8 +201,7 @@ namespace School.Tests.Services
         {
             var relation = TestDataBuilders.ValidStudentParentRequest(studentId: 1, parentId: 10);
 
-            _studentDataMock
-                .Setup(d => d.IsStudentExistAsync(It.IsAny<int>()))
+            _studentDataMock.Setup(d => d.IsStudentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(false);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.DeleteStudentParentAsync(relation));
@@ -230,8 +218,7 @@ namespace School.Tests.Services
             _parentDataMock.Setup(d => d.IsParentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(false);
 
-            await Assert.ThrowsAsync<KeyNotFoundException>(
-                () => _sut.DeleteStudentParentAsync(relation));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.DeleteStudentParentAsync(relation));
         }
 
         [Fact]
@@ -262,8 +249,7 @@ namespace School.Tests.Services
             _parentDataMock.Setup(d => d.IsParentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
-            _studentParentDataMock
-                .Setup(d => d.IsStudentParentExistAsync(relation))
+            _studentParentDataMock.Setup(d => d.IsStudentParentExistAsync(relation))
                 .ReturnsAsync(true);
 
             _studentParentDataMock
@@ -280,12 +266,10 @@ namespace School.Tests.Services
         {
             var relation = TestDataBuilders.ValidStudentParentRequest(studentId: 1, parentId: 10);
 
-            _studentDataMock
-                .Setup(d => d.IsStudentExistAsync(It.IsAny<int>()))
+            _studentDataMock.Setup(d => d.IsStudentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
-            _parentDataMock
-                .Setup(d => d.IsParentExistAsync(It.IsAny<int>()))
+            _parentDataMock.Setup(d => d.IsParentExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
             _studentParentDataMock.Setup(d => d.IsStudentParentExistAsync(relation))

@@ -23,16 +23,11 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetStudentStatusByIdAsync_ReturnsStatus_WhenFound()
         {
-            var status =
-                TestDataBuilders.ValidStudentStatus(
-                    statusId: 1);
+            var status = TestDataBuilders.ValidStudentStatus(statusId: 1);
 
-            _studentStatusDataMock
-                .Setup(d => d.GetStudentStatusByIdAsync(It.IsAny<int>()))
-                .ReturnsAsync(status);
+            _studentStatusDataMock.Setup(d => d.GetStudentStatusByIdAsync(It.IsAny<int>())).ReturnsAsync(status);
 
-            var result =
-                await _sut.GetStudentStatusByIdAsync(1);
+            var result = await _sut.GetStudentStatusByIdAsync(1);
 
             Assert.Equal(status, result);
         }
@@ -40,26 +35,20 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetStudentStatusByIdAsync_Throws_WhenNotFound()
         {
-            _studentStatusDataMock
-                .Setup(d => d.GetStudentStatusByIdAsync(It.IsAny<int>()))
+            _studentStatusDataMock.Setup(d => d.GetStudentStatusByIdAsync(It.IsAny<int>()))
                 .ReturnsAsync((StudentStatusResponse?)null);
 
-            await Assert.ThrowsAsync<KeyNotFoundException>(
-                () => _sut.GetStudentStatusByIdAsync(1));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetStudentStatusByIdAsync(1));
         }
 
         [Fact]
         public async Task GetStudentStatusByNameAsync_ReturnsStatus_WhenFound()
         {
-            var status =
-                TestDataBuilders.ValidStudentStatus();
+            var status = TestDataBuilders.ValidStudentStatus();
 
-            _studentStatusDataMock
-                .Setup(d => d.GetStudentStatusByNameAsync("Active"))
-                .ReturnsAsync(status);
+            _studentStatusDataMock.Setup(d => d.GetStudentStatusByNameAsync("Active")).ReturnsAsync(status);
 
-            var result =
-                await _sut.GetStudentStatusByNameAsync("Active");
+            var result = await _sut.GetStudentStatusByNameAsync("Active");
 
             Assert.Equal(status, result);
         }
@@ -67,8 +56,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetStudentStatusByNameAsync_Throws_WhenNotFound()
         {
-            _studentStatusDataMock.Setup(d => d.GetStudentStatusByNameAsync("Active"))
-                .ReturnsAsync((StudentStatusResponse?)null);
+            _studentStatusDataMock.Setup(d => d.GetStudentStatusByNameAsync("Active")).ReturnsAsync((StudentStatusResponse?)null);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetStudentStatusByNameAsync("Active"));
         }
@@ -97,8 +85,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task AddStudentStatusAsync_ReturnsNewId_WhenStatusIsAdded()
         {
-            var status =
-                TestDataBuilders.ValidCreateStudentStatusRequest();
+            var status = TestDataBuilders.ValidCreateStudentStatusRequest();
 
             _studentStatusDataMock.Setup(d => d.GetStudentStatusByNameAsync(status.StatusName))
                 .ReturnsAsync((StudentStatusResponse?)null);
@@ -202,8 +189,7 @@ namespace School.Tests.Services
         [Fact]
         public async Task UpdateStudentStatusAsync_Throws_WhenDataLayerFailsToUpdate()
         {
-            var status =
-                TestDataBuilders.ValidUpdateStudentStatusRequest();
+            var status = TestDataBuilders.ValidUpdateStudentStatusRequest();
 
             _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
@@ -225,11 +211,9 @@ namespace School.Tests.Services
         [Fact]
         public async Task DeleteStudentStatusAsync_Throws_WhenStatusDoesNotExist()
         {
-            _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(It.IsAny<int>()))
-                .ReturnsAsync(false);
+            _studentStatusDataMock.Setup(d => d.IsStudentStatusExistAsync(It.IsAny<int>())).ReturnsAsync(false);
 
-            await Assert.ThrowsAsync<KeyNotFoundException>(
-                () => _sut.DeleteStudentStatusAsync(1));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.DeleteStudentStatusAsync(1));
         }
 
         [Fact]

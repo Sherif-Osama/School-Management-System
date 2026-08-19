@@ -48,9 +48,7 @@ namespace School.Tests.Services
         private void SetupAddHappyPath(StudentResponse? student = null, ExamResponse? exam = null)
         {
             student ??= TestDataBuilders.ValidStudent();
-            exam ??= TestDataBuilders.ValidExam(
-                examId: 1,
-                classId: student.ClassID);
+            exam ??= TestDataBuilders.ValidExam(examId: 1, classId: student.ClassID);
 
             SetupExistingStudent(student);
             SetupExistingExam(exam);
@@ -66,9 +64,7 @@ namespace School.Tests.Services
 
             SetupExistingStudent(TestDataBuilders.ValidStudent(studentId: currentGrade.StudentID, classId: currentGrade.ClassID));
 
-            SetupExistingExam(TestDataBuilders.ValidExam(
-                    examId: currentGrade.ExamID,
-                    classId: currentGrade.ClassID,
+            SetupExistingExam(TestDataBuilders.ValidExam(examId: currentGrade.ExamID, classId: currentGrade.ClassID,
                     totalMarks: currentGrade.TotalMarks));
         }
 
@@ -161,8 +157,7 @@ namespace School.Tests.Services
 
             SetupExistingStudent(TestDataBuilders.ValidStudent(studentId: request.StudentID, classId: 10));
 
-            SetupExistingExam(TestDataBuilders.ValidExam(examId: request.ExamID,
-                    classId: 10));
+            SetupExistingExam(TestDataBuilders.ValidExam(examId: request.ExamID, classId: 10));
 
             await Assert.ThrowsAsync<ArgumentException>(() => _sut.AddStudentGradeAsync(request));
         }
@@ -170,11 +165,9 @@ namespace School.Tests.Services
         [Fact]
         public async Task AddStudentGradeAsync_AllowsZeroGrade_WhenStudentIsAbsent()
         {
-            var request = TestDataBuilders.ValidCreateStudentGradeRequest(grade: 0,
-                    isAbsent: true);
+            var request = TestDataBuilders.ValidCreateStudentGradeRequest(grade: 0, isAbsent: true);
 
-            SetupAddHappyPath(exam: TestDataBuilders.ValidExam(examId: request.ExamID,
-                    classId: 10));
+            SetupAddHappyPath(exam: TestDataBuilders.ValidExam(examId: request.ExamID, classId: 10));
 
             _studentGradeDataMock.Setup(d => d.AddStudentGradeAsync(request)).ReturnsAsync(1);
 
@@ -208,8 +201,7 @@ namespace School.Tests.Services
 
             SetupAddHappyPath();
 
-            _studentGradeDataMock.Setup(d => d.AddStudentGradeAsync(request))
-                .ReturnsAsync(42);
+            _studentGradeDataMock.Setup(d => d.AddStudentGradeAsync(request)).ReturnsAsync(42);
 
             int result = await _sut.AddStudentGradeAsync(request);
 
@@ -223,8 +215,7 @@ namespace School.Tests.Services
 
             SetupAddHappyPath();
 
-            _studentGradeDataMock.Setup(d => d.AddStudentGradeAsync(request))
-                .ReturnsAsync(0);
+            _studentGradeDataMock.Setup(d => d.AddStudentGradeAsync(request)).ReturnsAsync(0);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.AddStudentGradeAsync(request));
         }
@@ -252,16 +243,11 @@ namespace School.Tests.Services
         {
             const int studentGradeId = 1;
 
-            var request =
-                TestDataBuilders.ValidUpdateStudentGradeRequest(
-                    grade: 150);
+            var request = TestDataBuilders.ValidUpdateStudentGradeRequest(grade: 150);
 
             SetupUpdateHappyPath(studentGradeId);
 
-            await Assert.ThrowsAsync<ArgumentException>(
-                () => _sut.UpdateStudentGradeAsync(
-                    studentGradeId,
-                    request));
+            await Assert.ThrowsAsync<ArgumentException>(() => _sut.UpdateStudentGradeAsync(studentGradeId, request));
         }
 
         [Fact]
@@ -269,22 +255,14 @@ namespace School.Tests.Services
         {
             const int studentGradeId = 1;
 
-            var request =
-                TestDataBuilders.ValidUpdateStudentGradeRequest(
-                    grade: 80);
+            var request = TestDataBuilders.ValidUpdateStudentGradeRequest(grade: 80);
 
             SetupUpdateHappyPath(studentGradeId);
 
-            _studentGradeDataMock
-                .Setup(d => d.UpdateStudentGradeAsync(
-                    studentGradeId,
-                    request))
+            _studentGradeDataMock.Setup(d => d.UpdateStudentGradeAsync(studentGradeId, request))
                 .ReturnsAsync(true);
 
-            bool result =
-                await _sut.UpdateStudentGradeAsync(
-                    studentGradeId,
-                    request);
+            bool result = await _sut.UpdateStudentGradeAsync(studentGradeId, request);
 
             Assert.True(result);
         }
@@ -296,33 +274,23 @@ namespace School.Tests.Services
         [Fact]
         public async Task GetStudentGradeByIdAsync_Throws_WhenNotFound()
         {
-            _studentGradeDataMock
-                .Setup(d => d.GetStudentGradeByIdAsync(It.IsAny<int>()))
+            _studentGradeDataMock.Setup(d => d.GetStudentGradeByIdAsync(It.IsAny<int>()))
                 .ReturnsAsync((StudentGradeResponse?)null);
 
-            await Assert.ThrowsAsync<KeyNotFoundException>(
-                () => _sut.GetStudentGradeByIdAsync(1));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetStudentGradeByIdAsync(1));
         }
 
         [Fact]
         public async Task GetStudentGradeByIdAsync_ReturnsGrade_WhenFound()
         {
-            var grade =
-                TestDataBuilders.ValidStudentGrade(
-                    studentGradeId: 1,
-                    studentId: 1,
-                    examId: 1);
+            var grade = TestDataBuilders.ValidStudentGrade(studentGradeId: 1, studentId: 1, examId: 1);
 
-            _studentGradeDataMock
-                .Setup(d => d.GetStudentGradeByIdAsync(1))
+            _studentGradeDataMock.Setup(d => d.GetStudentGradeByIdAsync(1))
                 .ReturnsAsync(grade);
 
-            var result =
-                await _sut.GetStudentGradeByIdAsync(1);
+            var result = await _sut.GetStudentGradeByIdAsync(1);
 
-            Assert.Equal(
-                grade.StudentGradeID,
-                result.StudentGradeID);
+            Assert.Equal(grade.StudentGradeID, result.StudentGradeID);
         }
 
         #endregion
@@ -332,27 +300,22 @@ namespace School.Tests.Services
         [Fact]
         public async Task DeleteStudentGradeAsync_Throws_WhenGradeDoesNotExist()
         {
-            _studentGradeDataMock
-                .Setup(d => d.IsStudentGradeExistAsync(It.IsAny<int>()))
+            _studentGradeDataMock.Setup(d => d.IsStudentGradeExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(false);
 
-            await Assert.ThrowsAsync<KeyNotFoundException>(
-                () => _sut.DeleteStudentGradeAsync(1));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.DeleteStudentGradeAsync(1));
         }
 
         [Fact]
         public async Task DeleteStudentGradeAsync_ReturnsTrue_WhenDeletionSucceeds()
         {
-            _studentGradeDataMock
-                .Setup(d => d.IsStudentGradeExistAsync(It.IsAny<int>()))
+            _studentGradeDataMock.Setup(d => d.IsStudentGradeExistAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
-            _studentGradeDataMock
-                .Setup(d => d.DeleteStudentGradeAsync(It.IsAny<int>()))
+            _studentGradeDataMock.Setup(d => d.DeleteStudentGradeAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
 
-            bool result =
-                await _sut.DeleteStudentGradeAsync(1);
+            bool result = await _sut.DeleteStudentGradeAsync(1);
 
             Assert.True(result);
         }

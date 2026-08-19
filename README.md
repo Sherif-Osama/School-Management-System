@@ -35,12 +35,29 @@ The solution follows a strict layered architecture, with each layer depending on
 
 ```mermaid
 flowchart TD
-    A[School.API<br/>Controllers, Authorization, Middleware] --> B[School.BLL<br/>Business Rules, Auth, JWT & Logging Services]
-    B --> C[School.DAL<br/>ADO.NET + Stored Procedures]
-    C --> D[(SQL Server)]
-    A -.-> E[School.DTO<br/>Shared Data Contracts]
-    B -.-> E
-    C -.-> E
+    subgraph API["School.API — HTTP entry point"]
+        A1[Controllers<br/>Route requests]
+        A2[Authorization<br/>Claims-based policies]
+        A3[Middleware<br/>Error handling]
+    end
+
+    subgraph BLL["School.BLL — Business rules and auth"]
+        B1[Services<br/>Business rules]
+        B2[Authentication<br/>JWT + refresh]
+        B3[Logging<br/>Async DB logger]
+    end
+
+    subgraph DAL["School.DAL — ADO.NET + stored procs"]
+        C1[BaseData<br/>Shared query helpers]
+        C2[Data classes<br/>One per entity]
+    end
+
+    API --> BLL --> DAL --> D[(SQL Server)]
+
+    DTO[School.DTO<br/>Shared contracts]
+    DTO -.-> API
+    DTO -.-> BLL
+    DTO -.-> DAL
 ```
 
 | Layer | Responsibility |
@@ -221,6 +238,15 @@ SchoolManagement/
 
 6. **Open Swagger UI**
    Navigate to `https://localhost:<port>/swagger`, authenticate via `POST /api/Auth/Login`, then click **Authorize** and paste the returned access token to explore every endpoint interactively.
+
+   A seeded admin account is included in the restored database backup for testing:
+   ```json
+   {
+     "username": "AdminUser",
+     "password": "12345678"
+   }
+   ```
+   > This account is for local/demo testing only — holds full `.All` permissions and is not intended for production use.
 
 ## API Documentation
 
